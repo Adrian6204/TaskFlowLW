@@ -8,7 +8,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recoveryMode, setRecoveryMode] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -28,10 +27,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setRecoveryMode(true);
-      }
-
       if (session?.user) {
         mapSupabaseUser(session.user);
       } else {
@@ -54,6 +49,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setUser({
         username: profile?.username || sbUser.email?.split('@')[0],
+        fullName: profile?.full_name,
         role: 'user', // Default role, specific space roles handled in data layer
         employeeId: sbUser.id,
         department: profile?.department,
@@ -66,8 +62,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (username: string, password: string): Promise<void> => {
     if (!isSupabaseConfigured) throw new Error("Supabase not configured");
+
+    // Convert username to fake email for Supabase auth
+    // Sanitize: lowercase and remove spaces
+    const sanitizedUsername = username.toLowerCase().replace(/\s+/g, '');
+    const email = `${sanitizedUsername}@taskflow.local`;
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -76,37 +78,86 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) throw error;
   };
 
-  const signup = async (email: string, password: string, fullName: string, department: string): Promise<void> => {
+  const signup = async (username: string, password: string, fullName: string, department: string): Promise<void> => {
     if (!isSupabaseConfigured) throw new Error("Supabase not configured");
-    const { error } = await supabase.auth.signUp({
+
+    // Convert username to fake email for Supabase auth
+    // Sanitize: lowercase and remove spaces
+    const sanitizedUsername = username.toLowerCase().replace(/\s+/g, '');
+    const email = `${sanitizedUsername}@taskflow.local`;
+
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
+          username: username,
           full_name: fullName,
           avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`,
-          department: department
-        }
+          department: department,
+        },
+        emailRedirectTo: undefined
       }
     });
 
-    if (error) throw error;
+    if (signUpError) throw signUpError;
+
+    if (signUpData.user) {
+      // 1. Check if workspace exists
+      const { data: workspaces, error: fetchError } = await supabase
+        .from('spaces')
+        .select('id')
+        .eq('name', department)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("Error fetching workspace:", fetchError);
+      }
+
+      let spaceId = workspaces?.id;
+
+      // 2. If not, create it
+      if (!spaceId) {
+        // Generate a random 6-char join code
+        const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        const { data: newSpace, error: spaceError } = await supabase
+          .from('spaces')
+          .insert({
+            name: department,
+            owner_id: signUpData.user.id,
+            join_code: joinCode,
+            description: `${department} Workspace`
+          })
+          .select('id')
+          .maybeSingle();
+
+        if (spaceError) {
+          console.error("Error creating workspace:", spaceError);
+          // Fallback: don't block signup if workspace creation fails, but log it
+        } else if (newSpace) {
+          spaceId = newSpace.id;
+        }
+      }
+
+      // 3. Add user to workspace members
+      if (spaceId) {
+        const { error: memberError } = await supabase
+          .from('space_members')
+          .insert({
+            space_id: spaceId,
+            user_id: signUpData.user.id,
+            role: 'admin' // First user or creator gets admin, or default to admin for now as per "Space Ownership" model
+          });
+
+        if (memberError) {
+          console.error("Error adding user to workspace:", memberError);
+        }
+      }
+    }
   };
 
-  const resetPassword = async (email: string): Promise<void> => {
-    if (!isSupabaseConfigured) throw new Error("Supabase not configured");
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
-    });
 
-    if (error) throw error;
-  };
-
-  const updatePassword = async (password: string): Promise<void> => {
-    if (!isSupabaseConfigured) throw new Error("Supabase not configured");
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) throw error;
-  };
 
   const logout = async () => {
     if (!isSupabaseConfigured) return;
@@ -124,7 +175,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, resetPassword, updatePassword, recoveryMode, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

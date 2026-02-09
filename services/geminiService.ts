@@ -69,9 +69,10 @@ export async function generateTasksWithAI(
       },
     });
 
-    const jsonText = response.text.trim();
+    const jsonText = response.text ? response.text.trim() : "";
+    if (!jsonText) throw new Error("AI returned an empty response.");
     const result = JSON.parse(jsonText);
-    
+
     if (result && Array.isArray(result.tasks)) {
       // Validate that assigneeIds are valid
       return result.tasks.map((task: any) => ({
@@ -109,7 +110,7 @@ export async function getTaskAdviceFromAI(
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
-    return response.text;
+    return response.text || "";
   } catch (error) {
     console.error('Error getting advice from Gemini:', error);
     throw new Error('Failed to get advice. The AI model may be temporarily unavailable.');
@@ -147,10 +148,11 @@ export async function suggestTaskPriority(title: string, description: string): P
       },
     });
 
-    const jsonText = response.text.trim();
+    const jsonText = response.text ? response.text.trim() : "";
+    if (!jsonText) throw new Error("AI returned an empty response.");
     const result = JSON.parse(jsonText);
     const suggestedPriority = result.priority as Priority;
-    
+
     if (PRIORITIES.includes(suggestedPriority)) {
       return suggestedPriority;
     } else {
@@ -164,26 +166,26 @@ export async function suggestTaskPriority(title: string, description: string): P
 }
 
 export async function generateWeeklySummary(tasks: Task[], employees: Employee[]): Promise<string> {
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    
-    const recentlyCompletedTasks = tasks.filter(task => 
-        task.status === TaskStatus.DONE && task.completedAt && new Date(task.completedAt) > oneWeekAgo
-    );
-    
-    const newlyCreatedTasks = tasks.filter(task => 
-        new Date(task.createdAt) > oneWeekAgo
-    );
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const overdueTasks = tasks.filter(task => 
-        new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE
-    );
+  const recentlyCompletedTasks = tasks.filter(task =>
+    task.status === TaskStatus.DONE && task.completedAt && new Date(task.completedAt) > oneWeekAgo
+  );
 
-    const employeeMap = new Map(employees.map(e => [e.id, e.name]));
+  const newlyCreatedTasks = tasks.filter(task =>
+    new Date(task.createdAt) > oneWeekAgo
+  );
 
-    const formatTaskList = (taskList: Task[]) => 
-        taskList.map(t => `- "${t.title}" (Assigned to: ${employeeMap.get(t.assigneeId) || 'N/A'})`).join('\n');
+  const overdueTasks = tasks.filter(task =>
+    new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE
+  );
 
-    const prompt = `
+  const employeeMap = new Map(employees.map(e => [e.id, e.name]));
+
+  const formatTaskList = (taskList: Task[]) =>
+    taskList.map(t => `- "${t.title}" (Assigned to: ${employeeMap.get(t.assigneeId) || 'N/A'})`).join('\n');
+
+  const prompt = `
         You are a project manager AI. Based on the following data, generate a concise, human-readable summary of the project's progress over the last week.
         Structure the summary into sections: "Key Accomplishments", "New Tasks Created", and "Attention Needed".
         Be encouraging and professional.
@@ -200,16 +202,16 @@ export async function generateWeeklySummary(tasks: Task[], employees: Employee[]
         Now, please generate the summary.
     `;
 
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-        });
-        return response.text;
-    } catch (error) {
-        console.error('Error generating summary with Gemini:', error);
-        throw new Error('Failed to generate the weekly summary.');
-    }
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+    return response.text || "No summary available.";
+  } catch (error) {
+    console.error('Error generating summary with Gemini:', error);
+    throw new Error('Failed to generate the weekly summary.');
+  }
 }
 
 export async function generateSubtasks(title: string, description: string): Promise<string[]> {
@@ -237,11 +239,46 @@ export async function generateSubtasks(title: string, description: string): Prom
       },
     });
 
-    const jsonText = response.text.trim();
+    const jsonText = response.text ? response.text.trim() : "";
+    if (!jsonText) return [];
     const result = JSON.parse(jsonText);
     return result.subtasks || [];
   } catch (error) {
     console.error('Error generating subtasks with Gemini:', error);
     throw new Error('Failed to generate subtasks.');
+  }
+}
+export async function extractNameFromID(imageBase64: string): Promise<string> {
+  const prompt = `
+    Analyze this image of an ID card/badge. 
+    1. Extract the full name of the employee shown.
+    2. Usually, it's the most prominent name on the card.
+    3. Return ONLY the name. No other text or explanation.
+    4. If no name can be found, return "Unknown".
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: 'image/jpeg',
+                data: imageBase64,
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    return response.text ? response.text.trim() : "Unknown";
+  } catch (error) {
+    console.error('Error extracting name from ID with Gemini:', error);
+    throw new Error('Failed to extract name from ID. Please enter it manually.');
   }
 }

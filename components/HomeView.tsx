@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Task, Employee, TaskStatus, Priority, Space } from '../types';
+import { Task, Employee, TaskStatus, Priority, Space, User } from '../types';
 import BentoCard from './BentoCard';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { ClockIcon } from './icons/ClockIcon';
@@ -18,12 +18,14 @@ interface HomeViewProps {
   tasks: Task[];
   employees: Employee[];
   currentSpace?: Space;
-  user: { username: string; employeeId: string };
+  user: User;
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
+  onUpdateTask: (taskId: number, updates: Partial<Task>) => Promise<void>;
+  onAddTask: (task: Partial<Task>) => Promise<any>;
 }
 
-const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, user, onUpdateTaskStatus }) => {
-  const { tasks: dailyTasks, updateTaskStatus, deleteTask, addTask, updateTaskPriority, loading: dailyLoading } = useDailyTasks();
+const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, user, onUpdateTaskStatus, onUpdateTask, onAddTask }) => {
+  const { tasks: dailyTasks, updateTaskStatus, deleteTask, addTask, updateTaskPriority, updateTaskSchedule, loading: dailyLoading } = useDailyTasks();
   const { note, updateNote, loading: scratchpadLoading } = useScratchpad();
   const today = new Date().toISOString().split('T')[0];
 
@@ -32,14 +34,43 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   const [newTaskPriority, setNewTaskPriority] = useState<DailyTaskPriority>('Medium');
   const [showUnplannedInfo, setShowUnplannedInfo] = useState(false);
   const [deadlinePromptTask, setDeadlinePromptTask] = useState<any | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const handleAddTask = async () => {
     if (!newTaskInput.trim()) return;
-    const newTask = await addTask(newTaskInput, undefined, isUrgent, newTaskPriority);
-    setNewTaskInput('');
-    setIsUrgent(false);
-    setNewTaskPriority('Medium');
-    setDeadlinePromptTask(newTask);
+
+    const tags = [];
+    if (showUnplannedInfo) tags.push('Unplanned'); // wait, the button toggles showUnplannedInfo, but checks 'isUrgent'?
+    // Actually the 'Unplanned' button sets isUrgent and adds a tag usually.
+    // In the UI: 
+    // <button onClick={() => setIsUrgent(!isUrgent)} ... > Unplanned </button>
+    // So 'isUrgent' state tracks 'Unplanned' status in this UI logic.
+    if (isUrgent) tags.push('Unplanned');
+
+    const newTask: Partial<Task> = {
+      title: newTaskInput,
+      priority: newTaskPriority === 'Urgent' ? Priority.URGENT :
+        newTaskPriority === 'High' ? Priority.HIGH :
+          newTaskPriority === 'Medium' ? Priority.MEDIUM : Priority.LOW,
+      status: TaskStatus.TODO,
+      tags: tags,
+      assigneeId: user.employeeId,
+      dueDate: today, // Set due date to today so it shows in "Today's Mission"
+    };
+
+    try {
+      const savedTask = await onAddTask(newTask);
+
+      setNewTaskInput('');
+      setIsUrgent(false);
+      setNewTaskPriority('Medium');
+
+      if (savedTask) {
+        setDeadlinePromptTask(savedTask);
+      }
+    } catch (e) {
+      console.error("Failed to add task", e);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -151,7 +182,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             </div>
             <h1 className="text-4xl md:text-5xl font-black leading-tight mb-2">
               {getGreeting()},<br />
-              <span className="text-lime-600 dark:text-[#CEFD4A]">{user.username}</span>
+              <span className="text-lime-600 dark:text-[#CEFD4A]">{user.fullName || user.username}</span>
             </h1>
             <p className="text-slate-500 dark:text-white/40 text-lg max-w-md">
               {todayTasks.length > 0
@@ -461,9 +492,9 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
 
               <div className="space-y-2">
                 {[
-                  { id: 'TODO', label: 'Pending', desc: 'Task waiting', color: 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 hover:border-slate-300 dark:hover:border-white/20' },
-                  { id: 'IN_PROGRESS', label: 'In Progress', desc: 'Working now', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:border-blue-500/30' },
-                  { id: 'DONE', label: 'Completed', desc: 'Finished', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500/30' }
+                  { id: TaskStatus.TODO, label: 'Pending', desc: 'Task waiting', color: 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 hover:border-slate-300 dark:hover:border-white/20' },
+                  { id: TaskStatus.IN_PROGRESS, label: 'In Progress', desc: 'Working now', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:border-blue-500/30' },
+                  { id: TaskStatus.DONE, label: 'Completed', desc: 'Finished', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500/30' }
                 ].map(status => (
                   <button
                     key={status.id}
@@ -686,37 +717,68 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
               <ClockIcon className="w-8 h-8" />
             </div>
 
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Set a deadline?</h3>
-              <p className="text-sm text-slate-500 dark:text-white/40 leading-relaxed italic">
+              <p className="text-sm text-slate-500 dark:text-white/40 leading-relaxed italic mb-4">
                 "{deadlinePromptTask.text}"
               </p>
-              <div className="mt-4 p-4 bg-black/5 dark:bg-white/5 rounded-2xl">
-                <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.15em]">
-                  If you choose "Maybe Later", you can still set a deadline later by clicking the task.
-                </p>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setDeadlinePromptTask(null)}
-                className="px-6 py-3.5 rounded-2xl bg-black/5 dark:bg-white/5 text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-black uppercase tracking-widest transition-all"
-              >
-                Maybe Later
-              </button>
-              <button
-                onClick={() => {
-                  // In a real scenario, this might open a time picker. 
-                  // For now, we'll close and let them know.
-                  setDeadlinePromptTask(null);
-                  // We can reuse the statusPickerTask or create a dedicated schedulePicker logic if needed.
-                  // But the requirement just says prompt if they want to or no.
-                }}
-                className="px-6 py-3.5 rounded-2xl bg-lime-500 dark:bg-[#CEFD4A] text-black hover:bg-lime-400 dark:hover:bg-[#d9ff73] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-lime-500/20"
-              >
-                Set Now
-              </button>
+              {showDatePicker ? (
+                <div className="space-y-4 animate-fade-in">
+                  <input
+                    type="date"
+                    className="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-lime-500"
+                    onChange={(e) => {
+                      // Automatically save on change or we could add a save button
+                      // For better UX, let's keep the buttons for confirmation
+                    }}
+                    id="deadline-date-picker"
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setShowDatePicker(false)}
+                      className="px-4 py-3 rounded-xl bg-black/5 dark:bg-white/5 text-slate-500 hover:text-slate-900 dark:hover:text-white text-xs font-bold uppercase tracking-wider"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={() => {
+                        const dateInput = document.getElementById('deadline-date-picker') as HTMLInputElement;
+                        if (dateInput?.value && deadlinePromptTask) {
+                          onUpdateTask(deadlinePromptTask.id, { dueDate: dateInput.value });
+                        }
+                        setDeadlinePromptTask(null);
+                        setShowDatePicker(false);
+                      }}
+                      className="px-4 py-3 rounded-xl bg-lime-500 dark:bg-[#CEFD4A] text-black text-xs font-bold uppercase tracking-wider"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl mb-6">
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.15em]">
+                      If you choose "Maybe Later", you can still set a deadline later by clicking the task.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setDeadlinePromptTask(null)}
+                      className="px-6 py-3.5 rounded-2xl bg-black/5 dark:bg-white/5 text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-black uppercase tracking-widest transition-all"
+                    >
+                      Maybe Later
+                    </button>
+                    <button
+                      onClick={() => setShowDatePicker(true)}
+                      className="px-6 py-3.5 rounded-2xl bg-lime-500 dark:bg-[#CEFD4A] text-black hover:bg-lime-400 dark:hover:bg-[#d9ff73] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-lime-500/20"
+                    >
+                      Set Now
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

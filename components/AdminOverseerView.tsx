@@ -6,6 +6,7 @@ interface AdminOverseerViewProps {
     tasks: Task[];
     employees: Employee[];
     onViewTask: (task: Task) => void;
+    userName?: string;
 }
 
 interface MemberWithTasks {
@@ -18,7 +19,15 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
     tasks,
     employees,
     onViewTask,
+    userName,
 }) => {
+    // Get time-based greeting
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good morning';
+        if (hour < 18) return 'Good afternoon';
+        return 'Good evening';
+    };
     // Get today's date range
     const today = useMemo(() => {
         const now = new Date();
@@ -97,6 +106,10 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
         <div className="space-y-6 pb-8">
             {/* Header */}
             <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-8 shadow-xl shadow-black/5 dark:shadow-none">
+                {/* Greeting */}
+                <h2 className="text-2xl font-bold text-slate-600 dark:text-white/60 mb-1">
+                    {getGreeting()}{userName ? `, ${userName}` : ''} 👋
+                </h2>
                 <div className="flex items-center gap-3 mb-2">
                     <div className="w-2 h-2 rounded-full bg-lime-500 dark:bg-[#CEFD4A]"></div>
                     <h1 className="text-4xl font-black text-slate-900 dark:text-white">Daily Overview</h1>
@@ -179,34 +192,34 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
                                                             >
                                                                 <div className="flex items-start gap-3">
                                                                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === TaskStatus.DONE
-                                                                            ? 'bg-lime-500 dark:bg-[#CEFD4A] border-lime-500 dark:border-[#CEFD4A] text-white dark:text-black'
-                                                                            : task.status === TaskStatus.IN_PROGRESS
-                                                                                ? 'border-lime-500 dark:border-[#CEFD4A] text-transparent'
-                                                                                : 'border-slate-300 dark:border-white/20 text-transparent group-hover:border-slate-400 dark:group-hover:border-white/40'
+                                                                        ? 'bg-lime-500 dark:bg-[#CEFD4A] border-lime-500 dark:border-[#CEFD4A] text-white dark:text-black'
+                                                                        : task.status === TaskStatus.IN_PROGRESS
+                                                                            ? 'border-lime-500 dark:border-[#CEFD4A] text-transparent'
+                                                                            : 'border-slate-300 dark:border-white/20 text-transparent group-hover:border-slate-400 dark:group-hover:border-white/40'
                                                                         }`}>
                                                                         {task.status === TaskStatus.DONE && <span className="text-sm">✓</span>}
                                                                     </div>
                                                                     <div className="flex-1 min-w-0">
                                                                         <h4 className={`font-bold transition-all ${task.status === TaskStatus.DONE
-                                                                                ? 'text-slate-400 dark:text-white/30 line-through'
-                                                                                : 'text-slate-900 dark:text-white group-hover:text-lime-600 dark:group-hover:text-[#CEFD4A]'
+                                                                            ? 'text-slate-400 dark:text-white/30 line-through'
+                                                                            : 'text-slate-900 dark:text-white group-hover:text-lime-600 dark:group-hover:text-[#CEFD4A]'
                                                                             }`}>
                                                                             {task.title}
                                                                         </h4>
                                                                         <div className="flex items-center gap-2 mt-1.5">
                                                                             <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${task.priority === Priority.URGENT ? 'bg-red-500/10 text-red-600 dark:text-red-500 dark:bg-red-500/20' :
-                                                                                    task.priority === Priority.HIGH ? 'bg-orange-500/10 text-orange-600 dark:text-orange-500 dark:bg-orange-500/20' :
-                                                                                        task.priority === Priority.MEDIUM ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 dark:bg-yellow-500/20' :
-                                                                                            'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
+                                                                                task.priority === Priority.HIGH ? 'bg-orange-500/10 text-orange-600 dark:text-orange-500 dark:bg-orange-500/20' :
+                                                                                    task.priority === Priority.MEDIUM ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 dark:bg-yellow-500/20' :
+                                                                                        'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
                                                                                 }`}>
                                                                                 {task.priority}
                                                                             </span>
                                                                             <span className="text-slate-400 dark:text-white/30 text-xs">•</span>
                                                                             <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${task.status === TaskStatus.DONE
-                                                                                    ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                                                                                    : task.status === TaskStatus.IN_PROGRESS
-                                                                                        ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
-                                                                                        : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
+                                                                                ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                                                                : task.status === TaskStatus.IN_PROGRESS
+                                                                                    ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
+                                                                                    : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
                                                                                 }`}>
                                                                                 {task.status === TaskStatus.DONE ? 'Completed' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'Pending'}
                                                                             </span>

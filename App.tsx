@@ -10,6 +10,7 @@ import AddTaskModal from './components/AddTaskModal';
 import GenerateTasksModal from './components/GenerateTasksModal';
 import LoginPage from './components/LoginPage';
 import { useAuth } from './auth/AuthContext';
+import { useDailyTasks } from './hooks/useDailyTasks';
 import AdminDashboard from './components/AdminDashboard';
 import TaskDetailsModal from './components/TaskDetailsModal';
 import { useNotification } from './context/NotificationContext';
@@ -208,8 +209,13 @@ const Dashboard: React.FC = () => {
       const loadedSpaces = await dataService.getSpaces(user.employeeId);
       setSpaces(loadedSpaces);
 
-      if (loadedSpaces.length > 0 && !activeSpaceId) {
-        setActiveSpaceId(loadedSpaces[0].id);
+      if (loadedSpaces.length > 0) {
+        const currentSpaceExists = loadedSpaces.some(s => s.id === activeSpaceId);
+        if (!activeSpaceId || !currentSpaceExists) {
+          setActiveSpaceId(loadedSpaces[0].id);
+        }
+      } else {
+        setActiveSpaceId('');
       }
     } catch (err) {
       console.error("Failed to load spaces", err);
@@ -275,6 +281,8 @@ const Dashboard: React.FC = () => {
   }, [employees, user]);
 
   const currentSpace = spaces.find(s => s.id === activeSpaceId);
+
+  const { tasks: dailyTasks } = useDailyTasks();
 
   const filteredTasks = useMemo(() => {
     if (!activeSpaceId) return [];
@@ -399,7 +407,11 @@ const Dashboard: React.FC = () => {
   };
 
   const handleSaveTask = async (data: any, id: number | null) => {
-    if (!activeSpaceId || !user) return;
+    console.log("handleSaveTask called", { data, id, activeSpaceId, user });
+    if (!activeSpaceId || !user) {
+      console.error("Missing activeSpaceId or user", { activeSpaceId, user });
+      return null;
+    }
 
     const payload = {
       ...data,
@@ -409,7 +421,13 @@ const Dashboard: React.FC = () => {
     };
 
     try {
+      console.log("Upserting task payload:", JSON.stringify(payload));
       const savedTask = await dataService.upsertTask(payload);
+      console.log("Task upserted successfully:", JSON.stringify(savedTask));
+
+      if (!savedTask || !savedTask.id) {
+        throw new Error("Saved task is missing ID: " + JSON.stringify(savedTask));
+      }
 
       if (id) {
         setTasks(tasks.map(t => t.id === id ? { ...t, ...savedTask } : t));
@@ -419,15 +437,43 @@ const Dashboard: React.FC = () => {
         logActivity(`created "${savedTask.title}"`);
       }
       setAddTaskModalOpen(false);
+      return savedTask;
+    } catch (err: any) {
+      console.error("Error in handleSaveTask:", err);
+      showNotification("Failed to save task", 'error');
+      return null;
+    }
+  };
+
+  const handleUpdateTask = async (taskId: number, updates: Partial<Task>) => {
+    const taskToUpdate = tasks.find(t => t.id === taskId);
+    if (!taskToUpdate) return;
+
+    const updatedTask = { ...taskToUpdate, ...updates };
+    setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+
+    try {
+      await dataService.upsertTask(updatedTask);
+      if (updates.dueDate) {
+        logActivity(`updated deadline for "${taskToUpdate.title}"`);
+      }
     } catch (err: any) {
       console.error(err);
-      showNotification("Failed to save task", 'error');
+      showNotification("Failed to update task", 'error');
     }
   };
 
   const handleUpdateTaskStatus = async (taskId: number, newStatus: TaskStatus) => {
+    console.log("handleUpdateTaskStatus called", { taskId, newStatus });
     const taskToUpdate = tasks.find(t => t.id === taskId);
-    if (!taskToUpdate || taskToUpdate.status === newStatus) return;
+    if (!taskToUpdate) {
+      console.error("Task not found with ID", taskId, "Available IDs:", tasks.map(t => t.id));
+      return;
+    }
+    if (taskToUpdate.status === newStatus) {
+      console.log("Status is already", newStatus, "skipping update");
+      return;
+    }
 
     // Optimistic UI Update
     const completedAt = newStatus === TaskStatus.DONE ? new Date().toISOString() : taskToUpdate.completedAt;
@@ -516,6 +562,7 @@ const Dashboard: React.FC = () => {
                     tasks={allTasks}
                     employees={employees}
                     onViewTask={(task) => { setSelectedTask(task); setTaskDetailsModalOpen(true); }}
+                    userName={user.fullName || user.username}
                   />
                 )}
 
@@ -545,8 +592,10 @@ const Dashboard: React.FC = () => {
                     tasks={filteredTasks}
                     employees={spaceMembers}
                     currentSpace={currentSpace}
-                    user={{ username: user.username, employeeId: user.employeeId }}
+                    user={user}
                     onUpdateTaskStatus={handleUpdateTaskStatus}
+                    onUpdateTask={handleUpdateTask}
+                    onAddTask={(task) => handleSaveTask(task, null)}
                   />
                 )}
 

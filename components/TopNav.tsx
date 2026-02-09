@@ -116,7 +116,7 @@ const TopNav: React.FC<TopNavProps> = ({
                     </div>
                     <div className="flex flex-col items-start">
                         <span className="text-xs font-bold text-slate-900 dark:text-white leading-none group-hover:text-lime-600 dark:group-hover:text-[#CEFD4A] transition-colors">
-                            {currentUserEmployee?.name?.split(' ')[0] || user.username}
+                            {user.fullName || user.username}
                         </span>
                         <span className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider">Online</span>
                     </div>

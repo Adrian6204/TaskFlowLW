@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { useNotification } from '../context/NotificationContext';
 import { UserIcon } from './icons/UserIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
@@ -37,30 +36,19 @@ const LoginPage: React.FC = () => {
   const location = useLocation();
 
   // Determine if we're on signup page based on URL
-  const isSignupRoute = location.pathname === '/signup';
-  const [isLogin, setIsLogin] = useState(!isSignupRoute);
+  const isLogin = location.pathname !== '/signup';
   const [activeSlide, setActiveSlide] = useState(0);
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [department, setDepartment] = useState('AIE');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [department, setDepartment] = useState('AIE & Production');
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loginAsAdmin, setLoginAsAdmin] = useState(false);
 
-  const { user, loading, login, signup, resetPassword, updatePassword, recoveryMode } = useAuth();
-  const { showNotification } = useNotification();
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
-
-  // Sync isLogin state with URL
-  useEffect(() => {
-    setIsLogin(!isSignupRoute);
-  }, [isSignupRoute]);
+  const { user, loading, login, signup } = useAuth();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -70,52 +58,32 @@ const LoginPage: React.FC = () => {
   }, []);
 
   // Redirect if already logged in
-  if (!loading && user && !recoveryMode) {
+  if (!loading && user) {
     // Redirect admins to overseer view, employees to home
     const defaultPath = user.isAdmin ? '/app/overseer' : '/app/home';
-    const from = (location.state as any)?.from?.pathname || defaultPath;
+    const from = (location as any).state?.from?.pathname || defaultPath;
     return <Navigate to={from} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!isLogin) {
-      if (password !== confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-    }
     setIsLoading(true);
     try {
-      if (recoveryMode) {
-        if (password !== confirmPassword) {
-          setError("Passwords do not match");
-          return;
-        }
-        await updatePassword(password);
-        showNotification("Password updated successfully! You can now sign in.", "success");
-        // Reload to clear recovery mode and redirect nicely
-        window.location.href = '/login';
-      } else if (isForgotPassword) {
-        await resetPassword(email);
-        showNotification("Password reset link sent! Check your email.", "success");
-        setIsForgotPassword(false);
-      } else if (isLogin) {
-        await login(email, password);
+      if (isLogin) {
+        await login(username, password);
         // Navigate to app after successful login
-        const from = (location.state as any)?.from?.pathname || '/app/list';
+        const from = (location as any).state?.from?.pathname || '/app/list';
         navigate(from, { replace: true });
       } else {
-        await signup(email, password, fullName, department);
-        // If successful and no error thrown:
-        showNotification("Account created! Please sign in (check email if confirmation is enabled).", "success");
-        navigate('/login'); // Navigate to login page
-        setPassword('');
-        setConfirmPassword('');
+        await signup(username, password, fullName, department);
+        navigate('/login');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      let message = err instanceof Error ? err.message : 'An unknown error occurred';
+      // Clean up error message to hide 'email' since we use usernames
+      message = message.replace(/email address/gi, 'username').replace(/email/gi, 'username');
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -189,174 +157,93 @@ const LoginPage: React.FC = () => {
 
             <div className="mb-10">
               <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2 tracking-tight">
-                {recoveryMode ? 'Update password' : (isForgotPassword ? 'Reset password' : (isLogin ? 'Welcome back' : 'Create account'))}
+                {isLogin ? 'Welcome back' : 'Create account'}
               </h1>
               <p className="text-neutral-500 dark:text-neutral-400 text-base">
-                {recoveryMode
-                  ? 'Set a new password for your account.'
-                  : (isForgotPassword
-                    ? 'Enter your email to receive a reset link.'
-                    : (isLogin ? 'Enter your credentials to continue.' : 'Start your journey with TaskFlow.'))}
+                {isLogin ? 'Enter your credentials to continue.' : 'Start your journey with TaskFlow.'}
               </p>
             </div>
 
-            {/* Role Selection - Only show on login and NOT on forgot password/recovery */}
-            {isLogin && !isForgotPassword && !recoveryMode && (
-              <div className="mb-6">
-                <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 ml-1 mb-2 block">
-                  Login As
-                </label>
-                <div className="grid grid-cols-2 gap-3 p-1 bg-neutral-100/80 dark:bg-neutral-800/50 rounded-xl border border-neutral-200/50 dark:border-neutral-700/50">
-                  <button
-                    type="button"
-                    onClick={() => setLoginAsAdmin(false)}
-                    className={`py-2.5 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${!loginAsAdmin
-                      ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-lg'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                      }`}
-                  >
-                    Employee
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLoginAsAdmin(true)}
-                    className={`py-2.5 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${loginAsAdmin
-                      ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-lg'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                      }`}
-                  >
-                    Admin
-                  </button>
-                </div>
-                <p className="text-xs text-neutral-400 mt-2 ml-1">
-                  Select admin mode to access the overseer dashboard
-                </p>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-5">
-              {!isLogin && !isForgotPassword && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 ml-1">Full Name</label>
-                  <div className="relative group">
-                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-neutral-500 transition-colors group-focus-within:text-neutral-900 dark:group-focus-within:text-white" />
-                    <input
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full bg-neutral-100/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl py-3.5 pl-12 pr-4 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 dark:focus:ring-white/10 transition-all duration-300"
-                      placeholder="Jane Doe"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {!isLogin && !isForgotPassword && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 ml-1">Department</label>
-                  <div className="relative group">
-                    <ViewColumnsIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-neutral-500 transition-colors group-focus-within:text-neutral-900 dark:group-focus-within:text-white" />
-                    <select
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      className="w-full bg-neutral-100/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl py-3.5 pl-12 pr-4 text-neutral-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-neutral-900/10 dark:focus:ring-white/10 transition-all duration-300"
-                    >
-                      <option value="AIE">AIE</option>
-                      <option value="Admin">Admin</option>
-                      <option value="Marketing">Marketing</option>
-                      <option value="Production">Production</option>
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <svg className="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              {!isLogin && (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 ml-1">Full Name</label>
+                    <div className="relative group">
+                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-neutral-500 transition-colors group-focus-within:text-neutral-900 dark:group-focus-within:text-white" />
+                      <input
+                        type="text"
+                        required
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full bg-neutral-100/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl py-3.5 pl-12 pr-4 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 dark:focus:ring-white/10 transition-all duration-300"
+                        placeholder="Jane Doe"
+                      />
                     </div>
                   </div>
-                </div>
-              )}
 
-              {!recoveryMode && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 ml-1">Email</label>
-                  <div className="relative group">
-                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-neutral-500 transition-colors group-focus-within:text-neutral-900 dark:group-focus-within:text-white" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-neutral-100/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl py-3.5 pl-12 pr-4 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 dark:focus:ring-white/10 transition-all duration-300"
-                      placeholder="name@company.com"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {!isForgotPassword && (
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center ml-1">
-                    <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Password</label>
-                    {isLogin && (
-                      <button
-                        type="button"
-                        onClick={() => setIsForgotPassword(true)}
-                        className="text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 ml-1">Department</label>
+                    <div className="relative group">
+                      <ViewColumnsIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-neutral-500 transition-colors group-focus-within:text-neutral-900 dark:group-focus-within:text-white" />
+                      <select
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        className="w-full bg-neutral-100/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl py-3.5 pl-12 pr-4 text-neutral-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-neutral-900/10 dark:focus:ring-white/10 transition-all duration-300"
                       >
-                        Forgot password?
-                      </button>
-                    )}
+                        <option value="AIE & Production">AIE & Production</option>
+                        <option value="General">General</option>
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg className="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                      </div>
+                    </div>
                   </div>
-                  <div className="relative group">
-                    <LockClosedIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-neutral-500 transition-colors group-focus-within:text-neutral-900 dark:group-focus-within:text-white" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-neutral-100/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl py-3.5 pl-12 pr-12 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 dark:focus:ring-white/10 transition-all duration-300"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors duration-200"
-                    >
-                      {showPassword ? (
-                        <EyeSlashIcon className="w-5 h-5" />
-                      ) : (
-                        <EyeIcon className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                </>
               )}
 
-              {(!isLogin || recoveryMode) && !isForgotPassword && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 ml-1">Confirm Password</label>
-                  <div className="relative group">
-                    <LockClosedIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-neutral-500 transition-colors group-focus-within:text-neutral-900 dark:group-focus-within:text-white" />
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full bg-neutral-100/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl py-3.5 pl-12 pr-12 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 dark:focus:ring-white/10 transition-all duration-300"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors duration-200"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeSlashIcon className="w-5 h-5" />
-                      ) : (
-                        <EyeIcon className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 ml-1">Username</label>
+                <div className="relative group">
+                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-neutral-500 transition-colors group-focus-within:text-neutral-900 dark:group-focus-within:text-white" />
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full bg-neutral-100/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl py-3.5 pl-12 pr-4 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 dark:focus:ring-white/10 transition-all duration-300"
+                    placeholder="johndoe"
+                  />
                 </div>
-              )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Password</label>
+                </div>
+                <div className="relative group">
+                  <LockClosedIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 dark:text-neutral-500 transition-colors group-focus-within:text-neutral-900 dark:group-focus-within:text-white" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-neutral-100/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl py-3.5 pl-12 pr-12 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 dark:focus:ring-white/10 transition-all duration-300"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors duration-200"
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="w-5 h-5" />
+                    ) : (
+                      <EyeIcon className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
 
               {error && (
                 <div className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200/50 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
@@ -369,30 +256,17 @@ const LoginPage: React.FC = () => {
                 disabled={isLoading}
                 className="w-full py-4 px-6 bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 font-semibold rounded-xl shadow-lg shadow-neutral-900/20 dark:shadow-white/10 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
               >
-                {isLoading ? 'Processing...' : (recoveryMode ? 'Update Password' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account')))}
+                {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
               </button>
             </form>
 
             <div className="mt-8 text-center">
-              {recoveryMode ? (
-                <p className="text-neutral-400 text-sm">
-                  Updating password for securely logged in session.
-                </p>
-              ) : isForgotPassword ? (
-                <button
-                  onClick={() => setIsForgotPassword(false)}
-                  className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors duration-300 text-sm font-medium"
-                >
-                  Back to Sign In
-                </button>
-              ) : (
-                <button
-                  onClick={toggleAuthMode}
-                  className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors duration-300 text-sm font-medium"
-                >
-                  {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-                </button>
-              )}
+              <button
+                onClick={toggleAuthMode}
+                className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors duration-300 text-sm font-medium"
+              >
+                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              </button>
             </div>
           </div>
         </div>

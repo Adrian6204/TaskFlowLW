@@ -15,6 +15,7 @@ export enum Priority {
 export interface Employee {
   id: string;
   name: string;
+  fullName?: string;
   avatarUrl: string;
 }
 
@@ -72,6 +73,7 @@ export type Role = 'user' | 'admin';
 
 export interface User {
   username: string;
+  fullName?: string;
   role: Role;
   employeeId: string;
   department?: string;
@@ -91,11 +93,8 @@ export interface ActivityLog {
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, fullName: string, department: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  updatePassword: (password: string) => Promise<void>;
-  recoveryMode: boolean;
+  login: (username: string, password: string) => Promise<void>;
+  signup: (username: string, password: string, fullName: string, department: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
 }

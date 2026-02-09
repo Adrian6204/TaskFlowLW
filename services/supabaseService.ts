@@ -86,32 +86,57 @@ const mapDbSpaceToApp = (dbSpace: any): Space => ({
 const mapDbProfileToEmployee = (dbProfile: any): Employee => ({
   id: dbProfile.id,
   name: dbProfile.username || 'Unknown',
+  fullName: dbProfile.full_name,
   avatarUrl: dbProfile.avatar_url || 'https://via.placeholder.com/150',
 });
 
 // --- Services ---
 
 export const getSpaces = async (userId: string) => {
-  const { data, error } = await supabase
+  // 1. Get all space IDs where the user is a member
+  const { data: membershipData, error: membershipError } = await supabase
+    .from('space_members')
+    .select('space_id')
+    .eq('user_id', userId);
+
+  if (membershipError) throw membershipError;
+  if (!membershipData || membershipData.length === 0) return [];
+
+  const spaceIds = membershipData.map(m => m.space_id);
+
+  // 2. Fetch the details for those spaces
+  const { data: spacesData, error: spacesError } = await supabase
     .from('spaces')
-    .select('*, space_members!inner(user_id)')
-    .eq('space_members.user_id', userId);
+    .select('*')
+    .in('id', spaceIds);
 
-  if (error) throw error;
+  if (spacesError) throw spacesError;
 
-  const spacesWithMembers = await Promise.all(data.map(async (s: any) => {
-    const { data: memberData } = await supabase.from('space_members').select('user_id').eq('space_id', s.id);
+  // 3. For each space, fetch all its members to populate the members array
+  // Optimization: Fetch all members for all these spaces in one go
+  const { data: allMembersData, error: allMembersError } = await supabase
+    .from('space_members')
+    .select('space_id, user_id')
+    .in('space_id', spaceIds);
 
-    const realMemberIds = memberData ? memberData.map((m: any) => m.user_id) : [];
+  if (allMembersError) {
+    console.error('Error fetching all members:', allMembersError);
+  }
+
+  const spacesWithMembers = spacesData.map((s: any) => {
+    const spaceMembers = allMembersData
+      ? allMembersData.filter((m: any) => m.space_id === s.id).map((m: any) => m.user_id)
+      : [];
 
     return {
       ...mapDbSpaceToApp(s),
-      members: realMemberIds
+      members: spaceMembers
     };
-  }));
+  });
 
   return spacesWithMembers;
 };
+
 
 export const createSpace = async (name: string, userId: string, description?: string) => {
   const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();

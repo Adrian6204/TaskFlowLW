@@ -136,6 +136,24 @@ export const useDailyTasks = () => {
         }
     };
 
+    const updateTaskSchedule = async (taskId: string, newSchedule: string | undefined) => {
+        if (!user?.employeeId) return;
+
+        // Optimistic update
+        setTasks(prev => prev.map(task =>
+            task.id === taskId ? { ...task, schedule: newSchedule } : task
+        ));
+
+        try {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                await dataService.syncDailyTask(user.employeeId, { ...task, schedule: newSchedule });
+            }
+        } catch (err) {
+            console.error('Failed to sync task schedule', err);
+        }
+    };
+
     const clearAllTasks = () => {
         setTasks([]);
         localStorage.removeItem('todayTasks');
@@ -148,6 +166,7 @@ export const useDailyTasks = () => {
         addTask,
         updateTaskStatus,
         updateTaskPriority,
+        updateTaskSchedule,
         deleteTask,
         clearAllTasks
     };
