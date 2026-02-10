@@ -12,6 +12,8 @@ import { CheckCircleIcon } from './icons/CheckCircleIcon';
 interface TaskListViewProps {
   tasks: Task[];
   employees: Employee[];
+  searchTerm?: string;
+  onSearchChange?: (term: string) => void;
   onEditTask: (task: Task) => void;
   onViewTask: (task: Task) => void;
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
@@ -146,7 +148,7 @@ const TaskGroup: React.FC<{
   );
 };
 
-const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, onEditTask, onViewTask, onUpdateTaskStatus, onToggleTimer }) => {
+const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, searchTerm, onSearchChange, onEditTask, onViewTask, onUpdateTaskStatus, onToggleTimer }) => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
   const getTaskStats = (employeeId: string) => {
@@ -368,12 +370,32 @@ const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, onEditTas
           />
         ))}
         {filteredTasks.length === 0 && (
-          <div className="text-center py-32 bg-white/10 dark:bg-black/20 backdrop-blur-[40px] border border-white/20 dark:border-white/5 rounded-[40px] shadow-2xl shadow-black/5">
+          <div className="text-center py-32 bg-white/10 dark:bg-black/20 backdrop-blur-[40px] border border-white/20 dark:border-white/5 rounded-[40px] shadow-2xl shadow-black/5 animate-in fade-in zoom-in duration-500">
             <div className="w-20 h-20 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircleIcon className="w-10 h-10 text-slate-400 dark:text-white/10" />
+              {searchTerm ? (
+                <svg className="w-10 h-10 text-slate-400 dark:text-white/10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              ) : (
+                <CheckCircleIcon className="w-10 h-10 text-slate-400 dark:text-white/10" />
+              )}
             </div>
-            <h4 className="text-lg font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">No Context Found</h4>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-white/10 uppercase tracking-widest mt-2">{selectedEmployeeId ? 'Member has zero active assignments' : 'This workspace view is currently empty'}</p>
+            <h4 className="text-lg font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">
+              {searchTerm ? 'No Missions Match' : 'No Context Found'}
+            </h4>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-white/10 uppercase tracking-widest mt-2 px-8">
+              {searchTerm
+                ? `Zero results found for "${searchTerm}"`
+                : selectedEmployeeId ? 'Member has zero active assignments' : 'This workspace view is currently empty'}
+            </p>
+            {searchTerm && onSearchChange && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="mt-6 px-6 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all active:scale-95 shadow-lg"
+              >
+                Clear Search
+              </button>
+            )}
           </div>
         )}
       </div>

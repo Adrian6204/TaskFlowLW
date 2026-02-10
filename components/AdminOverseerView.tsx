@@ -5,6 +5,7 @@ interface AdminOverseerViewProps {
     spaces: Space[];
     tasks: Task[];
     employees: Employee[];
+    searchTerm: string;
     onViewTask: (task: Task) => void;
     onAddTask: (memberId: string, spaceId: string) => void;
     userName?: string;
@@ -19,6 +20,7 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
     spaces,
     tasks,
     employees,
+    searchTerm,
     onViewTask,
     onAddTask,
     userName,
@@ -43,24 +45,40 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
         return date;
     }, [today]);
 
-    // Filter tasks for today (due today or currently in progress)
-    const todaysTasks = useMemo(() => {
-        return tasks.filter(task => {
+    // Filter tasks for today (due today or currently in progress) 
+    // AND apply global search if present
+    const filteredBaseTasks = useMemo(() => {
+        let base = tasks;
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            base = base.filter(task =>
+                task.title.toLowerCase().includes(term) ||
+                (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term))) ||
+                (task.description && task.description.toLowerCase().includes(term))
+            );
+        }
+
+        return base.filter(task => {
             const dueDate = new Date(task.dueDate);
             dueDate.setHours(0, 0, 0, 0);
 
             // Include if due today OR if in progress
+            // But if we're searching, maybe we want to show EVERYTHING that matches?
+            // The user said "search isn't working/showing output".
+            // If they search, they probably expect to see matching tasks regardless of today/in-progress status.
+            if (searchTerm) return true;
+
             return (
                 (dueDate.getTime() === today.getTime()) ||
                 (task.status === TaskStatus.IN_PROGRESS)
             );
         });
-    }, [tasks, today]);
+    }, [tasks, today, searchTerm]);
 
     // Group tasks by workspace and member
     const workspaceData = useMemo(() => {
-        return spaces.map(space => {
-            const spaceTasks = todaysTasks.filter(t => t.spaceId === space.id);
+        const data = spaces.map(space => {
+            const spaceTasks = filteredBaseTasks.filter(t => t.spaceId === space.id);
             const spaceMembers = employees.filter(e => space.members.includes(e.id));
 
             const membersWithTasks: MemberWithTasks[] = spaceMembers.map(employee => ({
@@ -68,13 +86,21 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
                 tasks: spaceTasks.filter(t => t.assigneeId === employee.id),
             }));
 
+            // Only return space if it has tasks or if member names match search
+            const hasVisibleTasks = spaceTasks.length > 0;
+            const hasMatchingMember = searchTerm && spaceMembers.some(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+            if (searchTerm && !hasVisibleTasks && !hasMatchingMember) return null;
+
             return {
                 space,
                 members: membersWithTasks,
                 totalTasks: spaceTasks.length,
             };
-        });
-    }, [spaces, todaysTasks, employees]);
+        }).filter(Boolean) as { space: Space; members: MemberWithTasks[]; totalTasks: number }[];
+
+        return data;
+    }, [spaces, filteredBaseTasks, employees, searchTerm]);
 
     const getPriorityColor = (priority: Priority) => {
         switch (priority) {

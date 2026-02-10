@@ -84,17 +84,27 @@ const TopNav: React.FC<TopNavProps> = ({
                 )}
 
                 {/* Search Pill */}
-                <div className="relative group">
+                <div className="relative group flex items-center">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <SearchIcon className="h-4 w-4 text-white/40 group-focus-within:text-[#CEFD4A] transition-colors" />
                     </div>
                     <input
                         type="text"
-                        placeholder="Search..."
+                        placeholder="Search missions..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 text-slate-900 dark:text-white text-sm font-medium rounded-full py-2.5 pl-11 pr-6 placeholder:text-slate-500 dark:placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-lime-500/50 dark:focus:ring-[#CEFD4A]/50 focus:border-lime-500/50 dark:focus:border-[#CEFD4A]/50 transition-all w-64 hover:bg-white/80 dark:hover:bg-black/50"
+                        className="bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 text-slate-900 dark:text-white text-sm font-medium rounded-full py-2.5 pl-11 pr-10 placeholder:text-slate-500 dark:placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-lime-500/50 dark:focus:ring-[#CEFD4A]/50 focus:border-lime-500/50 dark:focus:border-[#CEFD4A]/50 transition-all w-64 hover:bg-white/80 dark:hover:bg-black/50"
                     />
+                    {searchTerm && (
+                        <button
+                            onClick={() => onSearchChange('')}
+                            className="absolute right-3 p-1 rounded-full text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-all animate-in fade-in zoom-in duration-200"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    )}
                 </div>
 
                 {/* Theme Toggle */}

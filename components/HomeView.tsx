@@ -19,12 +19,14 @@ interface HomeViewProps {
   employees: Employee[];
   currentSpace?: Space;
   user: User;
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onUpdateTask: (taskId: number, updates: Partial<Task>) => Promise<void>;
   onAddTask: (task: Partial<Task>) => Promise<any>;
 }
 
-const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, user, onUpdateTaskStatus, onUpdateTask, onAddTask }) => {
+const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, user, searchTerm: globalSearchTerm, onSearchChange, onUpdateTaskStatus, onUpdateTask, onAddTask }) => {
   const { tasks: dailyTasks, updateTaskStatus, deleteTask, addTask, updateTaskPriority, updateTaskSchedule, loading: dailyLoading } = useDailyTasks();
   const { note, updateNote, loading: scratchpadLoading } = useScratchpad();
   const today = new Date().toISOString().split('T')[0];
@@ -120,7 +122,6 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
 
   // Expanded View State
   const [isExpandedMissionsOpen, setIsExpandedMissionsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
 
@@ -139,7 +140,8 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   ];
 
   const filteredTasks = combinedTasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const term = isExpandedMissionsOpen ? globalSearchTerm : globalSearchTerm; // Both use global now
+    const matchesSearch = task.title.toLowerCase().includes(globalSearchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' ||
       (statusFilter === 'Completed' && task.status === TaskStatus.DONE) ||
       (statusFilter === 'In Progress' && task.status === TaskStatus.IN_PROGRESS) ||
@@ -316,6 +318,21 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                   <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-white/20">
                     <CheckCircleIcon className="w-12 h-12 mb-4 opacity-50" />
                     <p className="font-bold">All caught up</p>
+                  </div>
+                );
+              }
+
+              if (globalSearchTerm && filteredTasks.length === 0) {
+                return (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-white/20 py-12">
+                    <SearchIcon className="w-8 h-8 mb-4 opacity-30" />
+                    <p className="font-bold text-sm uppercase tracking-widest text-center">No missions found for "{globalSearchTerm}"</p>
+                    <button
+                      onClick={() => onSearchChange('')}
+                      className="mt-4 text-xs font-black text-lime-600 dark:text-[#CEFD4A] hover:underline uppercase tracking-widest"
+                    >
+                      Clear Search
+                    </button>
                   </div>
                 );
               }
@@ -551,8 +568,8 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                     <input
                       type="text"
                       placeholder="Search missions..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      value={globalSearchTerm}
+                      onChange={(e) => onSearchChange(e.target.value)}
                       className="pl-10 pr-4 py-2 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:border-lime-500/50 w-full transition-all"
                     />
                   </div>
@@ -599,7 +616,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                     <p className="text-xl font-black">No missions found</p>
                     <button
                       onClick={() => {
-                        setSearchTerm('');
+                        onSearchChange('');
                         setStatusFilter('All');
                         setPriorityFilter('All');
                       }}

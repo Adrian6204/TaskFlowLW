@@ -286,21 +286,26 @@ const Dashboard: React.FC = () => {
   const { tasks: dailyTasks } = useDailyTasks();
 
   const filteredTasks = useMemo(() => {
-    if (!activeSpaceId) return [];
+    // Determine if we should search globally (on Home or Admin Overseer)
+    const isGlobalView = currentView === 'home' || currentView === 'overview';
 
-    // First filter by active space
-    let filtered = tasks.filter(task => task.spaceId === activeSpaceId);
+    let baseTasks = tasks;
 
-    // Then filter by search term if present
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(task =>
-        task.title.toLowerCase().includes(term) ||
-        (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term)))
-      );
+    // If it's not a global view, we restrict to the active space
+    if (!isGlobalView) {
+      if (!activeSpaceId) return [];
+      baseTasks = tasks.filter(task => task.spaceId === activeSpaceId);
     }
-    return filtered;
-  }, [tasks, activeSpaceId, searchTerm]);
+
+    if (!searchTerm) return baseTasks;
+
+    const term = searchTerm.toLowerCase();
+    return baseTasks.filter(task =>
+      task.title.toLowerCase().includes(term) ||
+      (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term))) ||
+      (task.description && task.description.toLowerCase().includes(term))
+    );
+  }, [tasks, activeSpaceId, searchTerm, currentView]);
 
   const spaceMembers = useMemo(() => {
     if (!currentSpace) return [];
@@ -586,6 +591,7 @@ const Dashboard: React.FC = () => {
                     spaces={allSpaces}
                     tasks={allTasks}
                     employees={employees}
+                    searchTerm={searchTerm}
                     onViewTask={(task) => { setSelectedTask(task); setTaskDetailsModalOpen(true); }}
                     onAddTask={(assigneeId, spaceId) => handleOpenAddTaskModal({ assigneeId, spaceId })}
                     userName={user.fullName || user.username}
@@ -619,6 +625,8 @@ const Dashboard: React.FC = () => {
                     employees={spaceMembers}
                     currentSpace={currentSpace}
                     user={user}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
                     onUpdateTaskStatus={handleUpdateTaskStatus}
                     onUpdateTask={handleUpdateTask}
                     onAddTask={(task) => handleSaveTask(task, null)}
@@ -664,6 +672,8 @@ const Dashboard: React.FC = () => {
                       <TaskListView
                         tasks={filteredTasks}
                         employees={spaceMembers}
+                        searchTerm={searchTerm}
+                        onSearchChange={setSearchTerm}
                         onEditTask={handleOpenAddTaskModal}
                         onViewTask={(task) => { setSelectedTask(task); setTaskDetailsModalOpen(true); }}
                         onUpdateTaskStatus={handleUpdateTaskStatus}
