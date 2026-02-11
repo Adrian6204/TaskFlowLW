@@ -9,6 +9,8 @@ import { EyeIcon } from './icons/EyeIcon';
 import { EyeSlashIcon } from './icons/EyeSlashIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { ViewColumnsIcon } from './icons/ViewColumnsIcon';
+import { VideoCameraIcon } from './icons/VideoCameraIcon';
+import { IdScannerModal } from './IdScannerModal';
 
 const HERO_SLIDES = [
   {
@@ -47,6 +49,8 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
 
   const { user, loading, login, signup } = useAuth();
 
@@ -93,6 +97,29 @@ const LoginPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleScan = async (name: string) => {
+    // Convert name to username (e.g., "John Doe" -> "johndoe")
+    const usernameFromScan = name.toLowerCase().replace(/\s+/g, '');
+    setUsername(usernameFromScan);
+    setPassword('test123'); // Default password for kiosk/ID scan mode
+    setIsAutoLoggingIn(true);
+
+    // Short delay for visual feedback that we're logging in
+    setTimeout(async () => {
+      setError(null);
+      setIsLoading(true);
+      try {
+        await login(usernameFromScan, 'test123');
+      } catch (err) {
+        let message = err instanceof Error ? err.message : 'Login failed';
+        setError(`${message} (Attempted login for ${name})`);
+        setIsAutoLoggingIn(false);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 1500);
   };
 
   const toggleAuthMode = () => {
@@ -259,12 +286,40 @@ const LoginPage: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || isAutoLoggingIn}
                 className="w-full py-4 px-6 bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 font-semibold rounded-xl shadow-lg shadow-neutral-900/20 dark:shadow-white/10 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
               >
-                {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+                {isLoading ? (isAutoLoggingIn ? 'Logging in...' : 'Processing...') : (isLogin ? 'Sign In' : 'Create Account')}
               </button>
+
+              {isLogin && (
+                <div className="relative pt-6">
+                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div className="w-full border-t border-neutral-200 dark:border-neutral-800"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white dark:bg-neutral-900 px-4 text-neutral-500 font-medium tracking-wider">Or continue with</span>
+                  </div>
+                </div>
+              )}
+
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => setIsScannerOpen(true)}
+                  className="w-full py-4 px-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/50 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-3 active:scale-[0.98]"
+                >
+                  <VideoCameraIcon className="w-5 h-5" />
+                  Scan ID Card
+                </button>
+              )}
             </form>
+
+            <IdScannerModal
+              isOpen={isScannerOpen}
+              onClose={() => setIsScannerOpen(false)}
+              onScan={handleScan}
+            />
 
             <div className="mt-8 text-center">
               <button
