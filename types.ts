@@ -16,6 +16,7 @@ export interface Employee {
   id: string;
   name: string;
   fullName?: string;
+  email: string;
   avatarUrl: string;
 }
 
@@ -66,6 +67,7 @@ export interface Space {
   members: string[]; // Array of employee IDs
   theme?: string; // Optional per-space theme override
   description?: string; // Used for "Today's Directive"
+  createdAt: string;
 }
 
 // Deprecating strict 'admin' role in favor of Space Ownership

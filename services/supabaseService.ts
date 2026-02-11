@@ -81,12 +81,15 @@ const mapDbSpaceToApp = (dbSpace: any): Space => ({
   ownerId: dbSpace.owner_id,
   members: [],
   description: dbSpace.description,
+  theme: dbSpace.theme,
+  createdAt: dbSpace.created_at,
 });
 
 const mapDbProfileToEmployee = (dbProfile: any): Employee => ({
   id: dbProfile.id,
   name: dbProfile.full_name || dbProfile.username || 'Unknown',
   fullName: dbProfile.full_name,
+  email: dbProfile.email || '',
   avatarUrl: dbProfile.avatar_url || 'https://via.placeholder.com/150',
 });
 
@@ -238,7 +241,7 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
     }
     if (task.subtasks.length > 0) {
       await supabase.from('subtasks').insert(
-        task.subtasks.map(st => ({ task_id: data.id, title: st.title, is_completed: st.isCompleted }))
+        task.subtasks.map((st: Subtask) => ({ task_id: data.id, title: st.title, is_completed: st.isCompleted }))
       );
     }
   }

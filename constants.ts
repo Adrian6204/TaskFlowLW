@@ -2,10 +2,10 @@
 import { Task, Employee, TaskStatus, Priority, Space } from './types';
 
 export const EMPLOYEES: Employee[] = [
-  { id: 'emp-1', name: 'Alice Johnson', avatarUrl: 'https://picsum.photos/seed/alice/40/40' },
-  { id: 'emp-2', name: 'Bob Williams', avatarUrl: 'https://picsum.photos/seed/bob/40/40' },
-  { id: 'emp-3', name: 'Charlie Brown', avatarUrl: 'https://picsum.photos/seed/charlie/40/40' },
-  { id: 'emp-4', name: 'Diana Miller', avatarUrl: 'https://picsum.photos/seed/diana/40/40' },
+  { id: 'emp-1', name: 'Alice Johnson', email: 'alice@example.com', avatarUrl: 'https://picsum.photos/seed/alice/40/40' },
+  { id: 'emp-2', name: 'Bob Williams', email: 'bob@example.com', avatarUrl: 'https://picsum.photos/seed/bob/40/40' },
+  { id: 'emp-3', name: 'Charlie Brown', email: 'charlie@example.com', avatarUrl: 'https://picsum.photos/seed/charlie/40/40' },
+  { id: 'emp-4', name: 'Diana Miller', email: 'diana@example.com', avatarUrl: 'https://picsum.photos/seed/diana/40/40' },
 ];
 
 export const INITIAL_SPACES: Space[] = [
@@ -14,14 +14,16 @@ export const INITIAL_SPACES: Space[] = [
     name: 'Main HQ',
     joinCode: 'HQ-2024',
     ownerId: 'emp-1', // Alice owns it
-    members: ['emp-1', 'emp-2', 'emp-3', 'emp-4']
+    members: ['emp-1', 'emp-2', 'emp-3', 'emp-4'],
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'space-2',
     name: 'Side Project',
     joinCode: 'SIDE-01',
     ownerId: 'emp-1',
-    members: ['emp-1']
+    members: ['emp-1'],
+    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
   }
 ];
 
@@ -59,7 +61,7 @@ export const INITIAL_TASKS: Task[] = [
     subtasks: [],
     tags: ['Backend', 'Security', 'API'],
     timeLogs: [
-       { id: 'tl-1', startTime: new Date(Date.now() - 4 * 3600 * 1000).toISOString(), endTime: new Date(Date.now() - 2 * 3600 * 1000).toISOString(), duration: 2 * 3600 * 1000 }
+      { id: 'tl-1', startTime: new Date(Date.now() - 4 * 3600 * 1000).toISOString(), endTime: new Date(Date.now() - 2 * 3600 * 1000).toISOString(), duration: 2 * 3600 * 1000 }
     ],
     timerStartTime: null,
     createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),

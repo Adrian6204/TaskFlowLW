@@ -1,0 +1,8 @@
+﻿components/IdScannerModal.tsx(3,20): error TS2307: Cannot find module 'react-webcam' or its corresponding type declarations.
+components/IdScannerModal.tsx(4,41): error TS2307: Cannot find module 'framer-motion' or its corresponding type declarations.
+components/SpaceSettingsView.tsx(115,33): error TS2339: Property 'createdAt' does not exist on type 'Space'.
+components/SpaceSettingsView.tsx(180,40): error TS2339: Property 'email' does not exist on type 'Employee'.
+components/SpaceSettingsView.tsx(219,91): error TS2339: Property 'email' does not exist on type 'Employee'.
+src/services/supabaseService.ts(2,26): error TS2307: Cannot find module '../lib/supabaseClient' or its corresponding type declarations.
+src/services/supabaseService.ts(3,93): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/services/supabaseService.ts(192,33): error TS7006: Parameter 'st' implicitly has an 'any' type.
