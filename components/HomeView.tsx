@@ -13,6 +13,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { QuestionMarkIcon } from './icons/QuestionMarkIcon';
+import MemberDetailsModal from './MemberDetailsModal';
 
 interface HomeViewProps {
   tasks: Task[];
@@ -24,9 +25,10 @@ interface HomeViewProps {
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onUpdateTask: (taskId: number, updates: Partial<Task>) => Promise<void>;
   onAddTask: (task: Partial<Task>) => Promise<any>;
+  onViewTask?: (task: Task) => void; // Optional for now, but recommended for drill-down
 }
 
-const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, user, searchTerm: globalSearchTerm, onSearchChange, onUpdateTaskStatus, onUpdateTask, onAddTask }) => {
+const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, user, searchTerm: globalSearchTerm, onSearchChange, onUpdateTaskStatus, onUpdateTask, onAddTask, onViewTask }) => {
   const { tasks: dailyTasks, updateTaskStatus, deleteTask, addTask, updateTaskPriority, updateTaskSchedule, loading: dailyLoading } = useDailyTasks();
   const { note, updateNote, loading: scratchpadLoading } = useScratchpad();
   const today = new Date().toISOString().split('T')[0];
@@ -37,6 +39,10 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   const [showUnplannedInfo, setShowUnplannedInfo] = useState(false);
   const [deadlinePromptTask, setDeadlinePromptTask] = useState<any | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Member Details Modal State
+  const [selectedMember, setSelectedMember] = useState<Employee | null>(null);
+  const [isMemberDetailsOpen, setIsMemberDetailsOpen] = useState(false);
 
   const handleAddTask = async () => {
     if (!newTaskInput.trim()) return;
@@ -439,7 +445,14 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
           <h3 className="text-sm font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider mb-6">Team Members</h3>
           <div className="flex flex-wrap gap-2">
             {employees.slice(0, 8).map(emp => (
-              <div key={emp.id} className="relative group cursor-pointer">
+              <div
+                key={emp.id}
+                className="relative group cursor-pointer"
+                onClick={() => {
+                  setSelectedMember(emp);
+                  setIsMemberDetailsOpen(true);
+                }}
+              >
                 <img
                   src={emp.avatarUrl}
                   alt={emp.name}
@@ -799,6 +812,20 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             </div>
           </div>
         </div>
+      )}
+
+      {/* Member Details Modal */}
+      {selectedMember && (
+        <MemberDetailsModal
+          isOpen={isMemberDetailsOpen}
+          onClose={() => setIsMemberDetailsOpen(false)}
+          member={selectedMember}
+          tasks={tasks} // Pass all tasks, modal filters by assignee
+          onViewTask={(task) => {
+            setIsMemberDetailsOpen(false);
+            if (onViewTask) onViewTask(task);
+          }}
+        />
       )}
 
     </>
