@@ -58,7 +58,7 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
                     {employee.name}
                   </h3>
                   <p className="text-sm font-bold text-slate-500 dark:text-white/40">
-                    {stats.total} total missions
+                    {stats.total} total tasks
                   </p>
                 </div>
               </div>
@@ -82,7 +82,7 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
                     if (allDisplayTasks.length === 0) {
                       return (
                         <div className="text-center py-4">
-                          <p className="text-[10px] text-slate-400 dark:text-white/30 italic">No active missions.</p>
+                          <p className="text-[10px] text-slate-400 dark:text-white/30 italic">No active tasks.</p>
                         </div>
                       );
                     }

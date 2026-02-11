@@ -18,7 +18,7 @@ interface TaskColumnProps {
 
 const statusConfig = {
   [TaskStatus.TODO]: { glow: 'bg-orange-500 shadow-orange-500/50', text: 'text-white', label: 'In Queue' },
-  [TaskStatus.IN_PROGRESS]: { glow: 'bg-blue-500 shadow-blue-500/50', text: 'text-white', label: 'Active Missions' },
+  [TaskStatus.IN_PROGRESS]: { glow: 'bg-blue-500 shadow-blue-500/50', text: 'text-white', label: 'Active Tasks' },
   [TaskStatus.DONE]: { glow: 'bg-emerald-500 shadow-emerald-500/50', text: 'text-white', label: 'Completed' },
 };
 
@@ -91,7 +91,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({ status, tasks, allTasks, employ
         ))}
         {tasks.length === 0 && (
           <div className="h-40 border-2 border-dashed border-black/5 dark:border-white/5 rounded-3xl flex flex-col items-center justify-center text-slate-400 dark:text-white/10 group hover:border-black/10 dark:hover:border-white/10 transition-all duration-500">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-slate-600 dark:group-hover:text-white/20 transition-colors">Awaiting Directives</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-slate-600 dark:group-hover:text-white/20 transition-colors">Awaiting Tasks</p>
           </div>
         )}
       </div>

@@ -91,7 +91,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
             <div className="flex items-center gap-2 mt-2">
               <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
               <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em]">
-                {days[0]?.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} Sequence
+                {days[0]?.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} Timeline
               </p>
             </div>
           </div>
@@ -124,7 +124,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
           {/* Days Header */}
           <div className="flex border-b border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
             <div className="w-64 flex-shrink-0 p-6 border-r border-black/5 dark:border-white/5">
-              <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">Deployment Unit</span>
+              <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">Assignee</span>
             </div>
             <div className="flex-1 flex">
               {days.map((day, idx) => (
@@ -219,8 +219,8 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
               <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
                 <ChevronRightIcon className="w-10 h-10 text-white/5" />
               </div>
-              <h4 className="text-lg font-black text-white/20 uppercase tracking-[0.3em]">Temporal Vacuum</h4>
-              <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest mt-2">Zero active missions detected in this timeline.</p>
+              <h4 className="text-lg font-black text-white/20 uppercase tracking-[0.3em]">No Tasks</h4>
+              <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest mt-2">Zero active tasks detected in this timeline.</p>
             </div>
           )}
         </div>

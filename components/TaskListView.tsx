@@ -69,7 +69,7 @@ const TaskGroup: React.FC<{
         <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] overflow-hidden shadow-xl shadow-black/5 dark:shadow-none">
           {/* Table Header */}
           <div className="grid grid-cols-[1fr_150px_150px_150px_100px] gap-6 px-8 py-5 border-b border-black/5 dark:border-white/5 text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em]">
-            <div>Mission Title</div>
+            <div>Task Title</div>
             <div>Assignee</div>
             <div>Timeline</div>
             <div>Priority</div>
@@ -196,7 +196,7 @@ const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, searchTer
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Critical Timeline</h3>
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest mt-1">Pending Missions Due Today</p>
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest mt-1">Pending Tasks Due Today</p>
                 </div>
               </div>
               <div className="h-10 w-10 flex items-center justify-center bg-blue-500 rounded-2xl text-white text-sm font-black shadow-lg shadow-blue-500/20">
@@ -236,7 +236,7 @@ const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, searchTer
             {todaysTasks.length > 6 && (
               <div className="mt-6 text-center pb-8">
                 <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">
-                  + {todaysTasks.length - 6} additional directives
+                  + {todaysTasks.length - 6} additional tasks
                 </p>
               </div>
             )}
@@ -346,7 +346,7 @@ const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, searchTer
               <img src={employees.find(e => e.id === selectedEmployeeId)?.avatarUrl} className="w-10 h-10 rounded-xl border border-blue-500/30 shadow-md" alt="" />
               <div>
                 <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Active Context: {employees.find(e => e.id === selectedEmployeeId)?.name}</h4>
-                <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400/60 uppercase tracking-widest mt-1">Filtering all missions by squad member</p>
+                <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400/60 uppercase tracking-widest mt-1">Filtering all tasks by squad member</p>
               </div>
             </div>
             <button
@@ -381,7 +381,7 @@ const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, searchTer
               )}
             </div>
             <h4 className="text-lg font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">
-              {searchTerm ? 'No Missions Match' : 'No Context Found'}
+              {searchTerm ? 'No Tasks Match' : 'No Context Found'}
             </h4>
             <p className="text-[10px] font-bold text-slate-400 dark:text-white/10 uppercase tracking-widest mt-2 px-8">
               {searchTerm

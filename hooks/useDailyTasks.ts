@@ -12,6 +12,7 @@ export interface DailyTask {
     priority: DailyTaskPriority;
     schedule?: string;
     isUnplanned?: boolean;
+    description?: string;
 }
 
 export const useDailyTasks = () => {
@@ -54,7 +55,7 @@ export const useDailyTasks = () => {
         }
     }, [tasks, loading]);
 
-    const addTask = async (text: string, schedule?: string, isUnplanned: boolean = false, priority: DailyTaskPriority = 'Medium') => {
+    const addTask = async (text: string, schedule?: string, isUnplanned: boolean = false, priority: DailyTaskPriority = 'Medium', description?: string) => {
         const taskText = text.trim();
         if (!taskText || !user?.employeeId) return;
 
@@ -66,7 +67,8 @@ export const useDailyTasks = () => {
             status: 'TODO',
             priority: effectivePriority,
             schedule,
-            isUnplanned
+            isUnplanned,
+            description
         };
 
         // Optimistic update

@@ -52,11 +52,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onViewTask }) => {
       <div className="p-10 border-b border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/5">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Temporal Matrix</h2>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Task Calendar</h2>
             <div className="flex items-center gap-2 mt-2">
               <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
               <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em]">
-                {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })} Synchronization
+                {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })} Schedule
               </p>
             </div>
           </div>

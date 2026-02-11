@@ -146,10 +146,10 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
             </div>
             <div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
-                {taskToEdit && (taskToEdit.id || taskToEdit.title) ? (isAdmin ? 'Edit Task' : 'Refine Directive') : (isAdmin ? 'New Task' : 'Initialize Mission')}
+                {taskToEdit && (taskToEdit.id || taskToEdit.title) ? 'Edit Task' : 'New Task'}
               </h2>
               <p className="text-[10px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] mt-1">
-                {isAdmin ? (taskToEdit?.id ? `ID: #${taskToEdit.id}` : 'Create New') : `Operational ID: ${taskToEdit?.id || 'Pending'}`}
+                {taskToEdit?.id ? `ID: #${taskToEdit.id}` : 'Create New'}
               </p>
             </div>
           </div>
@@ -161,7 +161,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
         <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto p-8 space-y-6 scrollbar-none">
           <div className="space-y-2">
             <label htmlFor="title" className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">
-              {isAdmin ? 'Task Title' : 'Main Descriptor'}
+              Task Title
             </label>
             <input
               type="text"
@@ -170,13 +170,13 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-6 py-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl text-slate-900 dark:text-white font-bold placeholder-slate-400 dark:placeholder-white/20 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 outline-none shadow-inner"
               required
-              placeholder={isAdmin ? "e.g., Q3 Financial Report" : "Directive Title..."}
+              placeholder="e.g., Q3 Financial Report"
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="description" className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">
-              {isAdmin ? 'Description' : 'Context Brief'}
+              Description
             </label>
             <textarea
               id="description"
@@ -184,13 +184,13 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               className="w-full px-6 py-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl text-slate-700 dark:text-white/80 font-medium placeholder-slate-400 dark:placeholder-white/20 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 resize-none outline-none shadow-inner"
-              placeholder={isAdmin ? "Add details about this task..." : "Detailed parameters..."}
+              placeholder="Add details about this task..."
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="tags" className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">
-              {isAdmin ? 'Tags' : 'Classification Tokens'}
+              Tags
             </label>
             <div className="flex flex-wrap gap-2 mb-3 bg-black/[0.02] dark:bg-white/[0.02] p-3 rounded-2xl border border-black/5 dark:border-white/5 min-h-[48px]">
               {tags.map(tag => (
@@ -207,7 +207,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
                 onKeyDown={handleAddTag}
                 onFocus={() => setShowTagSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowTagSuggestions(false), 200)}
-                placeholder={isAdmin ? "Add new tag..." : "Synchronize new token..."}
+                placeholder="Add new tag..."
                 className="w-full px-6 py-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl text-slate-900 dark:text-white font-bold placeholder-slate-400 dark:placeholder-white/20 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 outline-none shadow-inner"
                 autoComplete="off"
               />
@@ -233,7 +233,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label htmlFor="assignee" className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">
-                {isAdmin ? 'Assignee' : 'Tactical Unit'}
+                Assignee
               </label>
               <select
                 id="assignee"
@@ -248,7 +248,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
             </div>
             <div className="space-y-2">
               <label htmlFor="dueDate" className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">
-                {isAdmin ? 'Due Date' : 'Temporal Limit'}
+                Due Date
               </label>
               <input
                 type="date"
@@ -264,7 +264,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
             <div className="space-y-2">
               <label htmlFor="priority" className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">
-                {isAdmin ? 'Priority' : 'Threat Level'}
+                Priority
               </label>
               <div className="flex items-center gap-3">
                 <select
@@ -284,7 +284,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
             </div>
             <div className="space-y-2">
               <label htmlFor="blockedBy" className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">
-                {isAdmin ? 'Blocked By' : 'Sequence Blocker'}
+                Blocked By
               </label>
               <select
                 id="blockedBy"
@@ -307,14 +307,14 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
             onClick={onClose}
             className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl transition-all duration-300"
           >
-            {isAdmin ? 'Cancel' : 'Abort'}
+            Cancel
           </button>
           <button
             type="submit"
             onClick={handleSubmit}
             className="px-10 py-4 bg-blue-500 hover:bg-blue-400 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-xl shadow-blue-500/20 active:scale-95"
           >
-            {taskToEdit && (taskToEdit.id || taskToEdit.title) ? (isAdmin ? 'Update Task' : 'Finalize Updates') : (isAdmin ? 'Create Task' : 'Commit Directive')}
+            {taskToEdit && (taskToEdit.id || taskToEdit.title) ? 'Update Task' : 'Create Task'}
           </button>
         </div>
       </div >

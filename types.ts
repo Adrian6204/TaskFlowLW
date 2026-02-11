@@ -57,6 +57,7 @@ export interface Task {
   createdAt: string;
   completedAt?: string | null;
   blockedById?: number | null;
+  isUnplanned?: boolean;
 }
 
 export interface Space {
@@ -66,7 +67,7 @@ export interface Space {
   ownerId: string; // The creator of the space
   members: string[]; // Array of employee IDs
   theme?: string; // Optional per-space theme override
-  description?: string; // Used for "Today's Directive"
+  description?: string; // Used for "Today's Task"
   createdAt: string;
 }
 

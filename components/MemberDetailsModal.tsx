@@ -103,12 +103,12 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                 {/* Tasks List */}
                 <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
                     <div className="p-6 md:p-8">
-                        <h3 className="text-sm font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-6">Assigned Missions</h3>
+                        <h3 className="text-sm font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-6">Assigned Tasks</h3>
 
                         {sortedTasks.length === 0 ? (
                             <div className="text-center py-12 bg-slate-50 dark:bg-white/5 rounded-[20px] border border-dashed border-slate-200 dark:border-white/10">
                                 <CheckCircleIcon className="w-10 h-10 text-slate-300 dark:text-white/20 mx-auto mb-3" />
-                                <p className="text-slate-400 dark:text-white/30 font-bold">No missions assigned yet</p>
+                                <p className="text-slate-400 dark:text-white/30 font-bold">No tasks assigned yet</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-3">

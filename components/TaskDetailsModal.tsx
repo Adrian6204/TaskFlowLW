@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Task, Employee, Priority, Subtask } from '../types';
+import { Task, Employee, Priority, Subtask, TaskStatus } from '../types';
 import { useAuth } from '../auth/AuthContext';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { FlagIcon } from './icons/FlagIcon';
@@ -12,6 +12,7 @@ import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import TagPill from './TagPill';
+import { PRIORITIES } from '../constants'; // Ensure this matches AddTaskModal
 
 interface TaskDetailsModalProps {
   isOpen: boolean;
@@ -64,6 +65,12 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
   // Timer State
   const [elapsedTime, setElapsedTime] = useState(0);
 
+  // Edit State
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => setShow(true), 10);
@@ -75,6 +82,10 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
       };
       document.addEventListener('keydown', handleKeyDown);
 
+      // Initialize edit fields
+      setEditTitle(task.title);
+      setEditDesc(task.description || '');
+
       return () => {
         clearTimeout(timer);
         document.removeEventListener('keydown', handleKeyDown);
@@ -82,7 +93,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
     } else {
       setShow(false);
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, task]); // Added task dependency so it updates if task changes
 
   useEffect(() => {
     if (isOpen) {
@@ -93,6 +104,8 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
       setNewTag('');
       setIsAddingTag(false);
       setShowTagSuggestions(false);
+      setIsEditingTitle(false);
+      setIsEditingDesc(false);
     }
   }, [isOpen])
 
@@ -234,6 +247,20 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
     });
   };
 
+  const handleSaveTitle = () => {
+    if (editTitle.trim() && editTitle !== task.title) {
+      onUpdateTask({ ...task, title: editTitle.trim() });
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleSaveDesc = () => {
+    if (editDesc !== task.description) {
+      onUpdateTask({ ...task, description: editDesc });
+    }
+    setIsEditingDesc(false);
+  };
+
   const getRelativeTime = (timestamp: string) => {
     const now = new Date();
     const commentDate = new Date(timestamp);
@@ -271,11 +298,30 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
 
       <div className={`bg-white/80 dark:bg-[#1E1E1E]/90 backdrop-blur-3xl rounded-[40px] border border-black/10 dark:border-white/10 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transition-all duration-500 relative z-10 transform ${show ? 'translate-y-0 scale-100' : 'translate-y-8 scale-95'}`}>
         <header className="p-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center flex-shrink-0 bg-black/5 dark:bg-white/[0.02]">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase truncate max-w-[400px]">{task.title}</h2>
+          <div className="flex-1 mr-4">
+            {isEditingTitle ? (
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                onBlur={handleSaveTitle}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
+                autoFocus
+                className="w-full text-2xl font-black text-slate-900 dark:text-white bg-transparent border-b-2 border-blue-500 focus:outline-none"
+                placeholder="Task Title"
+              />
+            ) : (
+              <h2
+                onClick={() => setIsEditingTitle(true)}
+                className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase truncate max-w-[400px] cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                title="Click to edit"
+              >
+                {task.title}
+              </h2>
+            )}
             <div className="flex items-center gap-2 mt-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
-              <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em]">Operational Directive Active</p>
+              <div className={`w-1.5 h-1.5 rounded-full ${task.status === TaskStatus.DONE ? 'bg-green-500' : 'bg-blue-500'} shadow-[0_0_8px_rgba(59,130,246,0.5)]`}></div>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em]">{task.status === TaskStatus.DONE ? 'Completed' : 'Task Details'}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-2xl transition-all border border-black/5 dark:border-white/5 group">
@@ -287,37 +333,66 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
           {blockingTask && (
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-[24px] p-4 flex items-center gap-4 animate-pulse">
               <LockClosedIcon className="w-6 h-6 text-amber-600 dark:text-amber-500 flex-shrink-0" />
-              <p className="text-xs font-bold text-amber-700 dark:text-amber-200 uppercase tracking-wide">Sequence Interlocked by: <span className="font-black text-slate-900 dark:text-white">"{blockingTask.title}"</span></p>
+              <p className="text-xs font-bold text-amber-700 dark:text-amber-200 uppercase tracking-wide">Blocked by: <span className="font-black text-slate-900 dark:text-white">"{blockingTask.title}"</span></p>
             </div>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl shadow-sm">
               <span className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mb-2">Assignee</span>
               <div className="flex items-center gap-3">
-                {assignee && <img src={assignee.avatarUrl} alt={assignee.name} className="w-6 h-6 rounded-full border border-black/10 dark:border-white/10 shadow-sm" />}
-                <p className="text-xs font-bold text-slate-700 dark:text-white truncate">{assignee?.name || 'Unassigned'}</p>
+                {assignee ? (
+                  <img src={assignee.avatarUrl} alt={assignee.name} className="w-6 h-6 rounded-full border border-black/10 dark:border-white/10 shadow-sm" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-white/10 border border-black/10 dark:border-white/10 shadow-sm"></div>
+                )}
+                <select
+                  value={task.assigneeId ? task.assigneeId.toString() : ''}
+                  onChange={(e) => onUpdateTask({ ...task, assigneeId: e.target.value })}
+                  className="text-xs font-bold text-slate-700 dark:text-white outline-none bg-transparent w-full cursor-pointer"
+                >
+                  <option value="" disabled>Unassigned</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
+
             <div className="p-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl shadow-sm">
-              <span className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mb-2">Deadline</span>
-              <p className="text-xs font-bold text-slate-700 dark:text-white">{new Date(task.dueDate).toLocaleDateString()}</p>
-            </div>
-            <div className="p-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl shadow-sm">
-              <span className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mb-2">Initiated</span>
-              <p className="text-xs font-bold text-slate-700 dark:text-white">{new Date(task.createdAt).toLocaleDateString()}</p>
-            </div>
-            <div className="p-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl shadow-sm">
-              <span className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mb-2">Threat</span>
+              <span className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mb-2">Priority</span>
               <div className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${priorityConfig[task.priority].text}`}>
                 <FlagIcon className="w-3 h-3" />
-                {task.priority}
+                <select
+                  value={task.priority}
+                  onChange={(e) => onUpdateTask({ ...task, priority: e.target.value as Priority })}
+                  className="bg-transparent outline-none cursor-pointer uppercase font-black"
+                >
+                  {Object.values(Priority).map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
               </div>
+            </div>
+
+            <div className="p-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl shadow-sm">
+              <span className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mb-2">Deadline</span>
+              <input
+                type="date"
+                value={task.dueDate}
+                onChange={(e) => onUpdateTask({ ...task, dueDate: e.target.value })}
+                className="text-xs font-bold text-slate-700 dark:text-white bg-transparent outline-none cursor-pointer w-full"
+              />
+            </div>
+
+            <div className="p-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl shadow-sm">
+              <span className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mb-2">Created</span>
+              <p className="text-xs font-bold text-slate-700 dark:text-white">{new Date(task.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
 
           <div className="space-y-3">
-            <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">Classification Tokens</span>
+            <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">Tags</span>
             <div className="flex flex-wrap items-center gap-2 bg-black/[0.02] dark:bg-white/[0.02] p-4 rounded-3xl border border-black/5 dark:border-white/5 min-h-[60px] shadow-inner">
               {(task.tags || []).map(tag => (
                 <TagPill key={tag} text={tag} onRemove={() => handleRemoveTag(tag)} />
@@ -338,7 +413,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                         }, 200);
                       }}
                       className="px-4 py-2 text-[10px] font-bold bg-white dark:bg-[#2A2A2D] border border-black/5 dark:border-white/10 rounded-xl focus:ring-1 focus:ring-blue-500 text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-white/20 outline-none shadow-sm"
-                      placeholder="New token..."
+                      placeholder="New tag..."
                     />
                   </form>
                   {showTagSuggestions && suggestedTags.length > 0 && (
@@ -363,16 +438,36 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                   onClick={() => setIsAddingTag(true)}
                   className="inline-flex items-center px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-black/5 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:bg-black/10 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white border border-black/5 dark:border-white/5 transition-all shadow-sm"
                 >
-                  <PlusIcon className="w-3 h-3 mr-2" /> Assign Token
+                  <PlusIcon className="w-3 h-3 mr-2" /> Add Tag
                 </button>
               )}
             </div>
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">Directive Content</h3>
-            <div className="p-6 bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 rounded-[32px] shadow-inner">
-              <p className="text-sm font-medium text-slate-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap">{task.description || 'Descriptor field currently vacant.'}</p>
+            <h3 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">Description</h3>
+            <div className="p-6 bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 rounded-[32px] shadow-inner group relative hover:border-black/10 dark:hover:border-white/10 transition-colors">
+              {isEditingDesc ? (
+                <textarea
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  onBlur={handleSaveDesc}
+                  rows={6}
+                  autoFocus
+                  className="w-full bg-transparent text-sm font-medium text-slate-700 dark:text-white/80 leading-relaxed outline-none resize-none"
+                  placeholder="Add a detailed description..."
+                />
+              ) : (
+                <div
+                  onClick={() => setIsEditingDesc(true)}
+                  className="min-h-[100px] cursor-pointer"
+                  title="Click to edit"
+                >
+                  <p className="text-sm font-medium text-slate-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap">
+                    {task.description || <span className="text-slate-400 italic">No description provided. Click to add one.</span>}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -384,13 +479,13 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                     <ClockIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Temporal Analysis</h3>
-                    <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-wider mt-0.5">Precise duration logging active</p>
+                    <h3 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Time Tracking</h3>
+                    <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-wider mt-0.5">{task.timerStartTime ? 'Timer Active' : 'Start Timer'}</p>
                   </div>
                 </div>
                 {task.timerStartTime && (
                   <div className="px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full">
-                    <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest animate-pulse">Live Sync</span>
+                    <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest animate-pulse">Running</span>
                   </div>
                 )}
               </div>
@@ -414,11 +509,11 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                 >
                   {task.timerStartTime ? (
                     <>
-                      <StopIcon className="w-6 h-6" /> Terminate Log
+                      <StopIcon className="w-6 h-6" /> Stop Timer
                     </>
                   ) : (
                     <>
-                      <PlayIcon className="w-6 h-6" /> Initialize Log
+                      <PlayIcon className="w-6 h-6" /> Start Timer
                     </>
                   )}
                 </button>
@@ -428,14 +523,14 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
 
           <div className="space-y-4">
             <div className="flex justify-between items-center ml-1">
-              <h3 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">Fragment Log ({completedSubtasks}/{totalSubtasks})</h3>
+              <h3 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">Subtasks ({completedSubtasks}/{totalSubtasks})</h3>
               <button
                 onClick={handleGenerateSubtasks}
                 disabled={isGeneratingSubtasks}
                 className="flex items-center text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 disabled:opacity-30 group"
               >
                 <SparklesIcon className={`w-4 h-4 mr-2 group-hover:scale-110 transition-all ${isGeneratingSubtasks ? 'animate-spin' : ''}`} />
-                {isGeneratingSubtasks ? 'Synthesizing...' : 'AI Synthesis'}
+                {isGeneratingSubtasks ? 'Thinking...' : 'Generate with AI'}
               </button>
             </div>
 
@@ -465,7 +560,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                   </li>
                 ))}
                 {(task.subtasks || []).length === 0 && (
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/10 uppercase tracking-widest text-center py-4">No fragments defined for this directive</p>
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/10 uppercase tracking-widest text-center py-4">No subtasks yet</p>
                 )}
               </ul>
 
@@ -474,7 +569,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                   type="text"
                   value={newSubtaskTitle}
                   onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                  placeholder="Define new fragment..."
+                  placeholder="Add a subtask..."
                   className="flex-grow text-xs font-bold px-5 py-4 bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all outline-none shadow-sm"
                 />
                 <button type="submit" disabled={!newSubtaskTitle.trim()} className="p-4 bg-black/5 dark:bg-white/10 text-slate-400 dark:text-white rounded-2xl hover:bg-black/10 dark:hover:bg-white/20 disabled:opacity-30 transition-all shadow-sm">
@@ -487,21 +582,21 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
           <div className="bg-black/5 dark:bg-[#2A2A2D]/50 border border-black/5 dark:border-white/5 rounded-[40px] p-8 shadow-inner">
             <div className="flex items-center gap-3 mb-6">
               <SparklesIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              <h3 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Neural Consultation</h3>
+              <h3 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest">AI Assistant</h3>
             </div>
             <form onSubmit={handleAskAI} className="space-y-4">
               <textarea
                 value={aiQuestion}
                 onChange={(e) => setAiQuestion(e.target.value)}
-                placeholder="Query the database for tactical insights..."
+                placeholder="Ask about this task or get next steps..."
                 rows={3}
                 className="w-full px-6 py-4 bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl text-slate-700 dark:text-white font-medium placeholder-slate-300 dark:placeholder-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all resize-none outline-none shadow-sm"
               />
               <button type="submit" className="w-full py-4 bg-blue-500 hover:bg-blue-400 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl disabled:opacity-30 transition-all shadow-xl shadow-blue-500/20 active:scale-95" disabled={!aiQuestion.trim() || isAiLoading}>
-                {isAiLoading ? 'Synthesizing...' : 'Initialize Query'}
+                {isAiLoading ? 'Thinking...' : 'Ask AI'}
               </button>
             </form>
-            {isAiLoading && <div className="text-center py-8 text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em] animate-pulse">Syncing with Mainframe...</div>}
+            {isAiLoading && <div className="text-center py-8 text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em] animate-pulse">Processing...</div>}
             {aiError && <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">{aiError}</div>}
             {aiResponse && (
               <div className="mt-6 p-6 bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-3xl text-sm font-medium text-slate-700 dark:text-white/80 leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-sm">
@@ -511,7 +606,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">Event Chronicle</h3>
+            <h3 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">Activity & Comments</h3>
             <div className="space-y-4">
               {task.comments.map(comment => {
                 const author = employees.find(e => e.id === comment.authorId);
@@ -530,7 +625,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               })}
               {task.comments.length === 0 && (
                 <div className="py-12 flex flex-col items-center gap-3 bg-black/[0.01] dark:bg-white/[0.01] border border-dashed border-black/5 dark:border-white/5 rounded-[40px]">
-                  <p className="text-[10px] font-bold text-slate-300 dark:text-white/10 uppercase tracking-[0.3em]">No archive entries available</p>
+                  <p className="text-[10px] font-bold text-slate-300 dark:text-white/10 uppercase tracking-[0.3em]">No comments yet</p>
                 </div>
               )}
             </div>
@@ -545,7 +640,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                 type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Append to chronicle..."
+                placeholder="Add a comment..."
                 className="w-full px-6 py-4 bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl text-slate-900 dark:text-white font-bold placeholder-slate-300 dark:placeholder-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all outline-none shadow-sm"
               />
             </div>

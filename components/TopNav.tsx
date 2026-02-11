@@ -90,7 +90,7 @@ const TopNav: React.FC<TopNavProps> = ({
                     </div>
                     <input
                         type="text"
-                        placeholder="Search missions..."
+                        placeholder="Search tasks..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 text-slate-900 dark:text-white text-sm font-medium rounded-full py-2.5 pl-11 pr-10 placeholder:text-slate-500 dark:placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-lime-500/50 dark:focus:ring-[#CEFD4A]/50 focus:border-lime-500/50 dark:focus:border-[#CEFD4A]/50 transition-all w-64 hover:bg-white/80 dark:hover:bg-black/50"

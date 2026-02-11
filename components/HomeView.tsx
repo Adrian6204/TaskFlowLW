@@ -34,6 +34,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   const today = new Date().toISOString().split('T')[0];
 
   const [newTaskInput, setNewTaskInput] = useState('');
+  const [newTaskDescription, setNewTaskDescription] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
   const [newTaskPriority, setNewTaskPriority] = useState<DailyTaskPriority>('Medium');
   const [showUnplannedInfo, setShowUnplannedInfo] = useState(false);
@@ -57,19 +58,21 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
 
     const newTask: Partial<Task> = {
       title: newTaskInput,
+      description: newTaskDescription,
       priority: newTaskPriority === 'Urgent' ? Priority.URGENT :
         newTaskPriority === 'High' ? Priority.HIGH :
           newTaskPriority === 'Medium' ? Priority.MEDIUM : Priority.LOW,
       status: TaskStatus.TODO,
       tags: tags,
       assigneeId: user.employeeId,
-      dueDate: today, // Set due date to today so it shows in "Today's Mission"
+      dueDate: today, // Set due date to today so it shows in "Today's Tasks"
     };
 
     try {
       const savedTask = await onAddTask(newTask);
 
       setNewTaskInput('');
+      setNewTaskDescription('');
       setIsUrgent(false);
       setNewTaskPriority('Medium');
 
@@ -100,7 +103,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   const overdueTasks = myTasks.filter(t => t.dueDate < today && t.status !== TaskStatus.DONE);
 
   // Daily Tasks (Local)
-  // All daily tasks are shown in the mission list regardless of status
+  // All daily tasks are shown in the task list regardless of status
 
   // Stats
   const totalTasks = myTasks.length;
@@ -127,7 +130,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   const [pickerPosition, setPickerPosition] = useState<{ x: number; y: number } | null>(null);
 
   // Expanded View State
-  const [isExpandedMissionsOpen, setIsExpandedMissionsOpen] = useState(false);
+  const [isExpandedTasksOpen, setIsExpandedTasksOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
 
@@ -141,12 +144,13 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
       spaceId: 'Personal',
       isDaily: true,
       isUnplanned: t.isUnplanned,
+      description: t.description,
       originalId: t.id
     }))
   ];
 
   const filteredTasks = combinedTasks.filter(task => {
-    const term = isExpandedMissionsOpen ? globalSearchTerm : globalSearchTerm; // Both use global now
+    const term = isExpandedTasksOpen ? globalSearchTerm : globalSearchTerm; // Both use global now
     const matchesSearch = task.title.toLowerCase().includes(globalSearchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' ||
       (statusFilter === 'Completed' && task.status === TaskStatus.DONE) ||
@@ -194,7 +198,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             </h1>
             <p className="text-slate-500 dark:text-white/40 text-lg max-w-md">
               {todayTasks.length > 0
-                ? `You have ${todayTasks.length} missions scheduled for today.`
+                ? `You have ${todayTasks.length} tasks scheduled for today.`
                 : "All clear. Ready for new challenges."}
             </p>
           </div>
@@ -276,8 +280,20 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                 value={newTaskInput}
                 onChange={(e) => setNewTaskInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full h-[80px] bg-transparent border border-black/10 dark:border-white/10 rounded-xl p-3 text-slate-900 dark:text-white focus:outline-none focus:border-lime-500 text-sm resize-none placeholder:text-slate-400 dark:placeholder:text-white/20"
-                placeholder="What do you need to get done?"
+                className="w-full h-[50px] bg-transparent border-b border-black/10 dark:border-white/10 p-3 text-slate-900 dark:text-white focus:outline-none focus:border-lime-500 text-sm resize-none placeholder:text-slate-400 dark:placeholder:text-white/20 font-bold"
+                placeholder="Task Title..."
+              />
+              <textarea
+                value={newTaskDescription}
+                onChange={(e) => setNewTaskDescription(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    handleAddTask();
+                  }
+                }}
+                className="w-full h-[60px] bg-transparent border-none p-3 text-slate-700 dark:text-white/80 focus:outline-none text-xs resize-none placeholder:text-slate-400 dark:placeholder:text-white/20"
+                placeholder="Description (optional)..."
               />
               <div className="mt-3 flex justify-end">
                 <button
@@ -298,10 +314,10 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
           <div className="p-8 pb-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-lime-500 dark:bg-[#CEFD4A]"></div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Today's Missions</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Today's Tasks</h3>
             </div>
             <button
-              onClick={() => setIsExpandedMissionsOpen(true)}
+              onClick={() => setIsExpandedTasksOpen(true)}
               className="text-xs font-bold text-slate-400 dark:text-white/40 hover:text-lime-600 dark:hover:text-[#CEFD4A] transition-colors uppercase tracking-wider"
             >
               View All
@@ -332,7 +348,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                 return (
                   <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-white/20 py-12">
                     <SearchIcon className="w-8 h-8 mb-4 opacity-30" />
-                    <p className="font-bold text-sm uppercase tracking-widest text-center">No missions found for "{globalSearchTerm}"</p>
+                    <p className="font-bold text-sm uppercase tracking-widest text-center">No tasks found for "{globalSearchTerm}"</p>
                     <button
                       onClick={() => onSearchChange('')}
                       className="mt-4 text-xs font-black text-lime-600 dark:text-[#CEFD4A] hover:underline uppercase tracking-widest"
@@ -347,15 +363,12 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                 <div
                   key={`${task.isDaily ? 'daily' : 'project'}-${task.id}-${idx}`}
                   onClick={(e) => handleTaskClick(e, task)}
-                  className={`group flex items-center gap-4 p-4 rounded-[20px] border transition-all cursor-pointer ${
-                    // @ts-ignore
-                    task.isUnplanned
-                      ? 'bg-red-500/5 border-red-500/20 hover:bg-red-500/10'
-                      : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10'
+                  className={`group flex items-center gap-4 p-4 rounded-[20px] border transition-all cursor-pointer ${task.isUnplanned
+                    ? 'bg-red-500/5 border-red-500/20 hover:bg-red-500/10'
+                    : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10'
                     }`}
                 >
                   <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === TaskStatus.DONE ? 'bg-lime-500 dark:bg-[#CEFD4A] border-lime-500 dark:border-[#CEFD4A] text-white dark:text-black' :
-                    // @ts-ignore
                     task.isUnplanned ? 'border-red-500 text-transparent' :
                       task.isDaily ? 'border-lime-500 dark:border-[#CEFD4A] text-transparent' :
                         task.status === TaskStatus.IN_PROGRESS ? 'border-lime-500 dark:border-[#CEFD4A] text-transparent' :
@@ -371,6 +384,11 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                       }`}>
                       {task.title}
                     </h4>
+                    {task.description && (
+                      <p className={`text-xs text-slate-500 dark:text-white/60 line-clamp-2 mt-0.5 ${task.status === TaskStatus.DONE ? 'line-through opacity-60' : ''}`}>
+                        {task.description}
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 mt-1">
                       {/* Priority Badge */}
                       {task.isDaily ? (
@@ -382,32 +400,24 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                             const nextPriority = priorities[(currentIndex + 1) % priorities.length];
                             updateTaskPriority(task.id as string, nextPriority);
                           }}
-                          className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1 transition-all hover:scale-105 active:scale-95 ${
-                            // @ts-ignore
-                            task.isUnplanned ? 'bg-red-500 text-white shadow-sm' :
-                              task.priority === Priority.URGENT ? 'bg-red-500/10 text-red-600 dark:text-red-500 dark:bg-red-500/20' :
-                                task.priority === Priority.HIGH ? 'bg-orange-500/10 text-orange-600 dark:text-orange-500 dark:bg-orange-500/20' :
-                                  task.priority === Priority.MEDIUM ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 dark:bg-yellow-500/20' :
-                                    'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
-                            }`}
-                        >
-                          {/* @ts-ignore */}
-                          {task.isUnplanned && <BoltIcon className="w-2.5 h-2.5" />}
-                          {/* @ts-ignore */}
-                          {task.isUnplanned ? 'Unplanned' : task.priority}
-                        </button>
-                      ) : (
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1 ${
-                          // @ts-ignore
-                          task.isUnplanned ? 'bg-red-500 text-white shadow-sm' :
+                          className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1 transition-all hover:scale-105 active:scale-95 ${task.isUnplanned ? 'bg-red-500 text-white shadow-sm' :
                             task.priority === Priority.URGENT ? 'bg-red-500/10 text-red-600 dark:text-red-500 dark:bg-red-500/20' :
                               task.priority === Priority.HIGH ? 'bg-orange-500/10 text-orange-600 dark:text-orange-500 dark:bg-orange-500/20' :
                                 task.priority === Priority.MEDIUM ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 dark:bg-yellow-500/20' :
                                   'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
-                          }`}>
-                          {/* @ts-ignore */}
+                            }`}
+                        >
                           {task.isUnplanned && <BoltIcon className="w-2.5 h-2.5" />}
-                          {/* @ts-ignore */}
+                          {task.isUnplanned ? 'Unplanned' : task.priority}
+                        </button>
+                      ) : (
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1 ${task.isUnplanned ? 'bg-red-500 text-white shadow-sm' :
+                          task.priority === Priority.URGENT ? 'bg-red-500/10 text-red-600 dark:text-red-500 dark:bg-red-500/20' :
+                            task.priority === Priority.HIGH ? 'bg-orange-500/10 text-orange-600 dark:text-orange-500 dark:bg-orange-500/20' :
+                              task.priority === Priority.MEDIUM ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 dark:bg-yellow-500/20' :
+                                'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
+                          }`}>
+                          {task.isUnplanned && <BoltIcon className="w-2.5 h-2.5" />}
                           {task.isUnplanned ? 'Unplanned' : task.priority}
                         </span>
                       )}
@@ -553,12 +563,12 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
 
       </div>
 
-      {/* Expanded Missions Modal */}
+      {/* Expanded Tasks Modal */}
       {
-        isExpandedMissionsOpen && (
+        isExpandedTasksOpen && (
           <div
             className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-8 bg-black/60 backdrop-blur-md animate-fade-in"
-            onClick={() => setIsExpandedMissionsOpen(false)}
+            onClick={() => setIsExpandedTasksOpen(false)}
           >
             <div
               className="w-full max-w-6xl h-full max-h-[90vh] bg-white dark:bg-[#1A1A1A] border border-black/10 dark:border-white/10 rounded-[32px] flex flex-col p-0 overflow-hidden relative shadow-2xl animate-scale-in"
@@ -569,9 +579,9 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-lime-500 dark:bg-[#CEFD4A] shadow-[0_0_10px_rgba(206,253,74,0.4)]"></div>
-                    <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Mission Control</h2>
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Task Control</h2>
                   </div>
-                  <p className="text-slate-500 dark:text-white/40 text-sm font-bold uppercase tracking-widest">{filteredTasks.length} {filteredTasks.length === 1 ? 'Mission' : 'Missions'} Listed</p>
+                  <p className="text-slate-500 dark:text-white/40 text-sm font-bold uppercase tracking-widest">{filteredTasks.length} {filteredTasks.length === 1 ? 'Task' : 'Tasks'} Listed</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -580,7 +590,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-lime-500 transition-colors" />
                     <input
                       type="text"
-                      placeholder="Search missions..."
+                      placeholder="Search tasks..."
                       value={globalSearchTerm}
                       onChange={(e) => onSearchChange(e.target.value)}
                       className="pl-10 pr-4 py-2 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:border-lime-500/50 w-full transition-all"
@@ -613,7 +623,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                   </select>
 
                   <button
-                    onClick={() => setIsExpandedMissionsOpen(false)}
+                    onClick={() => setIsExpandedTasksOpen(false)}
                     className="w-10 h-10 flex items-center justify-center rounded-xl bg-black/5 dark:bg-white/5 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all hover:bg-black/10 dark:hover:bg-white/10 shadow-sm"
                   >
                     <XMarkIcon className="w-5 h-5" />
@@ -626,7 +636,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                 {filteredTasks.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-white/20 py-20">
                     <SearchIcon className="w-16 h-16 mb-6 opacity-30" />
-                    <p className="text-xl font-black">No missions found</p>
+                    <p className="text-xl font-black">No tasks found</p>
                     <button
                       onClick={() => {
                         onSearchChange('');
@@ -669,6 +679,11 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                               }`}>
                               {task.title}
                             </h4>
+                            {task.description && (
+                              <p className={`text-xs text-slate-500 dark:text-white/60 line-clamp-2 mt-1 ${task.status === TaskStatus.DONE ? 'line-through opacity-60' : ''}`}>
+                                {task.description}
+                              </p>
+                            )}
                             <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">{task.spaceId}</span>
                           </div>
 

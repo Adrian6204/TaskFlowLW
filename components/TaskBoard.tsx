@@ -24,7 +24,7 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEdi
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         </div>
-        <h4 className="text-lg font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">No Missions Found</h4>
+        <h4 className="text-lg font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">No Tasks Found</h4>
         <p className="text-[10px] font-bold text-slate-400 dark:text-white/10 uppercase tracking-widest mt-2 px-8 text-center">Either your board is clear or nothing matches your current search filters.</p>
       </div>
     );

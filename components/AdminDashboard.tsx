@@ -105,7 +105,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ tasks, employees, activ
             {/* Top Level Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <MetricItem
-                    label="Total Missions"
+                    label="Total Tasks"
                     value={totalTasks}
                     icon={<FlagIcon className="w-6 h-6" />}
                 />
@@ -240,7 +240,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ tasks, employees, activ
                                         </div>
                                         <div>
                                             <p className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{employee.name}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mt-1">{employeeTasks.length} missions active</p>
+                                            <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mt-1">{employeeTasks.length} tasks active</p>
                                         </div>
                                     </div>
                                 </div>
@@ -271,7 +271,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ tasks, employees, activ
                                     ) : (
                                         <div className="h-full flex flex-col items-center justify-center text-slate-300 dark:text-white/10 py-10">
                                             <CheckCircleIcon className="w-12 h-12 mb-3 opacity-20" />
-                                            <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Mission Complete</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-[0.2em]">All Tasks Complete</p>
                                         </div>
                                     )}
                                 </div>
