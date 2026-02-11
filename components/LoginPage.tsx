@@ -4,7 +4,7 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { UserIcon } from './icons/UserIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
-import { SparklesIcon } from './icons/SparklesIcon';
+import { Logo } from './Logo';
 import { EyeIcon } from './icons/EyeIcon';
 import { EyeSlashIcon } from './icons/EyeSlashIcon';
 import { ClockIcon } from './icons/ClockIcon';
@@ -14,7 +14,7 @@ import { IdScannerModal } from './IdScannerModal';
 
 const HERO_SLIDES = [
   {
-    icon: <SparklesIcon className="w-10 h-10 text-white" />,
+    icon: <Logo className="w-10 h-10" />,
     title: "AI-Powered Precision",
     content: "Automatically break down complex projects into manageable daily tasks.",
     accent: "bg-primary-500/80"
@@ -137,11 +137,11 @@ const LoginPage: React.FC = () => {
 
         {/* Left Side: Brand & Carousel */}
         <div className="hidden lg:flex flex-col justify-center space-y-12 p-8 animate-fade-in">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-neutral-900 dark:bg-white rounded-2xl shadow-xl">
-              <SparklesIcon className="w-7 h-7 text-white dark:text-neutral-900" />
+          <div className="flex items-center gap-4 group cursor-pointer">
+            <div className="transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 drop-shadow-[0_0_20px_rgba(206,253,74,0.3)]">
+              <Logo className="w-12 h-12" />
             </div>
-            <span className="text-2xl font-semibold text-neutral-900 dark:text-white tracking-tight">TaskFlow</span>
+            <span className="text-3xl font-extrabold text-neutral-900 dark:text-white tracking-[-0.03em]">TaskFlow</span>
           </div>
 
           <div className="relative h-[300px]">
@@ -181,11 +181,9 @@ const LoginPage: React.FC = () => {
         {/* Right Side: Clean Login Card */}
         <div className="flex justify-center animate-fade-in-up">
           <div className="w-full max-w-md bg-white/90 dark:bg-neutral-900/90 backdrop-blur-2xl rounded-3xl p-10 lg:p-12 border border-neutral-200/50 dark:border-neutral-800/50 shadow-2xl shadow-neutral-900/5 dark:shadow-black/20">
-            <div className="lg:hidden flex items-center gap-3 mb-10">
-              <div className="p-2 bg-neutral-900 dark:bg-white rounded-xl">
-                <SparklesIcon className="w-5 h-5 text-white dark:text-neutral-900" />
-              </div>
-              <span className="text-lg font-semibold text-neutral-900 dark:text-white">TaskFlow</span>
+            <div className="lg:hidden flex items-center gap-4 mb-10">
+              <Logo className="w-10 h-10" />
+              <span className="text-xl font-extrabold text-neutral-900 dark:text-white tracking-[-0.03em]">TaskFlow</span>
             </div>
 
             <div className="mb-10">

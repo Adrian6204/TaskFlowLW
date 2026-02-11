@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, Employee } from '../types';
-import { SparklesIcon } from './icons/SparklesIcon';
+import { Logo } from './Logo';
 import { SearchIcon } from './icons/SearchIcon';
 import { BellIcon } from './icons/BellIcon'; // Assuming we might want this, otherwise omit
 import { MoonIcon } from './icons/MoonIcon';
@@ -42,11 +42,11 @@ const TopNav: React.FC<TopNavProps> = ({
         <header className="fixed top-0 left-0 right-0 h-24 px-8 z-50 flex items-center justify-between pointer-events-none">
             {/* Brand & Context */}
             <div className="flex items-center gap-6 pointer-events-auto">
-                <div className="flex items-center gap-3 group cursor-pointer">
-                    <div className="p-2.5 bg-lime-400 dark:bg-[#CEFD4A] rounded-2xl shadow-[0_0_20px_rgba(206,253,74,0.3)] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
-                        <SparklesIcon className="w-5 h-5 text-black" />
+                <div className="flex items-center gap-4 group cursor-pointer">
+                    <div className="transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 drop-shadow-[0_0_15px_rgba(206,253,74,0.4)]">
+                        <Logo className="w-10 h-10" />
                     </div>
-                    <span className="text-slate-900 dark:text-white font-black text-lg tracking-tight">TaskFlow</span>
+                    <span className="text-slate-900 dark:text-white font-extrabold text-xl tracking-[-0.03em]">TaskFlow</span>
                 </div>
 
                 <div className="h-8 w-px bg-black/10 dark:bg-white/10"></div>
