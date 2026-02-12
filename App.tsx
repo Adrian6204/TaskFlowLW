@@ -685,6 +685,7 @@ const Dashboard: React.FC = () => {
                         searchTerm={searchTerm}
                         onSearchChange={setSearchTerm}
                         onEditTask={handleOpenAddTaskModal}
+                        onDeleteTask={(id) => { setTaskToDeleteId(id); setDeleteModalOpen(true); }}
                         onViewTask={(task) => { setSelectedTask(task); setTaskDetailsModalOpen(true); }}
                         onUpdateTaskStatus={handleUpdateTaskStatus}
                         onToggleTimer={handleToggleTimer}
@@ -791,6 +792,7 @@ const Dashboard: React.FC = () => {
               setSelectedTask(updatedTask);
             } catch (err) { console.error(err); }
           }}
+          onDeleteTask={(id) => { setTaskToDeleteId(id); setDeleteModalOpen(true); }}
           onToggleTimer={handleToggleTimer}
         />
       )}

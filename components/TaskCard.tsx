@@ -79,6 +79,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
           <button onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="p-2 text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-all">
             <PencilIcon className="w-3.5 h-3.5" />
           </button>
+          {onDeleteTask && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }}
+              className="p-2 text-slate-400 dark:text-white/40 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+            >
+              <TrashIcon className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 

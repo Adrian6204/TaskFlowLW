@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { FlagIcon } from './icons/FlagIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
+import { TrashIcon } from './icons/TrashIcon';
 import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { ClockIcon } from './icons/ClockIcon';
@@ -17,8 +18,9 @@ interface TaskDetailsModalProps {
   task: Task;
   employees: Employee[];
   allTasks: Task[];
-  onAddComment: (taskId: number, content: string) => void;
-  onToggleTimer: (taskId: number) => void;
+  onAddComment: (taskId: number, content: string) => Promise<void>;
+  onDeleteTask?: (taskId: number) => void;
+  onToggleTimer: (taskId: number) => Promise<void>;
 }
 
 const priorityConfig = {
@@ -36,7 +38,7 @@ const formatDuration = (ms: number) => {
   return `${hours}h ${minutes}m ${seconds}s`;
 };
 
-const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onToggleTimer }) => {
+const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, onToggleTimer }) => {
   const [newComment, setNewComment] = useState('');
   const { user } = useAuth();
   const assignee = employees.find(e => e.id === task.assigneeId);
@@ -141,9 +143,20 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em]">{task.status === TaskStatus.DONE ? 'Completed' : 'Task Details'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-2xl transition-all border border-black/5 dark:border-white/5 group">
-            <XMarkIcon className="w-5 h-5 text-slate-400 dark:text-white/40 group-hover:text-slate-900 dark:group-hover:text-white" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onDeleteTask && (
+              <button
+                onClick={() => { onDeleteTask(task.id); onClose(); }}
+                className="p-3 bg-black/5 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 dark:text-white/40 hover:text-red-600 dark:hover:text-red-400 rounded-2xl transition-all border border-black/5 dark:border-white/5 group"
+                title="Delete Task"
+              >
+                <TrashIcon className="w-5 h-5" />
+              </button>
+            )}
+            <button onClick={onClose} className="p-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-2xl transition-all border border-black/5 dark:border-white/5 group">
+              <XMarkIcon className="w-5 h-5 text-slate-400 dark:text-white/40 group-hover:text-slate-900 dark:group-hover:text-white" />
+            </button>
+          </div>
         </header>
 
         <main className="p-8 overflow-y-auto flex-grow scrollbar-none space-y-8">
