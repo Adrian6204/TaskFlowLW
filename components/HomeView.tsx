@@ -110,8 +110,20 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   const completedTasks = myTasks.filter(t => t.status === TaskStatus.DONE).length;
   const inProgressTasks = myTasks.filter(t => t.status === TaskStatus.IN_PROGRESS).length;
 
+  // Real-time Clock
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  };
+
   const getGreeting = () => {
-    const hour = new Date().getHours();
+    const hour = currentTime.getHours();
     if (hour < 12) return 'Good morning';
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
@@ -190,6 +202,9 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             <div className="flex items-center gap-3 mb-4">
               <span className="px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-[10px] uppercase tracking-widest font-bold text-lime-600 dark:text-[#CEFD4A]">
                 Overview
+              </span>
+              <span className="text-xs font-bold text-slate-400 dark:text-white/40 font-mono tracking-widest pl-2 border-l border-black/10 dark:border-white/10">
+                {formatTime(currentTime)}
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black leading-tight mb-2">
