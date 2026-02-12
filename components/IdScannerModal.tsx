@@ -62,28 +62,10 @@ export const IdScannerModal: React.FC<IdScannerModalProps> = ({ isOpen, onClose,
 
     // Success double-beep sound
     const playSuccessBeep = useCallback(() => {
-        const ctx = audioCtxRef.current;
-        if (!ctx) return;
-
-        if (ctx.state === 'suspended') ctx.resume();
-
         try {
-            const playTone = (freq: number, startTime: number) => {
-                const oscillator = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(freq, startTime);
-                gainNode.gain.setValueAtTime(0.1, startTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.1);
-                oscillator.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                oscillator.start(startTime);
-                oscillator.stop(startTime + 0.1);
-            };
-
-            // Double beep: low then high
-            playTone(880, ctx.currentTime);
-            playTone(1320, ctx.currentTime + 0.15);
+            const audio = new Audio('/sounds/success.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(e => console.error("Error playing success sound:", e));
         } catch (e) {
             console.error("Error playing success beep:", e);
         }
