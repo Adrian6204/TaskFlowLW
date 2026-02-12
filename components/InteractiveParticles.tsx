@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-const InteractiveParticles: React.FC = () => {
+const InteractiveParticles: React.FC = React.memo(() => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -142,9 +142,9 @@ const InteractiveParticles: React.FC = () => {
         <canvas
             ref={canvasRef}
             className="fixed inset-0 pointer-events-none z-0"
-            style={{ filter: 'blur(0.5px)' }}
+            style={{ filter: 'blur(0.5px)', transform: 'translateZ(0)' }}
         />
     );
-};
+});
 
 export default InteractiveParticles;

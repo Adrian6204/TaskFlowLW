@@ -110,7 +110,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center bg-slate-50 dark:bg-black overflow-hidden font-sans transition-colors duration-500">
+    <div className="h-screen w-full relative flex items-center justify-center bg-slate-50 dark:bg-black overflow-hidden font-sans transition-colors duration-500">
       <Background />
       <InteractiveParticles />
 
@@ -129,16 +129,11 @@ const LoginPage: React.FC = () => {
       </div>
       <InteractiveParticles />
 
-      <div className="relative z-10 w-full max-w-7xl h-full lg:h-[90vh] grid grid-cols-1 lg:grid-cols-2 p-4 lg:p-8 gap-12 items-center">
+      <div className="relative z-10 w-full max-w-7xl h-full lg:h-[85vh] grid grid-cols-1 lg:grid-cols-2 p-4 lg:p-8 gap-8 items-center">
 
-        {/* Left Side: Cinematic Window Container with Ambient Glow */}
+        {/* Left Side: Cinematic Window Container with Ambient Glow Effect (Clean Shadow) */}
         <div className="hidden lg:block relative h-full w-full group animate-fade-in">
-          {/* Dynamic Ambient Glow Layer (matches video movement) */}
-          <div className="absolute inset-[-40px] blur-[80px] opacity-40 pointer-events-none overflow-hidden rounded-[80px]">
-            <Background videoSrc="/background.mp4" className="absolute inset-0 scale-150" noOverlays={true} />
-          </div>
-
-          <div className="relative h-full w-full rounded-[40px] overflow-hidden shadow-2xl border border-white/5">
+          <div className="relative h-full w-full rounded-[40px] overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.1)] dark:shadow-[0_0_80px_rgba(255,255,255,0.05)] border border-white/5">
             {/* Moving Background Effect as the content (Vivid Mode) */}
             {!isScannerOpen ? (
               <Background videoSrc="/background.mp4" className="absolute inset-0" noOverlays={true} />
@@ -164,9 +159,9 @@ const LoginPage: React.FC = () => {
 
         {/* Right Side: Centered Content */}
         <div className="flex flex-col justify-center items-center lg:items-start animate-fade-in px-4 lg:px-12">
-          <div className="w-full max-w-[440px] space-y-12">
+          <div className="w-full max-w-[440px] space-y-6">
             {/* Header Content */}
-            <div className="space-y-10">
+            <div className="space-y-4">
               <div className="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-0">
                 <div className="lg:hidden flex items-center gap-3">
                   <Logo className="w-10 h-10 text-slate-900 dark:text-white" />
@@ -191,11 +186,11 @@ const LoginPage: React.FC = () => {
 
             {/* Primary Entry: ID Scanner */}
             {isLogin && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <button
                   type="button"
                   onClick={() => setIsScannerOpen(true)}
-                  className="group relative w-full py-6 px-8 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-[2rem] transition-all duration-500 flex items-center justify-center gap-4 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] hover:-translate-y-1 active:scale-[0.98] overflow-hidden"
+                  className="group relative w-full py-4 px-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-[2rem] transition-all duration-500 flex items-center justify-center gap-4 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] hover:-translate-y-1 active:scale-[0.98] overflow-hidden"
                 >
                   <div className="p-2 bg-white/10 dark:bg-black/5 rounded-xl">
                     <VideoCameraIcon className="w-6 h-6" />
@@ -225,7 +220,7 @@ const LoginPage: React.FC = () => {
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-4 px-6 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300"
+                      className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-3 px-5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300"
                       placeholder="Full name"
                     />
                   </div>
@@ -233,7 +228,7 @@ const LoginPage: React.FC = () => {
                     <select
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
-                      className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-4 px-6 text-slate-900 dark:text-white appearance-none focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300 cursor-pointer"
+                      className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-3 px-5 text-slate-900 dark:text-white appearance-none focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300 cursor-pointer"
                     >
                       <option value="AIE & Production">AIE & Production</option>
                       <option value="General">General</option>
@@ -251,7 +246,7 @@ const LoginPage: React.FC = () => {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-4 px-6 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300"
+                  className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-3 px-5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300"
                   placeholder="Username"
                 />
               </div>
@@ -262,7 +257,7 @@ const LoginPage: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-4 px-6 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300"
+                  className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-3 px-5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300"
                   placeholder="Password"
                 />
                 <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-3">
@@ -286,14 +281,14 @@ const LoginPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading || isAutoLoggingIn}
-                  className="w-full py-4 px-6 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white font-bold rounded-2xl border border-black/5 dark:border-white/5 transition-all duration-300 flex items-center justify-center"
+                  className="w-full py-3 px-6 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white font-bold rounded-2xl border border-black/5 dark:border-white/5 transition-all duration-300 flex items-center justify-center"
                 >
                   {isLoading ? "Processing..." : (isLogin ? "Sign In" : "Create Account")}
                 </button>
               </div>
             </form>
 
-            <div className="mt-12 space-y-1 text-[10px] text-center lg:text-left uppercase tracking-widest text-slate-400 dark:text-white/20 font-bold leading-relaxed">
+            <div className="mt-6 space-y-1 text-[10px] text-center lg:text-left uppercase tracking-widest text-slate-400 dark:text-white/20 font-bold leading-relaxed">
               <p>By signing in, you agree to TaskFlow's <a href="#" className="underline hover:text-slate-900 dark:hover:text-white transition-colors">Terms of Service</a>,</p>
               <p><a href="#" className="underline hover:text-slate-900 dark:hover:text-white transition-colors">Privacy Policy</a> and <a href="#" className="underline hover:text-slate-900 dark:hover:text-white transition-colors">Data Usage Properties</a>.</p>
             </div>

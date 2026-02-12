@@ -154,25 +154,10 @@ const Dashboard: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskToDeleteId, setTaskToDeleteId] = useState<number | null>(null);
 
-  // Load Background Video Safely
+  // Load Background Asset Safely
   useEffect(() => {
-    // We use import.meta.glob to safely check for the existence of the background video
-    // without triggering a hard resolution error in Vite if it's missing.
-    const videos = import.meta.glob('./components/assets/*.mp4', { eager: true });
-
-    // Find background.mp4 in the glob results with a more flexible path check
-    const bgMatch = Object.entries(videos).find(([path]) =>
-      path.toLowerCase().includes('background.mp4')
-    );
-
-    if (bgMatch) {
-      // Vite assets with eager: true can return the string directly or as safe modules
-      const val = bgMatch[1];
-      const videoSrc = typeof val === 'string' ? val : (val as any).default;
-      setBackgroundVideo(videoSrc);
-    } else {
-      console.log("Video background asset not found in components/assets/. Using mesh fallback.");
-    }
+    // We can now use the GIF directly from the public folder
+    setBackgroundVideo('/background.gif');
   }, []);
 
 

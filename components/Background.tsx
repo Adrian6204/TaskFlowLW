@@ -6,28 +6,44 @@ interface BackgroundProps {
     noOverlays?: boolean;
 }
 
-const Background: React.FC<BackgroundProps> = ({ videoSrc, className, noOverlays }) => {
+const Background: React.FC<BackgroundProps> = React.memo(({ videoSrc, className, noOverlays }) => {
     const [isLoaded, setIsLoaded] = useState(false);
 
     return (
-        <div className={`bg-app-container ${className || 'fixed inset-0'} z-[-10] overflow-hidden bg-[#F0F2F5] dark:bg-black transition-colors duration-1000`}>
+        <div
+            className={`bg-app-container ${className || 'fixed inset-0'} z-[-10] overflow-hidden bg-[#F0F2F5] dark:bg-black transition-colors duration-1000`}
+            style={{
+                transform: 'translateZ(0)',
+                backfaceVisibility: 'hidden',
+                perspective: 1000
+            }}
+        >
             {/* Fallback Mesh Gradient (always present as base layer) */}
             <div className="mesh-gradient absolute w-[150vw] h-[150vh] top-[-25vh] left-[-25vw] filter blur-[80px] opacity-100 dark:opacity-60 transition-opacity duration-1000" />
 
-            {/* Video Overlay */}
+            {/* Asset Overlay (Video or GIF) */}
             {videoSrc && (
-                <video
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-in-out ${noOverlays
-                            ? 'opacity-60 dark:opacity-80'
-                            : 'opacity-10 dark:opacity-20 blur-sm'
-                        }`}
-                >
-                    <source src={videoSrc} type="video/mp4" />
-                </video>
+                videoSrc.toLowerCase().endsWith('.gif') ? (
+                    <img
+                        src={videoSrc}
+                        alt=""
+                        onLoad={() => setIsLoaded(true)}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[500ms] ease-in-out ${isLoaded ? (noOverlays ? 'opacity-60 dark:opacity-80' : 'opacity-10 dark:opacity-20 blur-sm') : 'opacity-0'}`}
+                        style={{ transform: 'translateZ(0)' }}
+                    />
+                ) : (
+                    <video
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        onLoadedData={() => setIsLoaded(true)}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1000ms] ease-in-out ${isLoaded ? (noOverlays ? 'opacity-60 dark:opacity-80' : 'opacity-10 dark:opacity-20 blur-sm') : 'opacity-0'}`}
+                        style={{ transform: 'translateZ(0)' }}
+                    >
+                        <source src={videoSrc} type="video/mp4" />
+                    </video>
+                )
             )}
 
 
@@ -49,6 +65,6 @@ const Background: React.FC<BackgroundProps> = ({ videoSrc, className, noOverlays
             )}
         </div>
     );
-};
+});
 
 export default Background;
