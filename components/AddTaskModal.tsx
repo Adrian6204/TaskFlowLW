@@ -370,14 +370,14 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl transition-all duration-300"
+            className="px-5 py-3 md:px-8 md:py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl transition-all duration-300"
           >
             Cancel
           </button>
           <button
             type="submit"
             onClick={handleSubmit}
-            className="px-10 py-4 bg-blue-500 hover:bg-blue-400 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-xl shadow-blue-500/20 active:scale-95"
+            className="px-6 py-3 md:px-10 md:py-4 bg-blue-500 hover:bg-blue-400 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-xl shadow-blue-500/20 active:scale-95"
           >
             {taskToEdit && (taskToEdit.id || taskToEdit.title) ? 'Update Task' : 'Create Task'}
           </button>

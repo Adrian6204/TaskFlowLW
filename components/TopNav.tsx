@@ -21,6 +21,7 @@ interface TopNavProps {
     currentView?: string;
     timelineViewMode?: 'calendar' | 'gantt';
     onTimelineViewModeChange?: (mode: 'calendar' | 'gantt') => void;
+    onToggleSidebar?: () => void;
 }
 
 const TopNav: React.FC<TopNavProps> = ({
@@ -33,28 +34,31 @@ const TopNav: React.FC<TopNavProps> = ({
     onSearchChange,
     currentView,
     timelineViewMode,
-    onTimelineViewModeChange
+    onTimelineViewModeChange,
+    onToggleSidebar
 }) => {
     const { theme, toggleTheme } = useTheme();
     const { unreadCount } = useAppNotifications();
     const [isNotificationPanelOpen, setNotificationPanelOpen] = React.useState(false);
 
     return (
-        <header className="fixed top-0 left-0 right-0 h-24 px-8 z-50 flex items-center justify-between pointer-events-none">
+        <header className="fixed top-0 left-0 right-0 h-20 md:h-24 px-4 md:px-8 z-50 flex items-center justify-between pointer-events-none">
             {/* Brand & Context */}
-            <div className="flex items-center gap-6 pointer-events-auto">
-                <Link to="/app/home" className="flex items-center gap-4 group cursor-pointer">
+            <div className="flex items-center gap-4 md:gap-6 pointer-events-auto">
+
+
+                <Link to="/app/home" className="flex items-center gap-3 md:gap-4 group cursor-pointer">
                     <div className="transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 drop-shadow-[0_0_15px_rgba(206,253,74,0.4)]">
-                        <Logo className="w-10 h-10" />
+                        <Logo className="w-8 h-8 md:w-10 md:h-10" />
                     </div>
-                    <span className="text-slate-900 dark:text-white font-extrabold text-xl tracking-[-0.03em]">TaskFlow</span>
+                    <span className="text-slate-900 dark:text-white font-extrabold text-lg md:text-xl tracking-[-0.03em] hidden sm:block">TaskFlow</span>
                 </Link>
 
-                <div className="h-8 w-px bg-black/10 dark:bg-white/10"></div>
+                <div className="h-6 w-px bg-black/10 dark:bg-white/10 hidden sm:block"></div>
 
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-lime-600 dark:text-[#CEFD4A] uppercase tracking-widest mb-0.5">Workspace</span>
-                    <span className="text-slate-900 dark:text-white font-bold text-lg tracking-tight">{activeSpaceName}</span>
+                <div className="flex flex-col hidden sm:flex">
+                    <span className="text-[9px] md:text-[10px] font-bold text-lime-600 dark:text-[#CEFD4A] uppercase tracking-widest mb-0.5">Workspace</span>
+                    <span className="text-slate-900 dark:text-white font-bold text-sm md:text-lg tracking-tight truncate max-w-[120px] md:max-w-none">{activeSpaceName}</span>
                 </div>
             </div>
 

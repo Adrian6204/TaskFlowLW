@@ -233,7 +233,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               </div>
 
               <div className="text-center mb-8">
-                <div className={`text-6xl font-black font-mono tracking-tighter ${task.timerStartTime
+                <div className={`text-4xl md:text-6xl font-black font-mono tracking-tighter ${task.timerStartTime
                   ? 'text-slate-900 dark:text-white'
                   : 'text-slate-300 dark:text-white/20'
                   }`}>
@@ -244,7 +244,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               <div className="flex justify-center">
                 <button
                   onClick={() => onToggleTimer(task.id)}
-                  className={`flex items-center justify-center gap-4 px-10 py-5 rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl ${task.timerStartTime
+                  className={`flex items-center justify-center gap-2 md:gap-4 px-6 py-4 md:px-10 md:py-5 rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl ${task.timerStartTime
                     ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-red-500/30'
                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/30'
                     }`}

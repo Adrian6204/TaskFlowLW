@@ -33,18 +33,19 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEdi
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {TASK_STATUSES.map(status => (
-        <TaskColumn
-          key={status}
-          status={status}
-          tasks={tasks.filter(task => task.status === status)}
-          allTasks={allTasks}
-          employees={employees}
-          onEditTask={onEditTask}
-          onDeleteTask={onDeleteTask}
-          onUpdateTaskStatus={onUpdateTaskStatus}
-          onViewTask={onViewTask}
-          onToggleTimer={onToggleTimer}
-        />
+        <div key={status} className="h-full">
+          <TaskColumn
+            status={status}
+            tasks={tasks.filter(task => task.status === status)}
+            allTasks={allTasks}
+            employees={employees}
+            onEditTask={onEditTask}
+            onDeleteTask={onDeleteTask}
+            onUpdateTaskStatus={onUpdateTaskStatus}
+            onViewTask={onViewTask}
+            onToggleTimer={onToggleTimer}
+          />
+        </div>
       ))}
     </div>
   );

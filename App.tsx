@@ -5,6 +5,7 @@ import { Task, TaskStatus, Employee, Priority, Comment, ActivityLog, TimeLogEntr
 import TaskBoard from './components/TaskBoard';
 import TaskListView from './components/TaskListView';
 import TopNav from './components/TopNav';
+
 import BottomDock from './components/BottomDock';
 import AddTaskModal from './components/AddTaskModal';
 import LoginPage from './components/LoginPage';
@@ -105,7 +106,6 @@ const Dashboard: React.FC = () => {
   const [allTasks, setAllTasks] = useState<Task[]>([]);
 
   // UI State
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [activeSpaceId, setActiveSpaceId] = useState<string>('');
   const [backgroundVideo, setBackgroundVideo] = useState<string | undefined>(undefined);
 
@@ -574,6 +574,8 @@ const Dashboard: React.FC = () => {
     <div className="flex h-screen overflow-hidden bg-transparent text-white selection:bg-[#CEFD4A] selection:text-black relative font-sans">
       <Background videoSrc={backgroundVideo} />
 
+
+
       <TopNav
         activeSpaceName={currentSpace ? currentSpace.name : 'TaskFlow'}
         currentUserEmployee={currentUserEmployee}
@@ -748,12 +750,14 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Hide BottomDock for admins - they only see Daily Overview */}
-      <BottomDock
-        currentView={currentView}
-        onViewChange={setCurrentView}
-        activeSpaceId={activeSpaceId}
-        isAdmin={user.isAdmin}
-      />
+      <div>
+        <BottomDock
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          activeSpaceId={activeSpaceId}
+          isAdmin={user.isAdmin}
+        />
+      </div>
 
       {/* Modals */}
       {isAddTaskModalOpen && (
