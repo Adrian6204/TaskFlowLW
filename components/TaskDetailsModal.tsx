@@ -21,6 +21,8 @@ interface TaskDetailsModalProps {
   onAddComment: (taskId: number, content: string) => Promise<void>;
   onDeleteTask?: (taskId: number) => void;
   onToggleTimer: (taskId: number) => Promise<void>;
+  currentUserId?: string;
+  isAdmin?: boolean;
 }
 
 const priorityConfig = {
@@ -38,12 +40,13 @@ const formatDuration = (ms: number) => {
   return `${hours}h ${minutes}m ${seconds}s`;
 };
 
-const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, onToggleTimer }) => {
+const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, onToggleTimer, currentUserId, isAdmin }) => {
   const [newComment, setNewComment] = useState('');
   const { user } = useAuth();
   const assignee = employees.find(e => e.id === task.assigneeId);
   const currentUser = employees.find(e => e.id === user?.employeeId);
   const blockingTask = task.blockedById ? allTasks.find(t => t.id === task.blockedById) : null;
+  const canDelete = isAdmin || (currentUserId && task.assigneeId === currentUserId);
 
   const [show, setShow] = useState(false);
 
@@ -144,7 +147,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {onDeleteTask && (
+            {onDeleteTask && canDelete && (
               <button
                 onClick={() => { onDeleteTask(task.id); onClose(); }}
                 className="p-3 bg-black/5 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 dark:text-white/40 hover:text-red-600 dark:hover:text-red-400 rounded-2xl transition-all border border-black/5 dark:border-white/5 group"

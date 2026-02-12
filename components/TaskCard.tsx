@@ -20,6 +20,8 @@ interface TaskCardProps {
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onViewTask: (task: Task) => void;
   onToggleTimer: (taskId: number) => void;
+  currentUserId?: string;
+  isAdmin?: boolean;
 }
 
 const priorityConfig = {
@@ -29,16 +31,21 @@ const priorityConfig = {
   [Priority.LOW]: { glow: 'bg-slate-200 dark:bg-white/20 shadow-white/10', border: 'border-black/5 dark:border-white/5' },
 };
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, onToggleTimer }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, onToggleTimer, currentUserId, isAdmin }) => {
   const isOverdue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE;
   const [isDragging, setIsDragging] = useState(false);
+
+  // Permission Logic
+  const canEdit = isAdmin || (currentUserId && task.assigneeId === currentUserId);
+  const canDelete = isAdmin || (currentUserId && task.assigneeId === currentUserId);
+
   const isBlocked = !!task.blockedById;
   const completedSubtasks = (task.subtasks || []).filter(st => st.isCompleted).length;
   const totalSubtasks = (task.subtasks || []).length;
   const isTracking = !!task.timerStartTime;
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    if (isBlocked) {
+    if (isBlocked || !canEdit) {
       e.preventDefault();
       return;
     }
@@ -51,7 +58,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
   return (
     <div
       onClick={() => onViewTask(task)}
-      draggable={!isBlocked}
+      draggable={(!isBlocked && canEdit) ? true : undefined}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       className={`
@@ -59,7 +66,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
             group relative transition-all duration-300
             ${priorityConfig[task.priority].border}
             ${isDragging ? 'opacity-30 scale-95 grayscale' : 'hover:-translate-y-1 hover:bg-white/60 dark:hover:bg-white/10 hover:border-black/10 dark:hover:border-white/20'}
-            ${isBlocked ? 'cursor-not-allowed opacity-50 grayscale' : 'cursor-grab active:cursor-grabbing'}
+            ${(isBlocked || !canEdit) ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}
+            ${!canEdit ? 'opacity-80' : ''}
         `}
     >
       <div className="flex justify-between items-start gap-4 mb-4">
@@ -76,10 +84,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
           >
             {isTracking ? <StopIcon className="w-3.5 h-3.5" /> : <PlayIcon className="w-3.5 h-3.5" />}
           </button>
-          <button onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="p-2 text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-all">
-            <PencilIcon className="w-3.5 h-3.5" />
-          </button>
-          {onDeleteTask && (
+          {canEdit && (
+            <button onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="p-2 text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-all">
+              <PencilIcon className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {onDeleteTask && canDelete && (
             <button
               onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }}
               className="p-2 text-slate-400 dark:text-white/40 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"

@@ -689,6 +689,8 @@ const Dashboard: React.FC = () => {
                         onViewTask={(task) => { setSelectedTask(task); setTaskDetailsModalOpen(true); }}
                         onUpdateTaskStatus={handleUpdateTaskStatus}
                         onToggleTimer={handleToggleTimer}
+                        currentUserId={user.employeeId}
+                        isAdmin={user.isAdmin}
                       />
                     )}
 
@@ -702,6 +704,8 @@ const Dashboard: React.FC = () => {
                         onUpdateTaskStatus={handleUpdateTaskStatus}
                         onViewTask={(task) => { setSelectedTask(task); setTaskDetailsModalOpen(true); }}
                         onToggleTimer={handleToggleTimer}
+                        currentUserId={user.employeeId}
+                        isAdmin={user.isAdmin}
                       />
                     )}
 
@@ -794,6 +798,8 @@ const Dashboard: React.FC = () => {
           }}
           onDeleteTask={(id) => { setTaskToDeleteId(id); setDeleteModalOpen(true); }}
           onToggleTimer={handleToggleTimer}
+          currentUserId={user.employeeId}
+          isAdmin={user.isAdmin}
         />
       )}
 

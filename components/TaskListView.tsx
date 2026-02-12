@@ -19,6 +19,8 @@ interface TaskListViewProps {
   onDeleteTask?: (taskId: number) => void;
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onToggleTimer: (taskId: number) => void;
+  currentUserId?: string;
+  isAdmin?: boolean;
 }
 
 const statusColors = {
@@ -43,7 +45,9 @@ const TaskGroup: React.FC<{
   onDeleteTask?: (taskId: number) => void;
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onToggleTimer: (taskId: number) => void;
-}> = ({ status, tasks, employees, onEditTask, onDeleteTask, onViewTask, onToggleTimer }) => {
+  currentUserId?: string;
+  isAdmin?: boolean;
+}> = ({ status, tasks, employees, onEditTask, onDeleteTask, onViewTask, onToggleTimer, currentUserId, isAdmin }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (tasks.length === 0) return null;
@@ -84,6 +88,8 @@ const TaskGroup: React.FC<{
               const assignee = employees.find(e => e.id === task.assigneeId);
               const isOverdue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE;
               const isTracking = !!task.timerStartTime;
+              const canEdit = isAdmin || (currentUserId && task.assigneeId === currentUserId);
+              const canDelete = isAdmin || (currentUserId && task.assigneeId === currentUserId);
 
               return (
                 <div
@@ -139,7 +145,7 @@ const TaskGroup: React.FC<{
                     >
                       {isTracking ? <StopIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
                     </button>
-                    {onDeleteTask && (
+                    {onDeleteTask && canDelete && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }}
                         className="p-2.5 rounded-2xl text-slate-300 dark:text-white/20 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all duration-300"
@@ -161,7 +167,7 @@ const TaskGroup: React.FC<{
   );
 };
 
-const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, searchTerm, onSearchChange, onEditTask, onDeleteTask, onViewTask, onUpdateTaskStatus, onToggleTimer }) => {
+const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, searchTerm, onSearchChange, onEditTask, onDeleteTask, onViewTask, onUpdateTaskStatus, onToggleTimer, currentUserId, isAdmin }) => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
   const getTaskStats = (employeeId: string) => {
@@ -381,6 +387,8 @@ const TaskListView: React.FC<TaskListViewProps> = ({ tasks, employees, searchTer
             onDeleteTask={onDeleteTask}
             onUpdateTaskStatus={onUpdateTaskStatus}
             onToggleTimer={onToggleTimer}
+            currentUserId={currentUserId}
+            isAdmin={isAdmin}
           />
         ))}
         {filteredTasks.length === 0 && (
