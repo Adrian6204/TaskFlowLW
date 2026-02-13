@@ -86,7 +86,7 @@ const LoginPage: React.FC = () => {
           setFullName('');
           setDepartment('AIE & Production');
           navigate('/login');
-        }, 2000);
+        }, 1500);
       }
     } catch (err) {
       let message = err instanceof Error ? err.message : 'An unknown error occurred';

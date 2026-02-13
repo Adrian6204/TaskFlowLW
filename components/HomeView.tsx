@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task, Employee, TaskStatus, Priority, Space, User } from '../types';
 import BentoCard from './BentoCard';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
@@ -48,6 +48,14 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   // Success State
   const [showSuccess, setShowSuccess] = useState(false);
 
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (showSuccess) {
+      timeout = setTimeout(() => setShowSuccess(false), 3000);
+    }
+    return () => clearTimeout(timeout);
+  }, [showSuccess]);
+
   const handleAddTask = async () => {
     if (!newTaskInput.trim()) return;
 
@@ -64,24 +72,14 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
       status: TaskStatus.TODO,
       tags: tags,
       assigneeId: user.employeeId,
-      dueDate: today, // Set due date to today so it shows in "Today's Tasks"
+      dueDate: today, // Default to today, can be changed in prompt
     };
 
-    try {
-      const savedTask = await onAddTask(newTask);
-
-      setNewTaskInput('');
-      setNewTaskDescription('');
-      setIsUrgent(false);
-      setNewTaskPriority('Medium');
-      // Success state moved to deadline prompt interaction
-
-      if (savedTask) {
-        setDeadlinePromptTask(savedTask);
-      }
-    } catch (e) {
-      console.error("Failed to add task", e);
-    }
+    setDeadlinePromptTask(newTask);
+    setNewTaskInput('');
+    setNewTaskDescription('');
+    setIsUrgent(false);
+    setNewTaskPriority('Medium');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -806,12 +804,11 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                       onClick={() => {
                         const dateInput = document.getElementById('deadline-date-picker') as HTMLInputElement;
                         if (dateInput?.value && deadlinePromptTask) {
-                          onUpdateTask(deadlinePromptTask.id, { dueDate: dateInput.value });
+                          onAddTask({ ...deadlinePromptTask, dueDate: dateInput.value });
                         }
                         setDeadlinePromptTask(null);
                         setShowDatePicker(false);
                         setShowSuccess(true);
-                        setTimeout(() => setShowSuccess(false), 3000);
                       }}
                       className="px-4 py-3 rounded-xl bg-lime-500 dark:bg-[#CEFD4A] text-black text-xs font-bold uppercase tracking-wider"
                     >
@@ -830,9 +827,11 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => {
+                          if (deadlinePromptTask) {
+                            onAddTask(deadlinePromptTask);
+                          }
                           setDeadlinePromptTask(null);
                           setShowSuccess(true);
-                          setTimeout(() => setShowSuccess(false), 3000);
                         }}
                         className="px-6 py-3.5 rounded-2xl bg-black/5 dark:bg-white/5 text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-black uppercase tracking-widest transition-all"
                       >
@@ -847,9 +846,6 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                     </div>
                     <button
                       onClick={() => {
-                        if (deadlinePromptTask) {
-                          deleteTask(deadlinePromptTask.id);
-                        }
                         setDeadlinePromptTask(null);
                       }}
                       className="w-full py-3 rounded-2xl border border-red-500/20 text-red-500 hover:bg-red-500/10 text-xs font-bold uppercase tracking-widest transition-all"
