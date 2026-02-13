@@ -45,15 +45,14 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   const [selectedMember, setSelectedMember] = useState<Employee | null>(null);
   const [isMemberDetailsOpen, setIsMemberDetailsOpen] = useState(false);
 
+  // Success State
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const handleAddTask = async () => {
     if (!newTaskInput.trim()) return;
 
     const tags = [];
-    if (showUnplannedInfo) tags.push('Unplanned'); // wait, the button toggles showUnplannedInfo, but checks 'isUrgent'?
-    // Actually the 'Unplanned' button sets isUrgent and adds a tag usually.
-    // In the UI: 
-    // <button onClick={() => setIsUrgent(!isUrgent)} ... > Unplanned </button>
-    // So 'isUrgent' state tracks 'Unplanned' status in this UI logic.
+    if (showUnplannedInfo) tags.push('Unplanned');
     if (isUrgent) tags.push('Unplanned');
 
     const newTask: Partial<Task> = {
@@ -75,6 +74,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
       setNewTaskDescription('');
       setIsUrgent(false);
       setNewTaskPriority('Medium');
+      // Success state moved to deadline prompt interaction
 
       if (savedTask) {
         setDeadlinePromptTask(savedTask);
@@ -310,7 +310,11 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                 className="w-full h-[60px] bg-transparent border-none p-3 text-slate-700 dark:text-white/80 focus:outline-none text-xs resize-none placeholder:text-slate-400 dark:placeholder:text-white/20"
                 placeholder="Description (optional)..."
               />
-              <div className="mt-3 flex justify-end">
+              <div className="mt-3 flex items-center justify-between">
+                <div className={`text-xs font-bold text-emerald-500 transition-opacity duration-300 flex items-center gap-1.5 ${showSuccess ? 'opacity-100' : 'opacity-0'}`}>
+                  <CheckCircleIcon className="w-4 h-4" />
+                  Task Added!
+                </div>
                 <button
                   onClick={handleAddTask}
                   disabled={!newTaskInput.trim()}
@@ -777,7 +781,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             <div className="text-center mb-6">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Set a deadline?</h3>
               <p className="text-sm text-slate-500 dark:text-white/40 leading-relaxed italic mb-4">
-                "{deadlinePromptTask.text}"
+                "{deadlinePromptTask.title}"
               </p>
 
               {showDatePicker ? (
@@ -806,6 +810,8 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                         }
                         setDeadlinePromptTask(null);
                         setShowDatePicker(false);
+                        setShowSuccess(true);
+                        setTimeout(() => setShowSuccess(false), 3000);
                       }}
                       className="px-4 py-3 rounded-xl bg-lime-500 dark:bg-[#CEFD4A] text-black text-xs font-bold uppercase tracking-wider"
                     >
@@ -820,18 +826,35 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                       If you choose "Maybe Later", you can still set a deadline later by clicking the task.
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => {
+                          setDeadlinePromptTask(null);
+                          setShowSuccess(true);
+                          setTimeout(() => setShowSuccess(false), 3000);
+                        }}
+                        className="px-6 py-3.5 rounded-2xl bg-black/5 dark:bg-white/5 text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-black uppercase tracking-widest transition-all"
+                      >
+                        Maybe Later
+                      </button>
+                      <button
+                        onClick={() => setShowDatePicker(true)}
+                        className="px-6 py-3.5 rounded-2xl bg-lime-500 dark:bg-[#CEFD4A] text-black hover:bg-lime-400 dark:hover:bg-[#d9ff73] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-lime-500/20"
+                      >
+                        Set Now
+                      </button>
+                    </div>
                     <button
-                      onClick={() => setDeadlinePromptTask(null)}
-                      className="px-6 py-3.5 rounded-2xl bg-black/5 dark:bg-white/5 text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-black uppercase tracking-widest transition-all"
+                      onClick={() => {
+                        if (deadlinePromptTask) {
+                          deleteTask(deadlinePromptTask.id);
+                        }
+                        setDeadlinePromptTask(null);
+                      }}
+                      className="w-full py-3 rounded-2xl border border-red-500/20 text-red-500 hover:bg-red-500/10 text-xs font-bold uppercase tracking-widest transition-all"
                     >
-                      Maybe Later
-                    </button>
-                    <button
-                      onClick={() => setShowDatePicker(true)}
-                      className="px-6 py-3.5 rounded-2xl bg-lime-500 dark:bg-[#CEFD4A] text-black hover:bg-lime-400 dark:hover:bg-[#d9ff73] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-lime-500/20"
-                    >
-                      Set Now
+                      Cancel Task
                     </button>
                   </div>
                 </>
