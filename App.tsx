@@ -114,15 +114,16 @@ const Dashboard: React.FC = () => {
   const [timelineViewMode, setTimelineViewMode] = useState<'calendar' | 'gantt'>('calendar');
 
   // Derive current view from URL path
-  const getCurrentViewFromPath = (): string => {
+  const getCurrentViewFromPath = () => {
     const path = location.pathname;
     if (path.includes('/calendar') || path.includes('/gantt') || path.includes('/timeline')) return 'timeline';
     // Fail-safe: If admin, everything else is overview
     if (user?.isAdmin) {
       if (path.includes('/analytics')) return 'analytics';
       if (path.includes('/timeline')) return 'timeline';
-      // Default to overview (Overseer)
-      return 'overview';
+      if (path.includes('/overview')) return 'overview';
+      // Default to analytics (Command Center/Dashboard)
+      return 'analytics';
     }
 
     if (path.includes('/dashboard') || path.includes('/overview') || path.includes('/overseer')) return 'overview';
@@ -696,8 +697,8 @@ const Dashboard: React.FC = () => {
                     <>
 
                       {/* View Switching */}
-                      {currentView === 'dashboard' && (
-                        <AdminDashboard tasks={filteredTasks} employees={spaceMembers} activityLogs={activityLogs} isAdmin={user?.isAdmin} />
+                      {currentView === 'analytics' && (
+                        <AdminDashboard tasks={tasks} employees={spaceMembers} activityLogs={activityLogs} isAdmin={user?.isAdmin} />
                       )}
 
                       {currentView === 'list' && (

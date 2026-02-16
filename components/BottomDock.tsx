@@ -30,8 +30,8 @@ const BottomDock: React.FC<BottomDockProps> = ({
 
     const navItems: NavItem[] = isAdmin
         ? [
-            { id: 'overview', icon: ChartBarIcon, label: 'Overview' }, // This is the "Overseer" view
-            { id: 'analytics', icon: PresentationChartLineIcon, label: 'Analytics' }, // New Admin Dashboard
+            { id: 'analytics', icon: HomeIcon, label: 'Home' }, // New Command Center (Default)
+            { id: 'overview', icon: ListBulletIcon, label: 'Tasks' }, // Overseer View
             { id: 'timeline', icon: CalendarIcon, label: 'Timeline', requiresSpace: true },
         ]
 
