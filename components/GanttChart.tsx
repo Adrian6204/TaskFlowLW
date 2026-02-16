@@ -57,7 +57,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
   const statusColors = {
     [TaskStatus.DONE]: 'bg-lime-500 shadow-lime-500/30 text-black',
     [TaskStatus.IN_PROGRESS]: 'bg-blue-500 shadow-blue-500/30 text-white',
-    [TaskStatus.TODO]: 'bg-white/10 shadow-white/5 text-white/60 border-white/5',
+    [TaskStatus.TODO]: 'bg-slate-200 dark:bg-white/10 border border-slate-300 dark:border-white/5 text-slate-600 dark:text-white/60 shadow-sm dark:shadow-white/5',
   };
 
   const navigateWeek = (direction: number) => {
@@ -82,9 +82,9 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
   }, [tasks]);
 
   return (
-    <div className="bg-white/60 dark:bg-[#1E1E1E]/40 backdrop-blur-[40px] rounded-[40px] border border-white/40 dark:border-white/5 overflow-hidden animate-in fade-in duration-1000 shadow-xl shadow-black/5 dark:shadow-black/40">
+    <div className="bg-white/60 dark:bg-[#1E1E1E]/40 backdrop-blur-[40px] rounded-[40px] border border-slate-200 dark:border-white/10 overflow-hidden animate-in fade-in duration-1000 shadow-xl shadow-black/5 dark:shadow-black/40">
       {/* Header */}
-      <div className="p-10 border-b border-white/5 bg-white/5">
+      <div className="p-10 border-b border-slate-200 dark:border-white/10 bg-white/5">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Timeline Analytics</h2>
@@ -122,15 +122,15 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
       <div className="overflow-x-auto scrollbar-none">
         <div className="min-w-[1200px]">
           {/* Days Header */}
-          <div className="flex border-b border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
-            <div className="w-64 flex-shrink-0 p-6 border-r border-black/5 dark:border-white/5">
+          <div className="flex border-b border-slate-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]">
+            <div className="w-64 flex-shrink-0 p-6 border-r border-slate-200 dark:border-white/10">
               <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">Assignee</span>
             </div>
             <div className="flex-1 flex">
               {days.map((day, idx) => (
                 <div
                   key={idx}
-                  className={`flex-1 p-6 text-center border-r border-black/5 dark:border-white/5 last:border-r-0 ${isToday(day) ? 'bg-white/20 dark:bg-white/10' : ''
+                  className={`flex-1 p-6 text-center border-r border-slate-200 dark:border-white/10 last:border-r-0 ${isToday(day) ? 'bg-white/20 dark:bg-white/10' : ''
                     }`}
                 >
                   <span className={`text-[10px] font-black uppercase tracking-widest ${isToday(day) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-white/30'}`}>
@@ -142,11 +142,11 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
           </div>
 
           {/* Tasks Rows */}
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-slate-200 dark:divide-white/10">
             {Object.entries(tasksByAssignee).map(([assigneeId, assigneeTasks]) => (
               <div key={assigneeId} className="flex group hover:bg-white/[0.01] transition-all duration-300">
                 {/* Assignee Identity */}
-                <div className="w-64 flex-shrink-0 p-6 border-r border-white/5 flex items-center bg-white/[0.01]">
+                <div className="w-64 flex-shrink-0 p-6 border-r border-slate-200 dark:border-white/10 flex items-center bg-white/[0.01]">
                   <div className="flex items-center gap-4">
                     {getEmployee(assigneeId) ? (
                       <div className="relative">
@@ -157,10 +157,10 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
                       <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-[10px] font-black text-white/20">??</div>
                     )}
                     <div className="min-w-0">
-                      <span className="block text-sm font-bold text-white/80 truncate">
+                      <span className="block text-sm font-bold text-slate-700 dark:text-white/80 truncate">
                         {getEmployee(assigneeId)?.name || 'Unassigned Context'}
                       </span>
-                      <span className="text-[8px] font-black text-white/20 uppercase tracking-widest block mt-1">
+                      <span className="text-[8px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mt-1">
                         {assigneeTasks.length} Operations
                       </span>
                     </div>
@@ -174,7 +174,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
                     {days.map((day, idx) => (
                       <div
                         key={idx}
-                        className={`flex-1 border-r border-white/[0.03] last:border-r-0 ${isToday(day) ? 'bg-white/[0.02]' : ''
+                        className={`flex-1 border-r border-slate-200 dark:border-white/10 last:border-r-0 ${isToday(day) ? 'bg-white/[0.02]' : ''
                           }`}
                       />
                     ))}

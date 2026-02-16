@@ -8,6 +8,7 @@ import { ListBulletIcon } from './icons/ListBulletIcon';
 import { PencilSquareIcon } from './icons/PencilSquareIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { UsersIcon } from './icons/UsersIcon';
+import { PresentationChartLineIcon } from './icons/PresentationChartLineIcon';
 
 interface BottomDockProps {
     currentView: string;
@@ -16,6 +17,10 @@ interface BottomDockProps {
     isAdmin?: boolean;
 }
 
+type NavItem =
+    | { id: string; icon: React.FC<{ className?: string }>; label: string; requiresSpace?: boolean; type?: undefined }
+    | { type: 'separator'; id?: undefined; icon?: undefined; label?: undefined; requiresSpace?: undefined };
+
 const BottomDock: React.FC<BottomDockProps> = ({
     currentView,
     onViewChange,
@@ -23,11 +28,13 @@ const BottomDock: React.FC<BottomDockProps> = ({
     isAdmin
 }) => {
 
-    const navItems = isAdmin
+    const navItems: NavItem[] = isAdmin
         ? [
-            { id: 'overview', icon: ChartBarIcon, label: 'Overview' },
+            { id: 'analytics', icon: HomeIcon, label: 'Home' }, // New Command Center (Default)
+            { id: 'overview', icon: ListBulletIcon, label: 'Tasks' }, // Overseer View
             { id: 'timeline', icon: CalendarIcon, label: 'Timeline', requiresSpace: true },
         ]
+
         : [
             { id: 'home', icon: HomeIcon, label: 'Home' },
             { id: 'overview', icon: ChartBarIcon, label: 'Overview' },
@@ -40,15 +47,14 @@ const BottomDock: React.FC<BottomDockProps> = ({
             { id: 'settings', icon: Cog6ToothIcon, label: 'Settings', requiresSpace: true },
         ];
 
+
     return (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-            <div className="flex items-center gap-2 p-2 bg-white/80 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/10 rounded-full shadow-2xl shadow-slate-200/50 dark:shadow-black/50">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+            <div className="flex items-center gap-2 p-2 bg-white/10 dark:bg-black/20 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-full shadow-2xl">
 
                 {navItems.map((item, index) => {
                     if (item.type === 'separator') {
-                        return (
-                            <div key={`sep-${index}`} className="w-px h-8 bg-slate-200 dark:bg-white/10 mx-1"></div>
-                        );
+                        return <div key={`sep-${index}`} className="w-px h-5 bg-white/20 dark:bg-white/10 mx-1" />;
                     }
 
                     if (item.requiresSpace && !activeSpaceId) return null;
@@ -60,7 +66,7 @@ const BottomDock: React.FC<BottomDockProps> = ({
                         <button
                             key={item.id}
                             onClick={() => onViewChange(item.id!)}
-                            className={`relative group p-3.5 rounded-full transition-all duration-300 ${isActive
+                            className={`relative group p-3 rounded-full transition-all duration-300 ${isActive
                                 ? 'bg-black/5 dark:bg-white/10 text-lime-600 dark:text-[#CEFD4A]'
                                 : 'text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                                 }`}
@@ -84,6 +90,8 @@ const BottomDock: React.FC<BottomDockProps> = ({
             </div>
         </div>
     );
+
+
 };
 
 export default BottomDock;

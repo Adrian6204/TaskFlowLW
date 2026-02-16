@@ -13,9 +13,11 @@ interface TaskBoardProps {
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onViewTask: (task: Task) => void;
   onToggleTimer: (taskId: number) => void;
+  currentUserId?: string;
+  isAdmin?: boolean;
 }
 
-const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, onToggleTimer }) => {
+const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, onToggleTimer, currentUserId, isAdmin }) => {
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 bg-white/10 dark:bg-black/20 backdrop-blur-[40px] border border-white/20 dark:border-white/5 rounded-[40px] shadow-2xl shadow-black/5 animate-in fade-in zoom-in duration-500">
@@ -33,18 +35,21 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEdi
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {TASK_STATUSES.map(status => (
-        <TaskColumn
-          key={status}
-          status={status}
-          tasks={tasks.filter(task => task.status === status)}
-          allTasks={allTasks}
-          employees={employees}
-          onEditTask={onEditTask}
-          onDeleteTask={onDeleteTask}
-          onUpdateTaskStatus={onUpdateTaskStatus}
-          onViewTask={onViewTask}
-          onToggleTimer={onToggleTimer}
-        />
+        <div key={status} className="h-full">
+          <TaskColumn
+            status={status}
+            tasks={tasks.filter(task => task.status === status)}
+            allTasks={allTasks}
+            employees={employees}
+            onEditTask={onEditTask}
+            onDeleteTask={onDeleteTask}
+            onUpdateTaskStatus={onUpdateTaskStatus}
+            onViewTask={onViewTask}
+            onToggleTimer={onToggleTimer}
+            currentUserId={currentUserId}
+            isAdmin={isAdmin}
+          />
+        </div>
       ))}
     </div>
   );

@@ -1,5 +1,5 @@
 {
   "name": "TaskFlow",
-  "description": "TaskFlow is a modern, responsive web application for tracking and managing daily employee tasks. Features a Kanban-style board, task creation/editing, and an AI-powered task generation capability using the Gemini API to break down high-level goals into actionable sub-tasks.",
+  "description": "TaskFlow is a modern, responsive web application for tracking and managing daily employee tasks. Features a Kanban-style board, task creation/editing, and real-time time tracking.",
   "requestFramePermissions": []
 }

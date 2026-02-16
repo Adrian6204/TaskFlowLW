@@ -30,20 +30,20 @@ const TagPill: React.FC<TagPillProps> = ({ text, onRemove, onClick }) => {
       'bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300 border-pink-200 dark:border-pink-800',
       'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 border-rose-200 dark:border-rose-800',
     ];
-    
+
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
+
     return colors[Math.abs(hash) % colors.length];
   };
 
   const colorClass = getColorClasses(text);
 
   return (
-    <span 
-      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${colorClass} ${onClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border shadow-sm transition-all duration-200 ${colorClass} ${onClick ? 'cursor-pointer hover:opacity-80 hover:shadow-md' : ''}`}
       onClick={onClick}
     >
       {text}
@@ -54,10 +54,10 @@ const TagPill: React.FC<TagPillProps> = ({ text, onRemove, onClick }) => {
             e.stopPropagation();
             onRemove();
           }}
-          className="ml-1.5 inline-flex flex-shrink-0 h-4 w-4 focus:outline-none focus:text-white"
+          className="ml-1.5 -mr-0.5 h-3.5 w-3.5 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/20 inline-flex items-center justify-center transition-colors focus:outline-none"
         >
           <span className="sr-only">Remove {text} tag</span>
-          <XMarkIcon className="h-3 w-3" />
+          <XMarkIcon className="h-2.5 w-2.5 stroke-[3]" />
         </button>
       )}
     </span>

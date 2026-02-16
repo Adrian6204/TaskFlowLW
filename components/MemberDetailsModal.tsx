@@ -1,5 +1,6 @@
 
 import React, { useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Employee, Task, TaskStatus, Priority } from '../types';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { ClockIcon } from './icons/ClockIcon';
@@ -45,9 +46,9 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in"
             onClick={onClose}
         >
             <div
@@ -161,7 +162,8 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

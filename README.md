@@ -13,13 +13,6 @@ TaskFlow is a modern, responsive web application for tracking and managing daily
 - **Task Dependencies**: Create "blocking" relationships between tasks to ensure work is completed in the correct order.
 - **Real-time Database**: Powered by Supabase for instant updates and team collaboration.
 
-### 🤖 AI Integration (Powered by Gemini)
-- **Goal-to-Task Generation**: Describe a high-level objective, and Gemini will generate a complete list of assigned tasks to achieve it.
-- **Smart Subtask Creation**: Automatically generate a checklist of subtasks for any specific task with one click.
-- **Priority Suggestion**: AI analyzes task content to suggest appropriate priority levels (Low to Urgent).
-- **Weekly Summaries**: Generate concise, natural-language status reports and summaries for the admin dashboard.
-- **AI Assistant**: Context-aware chat to ask questions or get advice about specific tasks.
-
 ### 🎨 User Experience
 - **Modern UI/UX**: A polished, split-screen login page with responsive design and smooth transitions.
 - **Dark Mode**: Fully supported dark theme that respects system preferences.
@@ -40,7 +33,7 @@ This project requires a Supabase database.
 Create a `.env` file locally or set up environment variables in Vercel:
 - `SUPABASE_URL`: Your Supabase Project URL.
 - `SUPABASE_ANON_KEY`: Your Supabase Public API Key.
-- `API_KEY`: Your Google Gemini API Key.
+- `SUPABASE_ANON_KEY`: Your Supabase Public API Key.
 
 ### 3. Running Locally
 ```bash
@@ -57,7 +50,6 @@ npm run dev
 │   ├── auth/
 │   ├── components/
 │   ├── services/
-│   │   └── geminiService.ts      # AI integration logic
 │   │   └── supabaseService.ts    # Database logic
 │   ├── App.tsx                   # Main application logic
 │   └── types.ts                  # TypeScript definitions

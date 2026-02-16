@@ -12,12 +12,25 @@ export enum Priority {
   URGENT = 'Urgent',
 }
 
+export enum Position {
+  FOUNDER = 'Founder',
+  CEO = 'CEO',
+  MANAGING_DIRECTOR = 'Managing Director',
+  ADMIN = 'Admin',
+  HR_ASSISTANT = 'HR Assistant',
+  DEVELOPER = 'Developer',
+  DESIGNER = 'Designer',
+  PRODUCT_MANAGER = 'Product Manager',
+  MARKETER = 'Marketer',
+}
+
 export interface Employee {
   id: string;
   name: string;
   fullName?: string;
   email: string;
   avatarUrl: string;
+  position?: Position | string; // Optional for backward compatibility
 }
 
 export interface Comment {
@@ -82,6 +95,7 @@ export interface User {
   department?: string;
   isAdmin?: boolean;
   avatarUrl?: string;
+  position?: Position | string;
 }
 
 export interface ActivityLog {

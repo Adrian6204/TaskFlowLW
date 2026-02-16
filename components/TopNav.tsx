@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { User, Employee } from '../types';
 import { Logo } from './Logo';
 import { SearchIcon } from './icons/SearchIcon';
@@ -20,6 +21,7 @@ interface TopNavProps {
     currentView?: string;
     timelineViewMode?: 'calendar' | 'gantt';
     onTimelineViewModeChange?: (mode: 'calendar' | 'gantt') => void;
+    onToggleSidebar?: () => void;
 }
 
 const TopNav: React.FC<TopNavProps> = ({
@@ -32,28 +34,38 @@ const TopNav: React.FC<TopNavProps> = ({
     onSearchChange,
     currentView,
     timelineViewMode,
-    onTimelineViewModeChange
+    onTimelineViewModeChange,
+    onToggleSidebar
 }) => {
     const { theme, toggleTheme } = useTheme();
     const { unreadCount } = useAppNotifications();
     const [isNotificationPanelOpen, setNotificationPanelOpen] = React.useState(false);
 
     return (
-        <header className="fixed top-0 left-0 right-0 h-24 px-8 z-50 flex items-center justify-between pointer-events-none">
+        <header className="fixed top-0 left-0 right-0 h-20 md:h-24 px-4 md:px-8 z-50 flex items-center justify-between pointer-events-none">
             {/* Brand & Context */}
-            <div className="flex items-center gap-6 pointer-events-auto">
-                <div className="flex items-center gap-4 group cursor-pointer">
+            <div className="flex items-center gap-4 md:gap-6 pointer-events-auto">
+
+
+                <Link to="/app/home" className="flex items-center gap-3 md:gap-4 group cursor-pointer">
                     <div className="transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 drop-shadow-[0_0_15px_rgba(206,253,74,0.4)]">
-                        <Logo className="w-10 h-10" />
+                        <Logo className="w-8 h-8 md:w-10 md:h-10" />
                     </div>
-                    <span className="text-slate-900 dark:text-white font-extrabold text-xl tracking-[-0.03em]">TaskFlow</span>
-                </div>
+                    <span className="text-slate-900 dark:text-white font-extrabold text-lg md:text-xl tracking-[-0.03em] hidden sm:block">TaskFlow</span>
+                </Link>
 
-                <div className="h-8 w-px bg-black/10 dark:bg-white/10"></div>
+                <div className="h-6 w-px bg-black/10 dark:bg-white/10 hidden sm:block"></div>
 
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-lime-600 dark:text-[#CEFD4A] uppercase tracking-widest mb-0.5">Workspace</span>
-                    <span className="text-slate-900 dark:text-white font-bold text-lg tracking-tight">{activeSpaceName}</span>
+                <div className="flex flex-col hidden sm:flex">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[9px] md:text-[10px] font-bold text-lime-600 dark:text-[#CEFD4A] uppercase tracking-widest mb-0.5">Workspace</span>
+                        {user.isAdmin && (
+                            <span className="px-1.5 py-0.5 rounded-[4px] bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-[8px] font-black uppercase tracking-wider leading-none">
+                                Admin Mode
+                            </span>
+                        )}
+                    </div>
+                    <span className="text-slate-900 dark:text-white font-bold text-sm md:text-lg tracking-tight truncate max-w-[120px] md:max-w-none">{activeSpaceName}</span>
                 </div>
             </div>
 
@@ -137,23 +149,25 @@ const TopNav: React.FC<TopNavProps> = ({
                         <img
                             src={currentUserEmployee?.avatarUrl}
                             alt=""
-                            className="w-9 h-9 rounded-full object-cover border-2 border-transparent group-hover:border-[#CEFD4A] transition-all"
+                            className={`w-9 h-9 rounded-full object-cover border-2 transition-all ${user.isAdmin ? 'border-purple-500 dark:border-purple-400' : 'border-transparent group-hover:border-[#CEFD4A]'}`}
                         />
-                        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-lime-400 dark:bg-[#CEFD4A] border-2 border-white dark:border-black rounded-full"></div>
+                        <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 border-2 border-white dark:border-black rounded-full ${user.isAdmin ? 'bg-purple-500 dark:bg-purple-400' : 'bg-lime-400 dark:bg-[#CEFD4A]'}`}></div>
                     </div>
                     <div className="flex flex-col items-start">
                         <span className="text-xs font-bold text-slate-900 dark:text-white leading-none group-hover:text-lime-600 dark:group-hover:text-[#CEFD4A] transition-colors">
                             {user.fullName || user.username}
                         </span>
-                        <span className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider">Online</span>
+                        <span className={`text-[9px] font-bold uppercase tracking-wider ${user.isAdmin ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 dark:text-white/40'}`}>
+                            {user.isAdmin ? 'Administrator' : 'Online'}
+                        </span>
                     </div>
                 </button>
-            </div>
 
-            <NotificationPanel
-                isOpen={isNotificationPanelOpen}
-                onClose={() => setNotificationPanelOpen(false)}
-            />
+                <NotificationPanel
+                    isOpen={isNotificationPanelOpen}
+                    onClose={() => setNotificationPanelOpen(false)}
+                />
+            </div>
         </header>
     );
 };

@@ -55,6 +55,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         department: profile?.department,
         isAdmin: profile?.is_admin || false,
         avatarUrl: profile?.avatar_url,
+        position: profile?.position, // Map position from DB
       });
     } catch (error) {
       console.error("Error mapping user", error);

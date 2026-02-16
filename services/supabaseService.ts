@@ -91,6 +91,7 @@ const mapDbProfileToEmployee = (dbProfile: any): Employee => ({
   fullName: dbProfile.full_name,
   email: dbProfile.email || '',
   avatarUrl: dbProfile.avatar_url || 'https://via.placeholder.com/150',
+  position: dbProfile.position,
 });
 
 // --- Services ---

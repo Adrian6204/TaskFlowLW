@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task, Employee, TaskStatus, Priority, Space, User } from '../types';
 import BentoCard from './BentoCard';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
@@ -45,15 +45,22 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   const [selectedMember, setSelectedMember] = useState<Employee | null>(null);
   const [isMemberDetailsOpen, setIsMemberDetailsOpen] = useState(false);
 
+  // Success State
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (showSuccess) {
+      timeout = setTimeout(() => setShowSuccess(false), 3000);
+    }
+    return () => clearTimeout(timeout);
+  }, [showSuccess]);
+
   const handleAddTask = async () => {
     if (!newTaskInput.trim()) return;
 
     const tags = [];
-    if (showUnplannedInfo) tags.push('Unplanned'); // wait, the button toggles showUnplannedInfo, but checks 'isUrgent'?
-    // Actually the 'Unplanned' button sets isUrgent and adds a tag usually.
-    // In the UI: 
-    // <button onClick={() => setIsUrgent(!isUrgent)} ... > Unplanned </button>
-    // So 'isUrgent' state tracks 'Unplanned' status in this UI logic.
+    if (showUnplannedInfo) tags.push('Unplanned');
     if (isUrgent) tags.push('Unplanned');
 
     const newTask: Partial<Task> = {
@@ -65,23 +72,14 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
       status: TaskStatus.TODO,
       tags: tags,
       assigneeId: user.employeeId,
-      dueDate: today, // Set due date to today so it shows in "Today's Tasks"
+      dueDate: today, // Default to today, can be changed in prompt
     };
 
-    try {
-      const savedTask = await onAddTask(newTask);
-
-      setNewTaskInput('');
-      setNewTaskDescription('');
-      setIsUrgent(false);
-      setNewTaskPriority('Medium');
-
-      if (savedTask) {
-        setDeadlinePromptTask(savedTask);
-      }
-    } catch (e) {
-      console.error("Failed to add task", e);
-    }
+    setDeadlinePromptTask(newTask);
+    setNewTaskInput('');
+    setNewTaskDescription('');
+    setIsUrgent(false);
+    setNewTaskPriority('Medium');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -110,8 +108,20 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   const completedTasks = myTasks.filter(t => t.status === TaskStatus.DONE).length;
   const inProgressTasks = myTasks.filter(t => t.status === TaskStatus.IN_PROGRESS).length;
 
+  // Real-time Clock
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  };
+
   const getGreeting = () => {
-    const hour = new Date().getHours();
+    const hour = currentTime.getHours();
     if (hour < 12) return 'Good morning';
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
@@ -190,6 +200,9 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             <div className="flex items-center gap-3 mb-4">
               <span className="px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-[10px] uppercase tracking-widest font-bold text-lime-600 dark:text-[#CEFD4A]">
                 Overview
+              </span>
+              <span className="text-xs font-bold text-slate-400 dark:text-white/40 font-mono tracking-widest pl-2 border-l border-black/10 dark:border-white/10">
+                {formatTime(currentTime)}
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black leading-tight mb-2">
@@ -295,7 +308,11 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                 className="w-full h-[60px] bg-transparent border-none p-3 text-slate-700 dark:text-white/80 focus:outline-none text-xs resize-none placeholder:text-slate-400 dark:placeholder:text-white/20"
                 placeholder="Description (optional)..."
               />
-              <div className="mt-3 flex justify-end">
+              <div className="mt-3 flex items-center justify-between">
+                <div className={`text-xs font-bold text-emerald-500 transition-opacity duration-300 flex items-center gap-1.5 ${showSuccess ? 'opacity-100' : 'opacity-0'}`}>
+                  <CheckCircleIcon className="w-4 h-4" />
+                  Task Added!
+                </div>
                 <button
                   onClick={handleAddTask}
                   disabled={!newTaskInput.trim()}
@@ -454,7 +471,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
         <BentoCard className="col-span-1 p-6">
           <h3 className="text-sm font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider mb-6">Team Members</h3>
           <div className="flex flex-wrap gap-2">
-            {employees.slice(0, 8).map(emp => (
+            {employees.map(emp => (
               <div
                 key={emp.id}
                 className="relative group cursor-pointer"
@@ -473,9 +490,6 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                 </div>
               </div>
             ))}
-            <div className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-white/40 font-bold text-xs hover:bg-black/10 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-              +3
-            </div>
           </div>
         </BentoCard>
 
@@ -765,7 +779,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             <div className="text-center mb-6">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Set a deadline?</h3>
               <p className="text-sm text-slate-500 dark:text-white/40 leading-relaxed italic mb-4">
-                "{deadlinePromptTask.text}"
+                "{deadlinePromptTask.title}"
               </p>
 
               {showDatePicker ? (
@@ -790,10 +804,11 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                       onClick={() => {
                         const dateInput = document.getElementById('deadline-date-picker') as HTMLInputElement;
                         if (dateInput?.value && deadlinePromptTask) {
-                          onUpdateTask(deadlinePromptTask.id, { dueDate: dateInput.value });
+                          onAddTask({ ...deadlinePromptTask, dueDate: dateInput.value });
                         }
                         setDeadlinePromptTask(null);
                         setShowDatePicker(false);
+                        setShowSuccess(true);
                       }}
                       className="px-4 py-3 rounded-xl bg-lime-500 dark:bg-[#CEFD4A] text-black text-xs font-bold uppercase tracking-wider"
                     >
@@ -808,18 +823,34 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                       If you choose "Maybe Later", you can still set a deadline later by clicking the task.
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => {
+                          if (deadlinePromptTask) {
+                            onAddTask(deadlinePromptTask);
+                          }
+                          setDeadlinePromptTask(null);
+                          setShowSuccess(true);
+                        }}
+                        className="px-6 py-3.5 rounded-2xl bg-black/5 dark:bg-white/5 text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-black uppercase tracking-widest transition-all"
+                      >
+                        Maybe Later
+                      </button>
+                      <button
+                        onClick={() => setShowDatePicker(true)}
+                        className="px-6 py-3.5 rounded-2xl bg-lime-500 dark:bg-[#CEFD4A] text-black hover:bg-lime-400 dark:hover:bg-[#d9ff73] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-lime-500/20"
+                      >
+                        Set Now
+                      </button>
+                    </div>
                     <button
-                      onClick={() => setDeadlinePromptTask(null)}
-                      className="px-6 py-3.5 rounded-2xl bg-black/5 dark:bg-white/5 text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-black uppercase tracking-widest transition-all"
+                      onClick={() => {
+                        setDeadlinePromptTask(null);
+                      }}
+                      className="w-full py-3 rounded-2xl border border-red-500/20 text-red-500 hover:bg-red-500/10 text-xs font-bold uppercase tracking-widest transition-all"
                     >
-                      Maybe Later
-                    </button>
-                    <button
-                      onClick={() => setShowDatePicker(true)}
-                      className="px-6 py-3.5 rounded-2xl bg-lime-500 dark:bg-[#CEFD4A] text-black hover:bg-lime-400 dark:hover:bg-[#d9ff73] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-lime-500/20"
-                    >
-                      Set Now
+                      Cancel Task
                     </button>
                   </div>
                 </>

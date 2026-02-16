@@ -1,18 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Task, Employee, Priority, Subtask, TaskStatus } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Task, Employee, Priority, TaskStatus } from '../types';
 import { useAuth } from '../auth/AuthContext';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { FlagIcon } from './icons/FlagIcon';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { getTaskAdviceFromAI, generateSubtasks } from '../services/geminiService';
 import { LockClosedIcon } from './icons/LockClosedIcon';
-import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { ClockIcon } from './icons/ClockIcon';
+import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import TagPill from './TagPill';
-import { PRIORITIES } from '../constants'; // Ensure this matches AddTaskModal
+
 
 interface TaskDetailsModalProps {
   isOpen: boolean;
@@ -20,9 +18,11 @@ interface TaskDetailsModalProps {
   task: Task;
   employees: Employee[];
   allTasks: Task[];
-  onAddComment: (taskId: number, content: string) => void;
-  onUpdateTask: (task: Task) => void;
-  onToggleTimer: (taskId: number) => void;
+  onAddComment: (taskId: number, content: string) => Promise<void>;
+  onDeleteTask?: (taskId: number) => void;
+  onToggleTimer: (taskId: number) => Promise<void>;
+  currentUserId?: string;
+  isAdmin?: boolean;
 }
 
 const priorityConfig = {
@@ -40,52 +40,26 @@ const formatDuration = (ms: number) => {
   return `${hours}h ${minutes}m ${seconds}s`;
 };
 
-const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onUpdateTask, onToggleTimer }) => {
+const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, onToggleTimer, currentUserId, isAdmin }) => {
   const [newComment, setNewComment] = useState('');
   const { user } = useAuth();
   const assignee = employees.find(e => e.id === task.assigneeId);
   const currentUser = employees.find(e => e.id === user?.employeeId);
   const blockingTask = task.blockedById ? allTasks.find(t => t.id === task.blockedById) : null;
+  const canDelete = isAdmin || (currentUserId && task.assigneeId === currentUserId);
 
-  const [aiQuestion, setAiQuestion] = useState('');
-  const [aiResponse, setAiResponse] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
   const [show, setShow] = useState(false);
-
-  // Subtasks State
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const [isGeneratingSubtasks, setIsGeneratingSubtasks] = useState(false);
-
-  // Tags State
-  const [newTag, setNewTag] = useState('');
-  const [isAddingTag, setIsAddingTag] = useState(false);
-  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
 
   // Timer State
   const [elapsedTime, setElapsedTime] = useState(0);
 
-  // Edit State
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [isEditingDesc, setIsEditingDesc] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDesc, setEditDesc] = useState('');
-
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => setShow(true), 10);
-
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          onClose();
-        }
+        if (e.key === 'Escape') onClose();
       };
       document.addEventListener('keydown', handleKeyDown);
-
-      // Initialize edit fields
-      setEditTitle(task.title);
-      setEditDesc(task.description || '');
-
       return () => {
         clearTimeout(timer);
         document.removeEventListener('keydown', handleKeyDown);
@@ -93,21 +67,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
     } else {
       setShow(false);
     }
-  }, [isOpen, onClose, task]); // Added task dependency so it updates if task changes
+  }, [isOpen, onClose, task]);
 
-  useEffect(() => {
-    if (isOpen) {
-      setAiQuestion('');
-      setAiResponse('');
-      setAiError(null);
-      setNewSubtaskTitle('');
-      setNewTag('');
-      setIsAddingTag(false);
-      setShowTagSuggestions(false);
-      setIsEditingTitle(false);
-      setIsEditingDesc(false);
-    }
-  }, [isOpen])
+
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -124,18 +86,6 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
     return () => clearInterval(interval);
   }, [task.timerStartTime]);
 
-  const existingTags = useMemo(() => {
-    const allTags = new Set(allTasks.flatMap(t => t.tags || []));
-    return Array.from(allTags).sort();
-  }, [allTasks]);
-
-  const suggestedTags = useMemo(() => {
-    return existingTags.filter(tag =>
-      !(task.tags || []).includes(tag) &&
-      tag.toLowerCase().includes(newTag.toLowerCase())
-    );
-  }, [existingTags, task.tags, newTag]);
-
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
@@ -143,123 +93,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
     setNewComment('');
   };
 
-  const handleAskAI = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!aiQuestion.trim()) return;
 
-    setIsAiLoading(true);
-    setAiResponse('');
-    setAiError(null);
-    try {
-      const response = await getTaskAdviceFromAI(task.title, task.description, aiQuestion);
-      setAiResponse(response);
-    } catch (err) {
-      setAiError(err instanceof Error ? err.message : 'An unknown error occurred.');
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
 
-  const handleAddSubtask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubtaskTitle.trim()) return;
 
-    const newSubtask: Subtask = {
-      id: `manual-${Date.now()}`,
-      title: newSubtaskTitle,
-      isCompleted: false
-    };
-
-    onUpdateTask({
-      ...task,
-      subtasks: [...(task.subtasks || []), newSubtask]
-    });
-    setNewSubtaskTitle('');
-  };
-
-  const handleToggleSubtask = (subtaskId: string) => {
-    const updatedSubtasks = (task.subtasks || []).map(st =>
-      st.id === subtaskId ? { ...st, isCompleted: !st.isCompleted } : st
-    );
-    onUpdateTask({ ...task, subtasks: updatedSubtasks });
-  };
-
-  const handleDeleteSubtask = (subtaskId: string) => {
-    const updatedSubtasks = (task.subtasks || []).filter(st => st.id !== subtaskId);
-    onUpdateTask({ ...task, subtasks: updatedSubtasks });
-  };
-
-  const handleGenerateSubtasks = async () => {
-    setIsGeneratingSubtasks(true);
-    try {
-      const generatedTitles = await generateSubtasks(task.title, task.description);
-      const newSubtasks: Subtask[] = generatedTitles.map((title, index) => ({
-        id: `ai-${Date.now()}-${index}`,
-        title,
-        isCompleted: false
-      }));
-
-      onUpdateTask({
-        ...task,
-        subtasks: [...(task.subtasks || []), ...newSubtasks]
-      });
-    } catch (error) {
-      console.error("Failed to generate subtasks", error);
-    } finally {
-      setIsGeneratingSubtasks(false);
-    }
-  };
-
-  const handleAddTag = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTag.trim()) return;
-
-    const currentTags = task.tags || [];
-    if (!currentTags.includes(newTag.trim())) {
-      onUpdateTask({
-        ...task,
-        tags: [...currentTags, newTag.trim()]
-      });
-    }
-    setNewTag('');
-    setIsAddingTag(false);
-    setShowTagSuggestions(false);
-  };
-
-  const handleSelectTag = (tag: string) => {
-    const currentTags = task.tags || [];
-    if (!currentTags.includes(tag)) {
-      onUpdateTask({
-        ...task,
-        tags: [...currentTags, tag]
-      });
-    }
-    setNewTag('');
-    setIsAddingTag(false);
-    setShowTagSuggestions(false);
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    const currentTags = task.tags || [];
-    onUpdateTask({
-      ...task,
-      tags: currentTags.filter(tag => tag !== tagToRemove)
-    });
-  };
-
-  const handleSaveTitle = () => {
-    if (editTitle.trim() && editTitle !== task.title) {
-      onUpdateTask({ ...task, title: editTitle.trim() });
-    }
-    setIsEditingTitle(false);
-  };
-
-  const handleSaveDesc = () => {
-    if (editDesc !== task.description) {
-      onUpdateTask({ ...task, description: editDesc });
-    }
-    setIsEditingDesc(false);
-  };
 
   const getRelativeTime = (timestamp: string) => {
     const now = new Date();
@@ -299,34 +135,31 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
       <div className={`bg-white/80 dark:bg-[#1E1E1E]/90 backdrop-blur-3xl rounded-[40px] border border-black/10 dark:border-white/10 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transition-all duration-500 relative z-10 transform ${show ? 'translate-y-0 scale-100' : 'translate-y-8 scale-95'}`}>
         <header className="p-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center flex-shrink-0 bg-black/5 dark:bg-white/[0.02]">
           <div className="flex-1 mr-4">
-            {isEditingTitle ? (
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                onBlur={handleSaveTitle}
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
-                autoFocus
-                className="w-full text-2xl font-black text-slate-900 dark:text-white bg-transparent border-b-2 border-blue-500 focus:outline-none"
-                placeholder="Task Title"
-              />
-            ) : (
-              <h2
-                onClick={() => setIsEditingTitle(true)}
-                className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase truncate max-w-[400px] cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                title="Click to edit"
-              >
-                {task.title}
-              </h2>
-            )}
+            <h2
+              className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase truncate max-w-[400px]"
+              title={task.title}
+            >
+              {task.title}
+            </h2>
             <div className="flex items-center gap-2 mt-1">
               <div className={`w-1.5 h-1.5 rounded-full ${task.status === TaskStatus.DONE ? 'bg-green-500' : 'bg-blue-500'} shadow-[0_0_8px_rgba(59,130,246,0.5)]`}></div>
               <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em]">{task.status === TaskStatus.DONE ? 'Completed' : 'Task Details'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-2xl transition-all border border-black/5 dark:border-white/5 group">
-            <XMarkIcon className="w-5 h-5 text-slate-400 dark:text-white/40 group-hover:text-slate-900 dark:group-hover:text-white" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onDeleteTask && canDelete && (
+              <button
+                onClick={() => { onDeleteTask(task.id); onClose(); }}
+                className="p-3 bg-black/5 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 dark:text-white/40 hover:text-red-600 dark:hover:text-red-400 rounded-2xl transition-all border border-black/5 dark:border-white/5 group"
+                title="Delete Task"
+              >
+                <TrashIcon className="w-5 h-5" />
+              </button>
+            )}
+            <button onClick={onClose} className="p-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-2xl transition-all border border-black/5 dark:border-white/5 group">
+              <XMarkIcon className="w-5 h-5 text-slate-400 dark:text-white/40 group-hover:text-slate-900 dark:group-hover:text-white" />
+            </button>
+          </div>
         </header>
 
         <main className="p-8 overflow-y-auto flex-grow scrollbar-none space-y-8">
@@ -346,16 +179,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                 ) : (
                   <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-white/10 border border-black/10 dark:border-white/10 shadow-sm"></div>
                 )}
-                <select
-                  value={task.assigneeId ? task.assigneeId.toString() : ''}
-                  onChange={(e) => onUpdateTask({ ...task, assigneeId: e.target.value })}
-                  className="text-xs font-bold text-slate-700 dark:text-white outline-none bg-transparent w-full cursor-pointer"
-                >
-                  <option value="" disabled>Unassigned</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.name}</option>
-                  ))}
-                </select>
+                <div className="text-xs font-bold text-slate-700 dark:text-white">
+                  {assignee?.name || 'Unassigned'}
+                </div>
               </div>
             </div>
 
@@ -363,26 +189,17 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               <span className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mb-2">Priority</span>
               <div className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${priorityConfig[task.priority].text}`}>
                 <FlagIcon className="w-3 h-3" />
-                <select
-                  value={task.priority}
-                  onChange={(e) => onUpdateTask({ ...task, priority: e.target.value as Priority })}
-                  className="bg-transparent outline-none cursor-pointer uppercase font-black"
-                >
-                  {Object.values(Priority).map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
+                <span className="bg-transparent uppercase font-black">
+                  {task.priority}
+                </span>
               </div>
             </div>
 
             <div className="p-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl shadow-sm">
               <span className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mb-2">Deadline</span>
-              <input
-                type="date"
-                value={task.dueDate}
-                onChange={(e) => onUpdateTask({ ...task, dueDate: e.target.value })}
-                className="text-xs font-bold text-slate-700 dark:text-white bg-transparent outline-none cursor-pointer w-full"
-              />
+              <p className="text-xs font-bold text-slate-700 dark:text-white">
+                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No deadline'}
+              </p>
             </div>
 
             <div className="p-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl shadow-sm">
@@ -395,79 +212,20 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
             <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">Tags</span>
             <div className="flex flex-wrap items-center gap-2 bg-black/[0.02] dark:bg-white/[0.02] p-4 rounded-3xl border border-black/5 dark:border-white/5 min-h-[60px] shadow-inner">
               {(task.tags || []).map(tag => (
-                <TagPill key={tag} text={tag} onRemove={() => handleRemoveTag(tag)} />
+                <TagPill key={tag} text={tag} />
               ))}
-              {isAddingTag ? (
-                <div className="relative">
-                  <form onSubmit={handleAddTag} className="flex items-center">
-                    <input
-                      type="text"
-                      autoFocus
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onFocus={() => setShowTagSuggestions(true)}
-                      onBlur={() => {
-                        setTimeout(() => {
-                          if (!newTag) setIsAddingTag(false);
-                          setShowTagSuggestions(false);
-                        }, 200);
-                      }}
-                      className="px-4 py-2 text-[10px] font-bold bg-white dark:bg-[#2A2A2D] border border-black/5 dark:border-white/10 rounded-xl focus:ring-1 focus:ring-blue-500 text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-white/20 outline-none shadow-sm"
-                      placeholder="New tag..."
-                    />
-                  </form>
-                  {showTagSuggestions && suggestedTags.length > 0 && (
-                    <ul className="absolute z-[120] left-0 top-full mt-2 bg-white dark:bg-[#1E1E1E] border border-black/10 dark:border-white/10 rounded-xl shadow-2xl max-h-40 overflow-y-auto w-40 p-1 animate-in fade-in zoom-in duration-200">
-                      {suggestedTags.map(tag => (
-                        <li
-                          key={tag}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            handleSelectTag(tag);
-                          }}
-                          className="px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 text-[10px] font-bold text-slate-400 dark:text-white/60 hover:text-slate-900 dark:hover:text-white rounded-lg transition-all"
-                        >
-                          {tag}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={() => setIsAddingTag(true)}
-                  className="inline-flex items-center px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-black/5 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:bg-black/10 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white border border-black/5 dark:border-white/5 transition-all shadow-sm"
-                >
-                  <PlusIcon className="w-3 h-3 mr-2" /> Add Tag
-                </button>
+              {(task.tags || []).length === 0 && (
+                <span className="text-[10px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest">No tags</span>
               )}
             </div>
           </div>
 
           <div className="space-y-3">
             <h3 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">Description</h3>
-            <div className="p-6 bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 rounded-[32px] shadow-inner group relative hover:border-black/10 dark:hover:border-white/10 transition-colors">
-              {isEditingDesc ? (
-                <textarea
-                  value={editDesc}
-                  onChange={(e) => setEditDesc(e.target.value)}
-                  onBlur={handleSaveDesc}
-                  rows={6}
-                  autoFocus
-                  className="w-full bg-transparent text-sm font-medium text-slate-700 dark:text-white/80 leading-relaxed outline-none resize-none"
-                  placeholder="Add a detailed description..."
-                />
-              ) : (
-                <div
-                  onClick={() => setIsEditingDesc(true)}
-                  className="min-h-[100px] cursor-pointer"
-                  title="Click to edit"
-                >
-                  <p className="text-sm font-medium text-slate-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap">
-                    {task.description || <span className="text-slate-400 italic">No description provided. Click to add one.</span>}
-                  </p>
-                </div>
-              )}
+            <div className="p-6 bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 rounded-[32px] shadow-inner">
+              <p className="text-sm font-medium text-slate-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap">
+                {task.description || <span className="text-slate-400 italic">No description provided.</span>}
+              </p>
             </div>
           </div>
 
@@ -491,7 +249,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               </div>
 
               <div className="text-center mb-8">
-                <div className={`text-6xl font-black font-mono tracking-tighter ${task.timerStartTime
+                <div className={`text-4xl md:text-6xl font-black font-mono tracking-tighter ${task.timerStartTime
                   ? 'text-slate-900 dark:text-white'
                   : 'text-slate-300 dark:text-white/20'
                   }`}>
@@ -502,7 +260,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               <div className="flex justify-center">
                 <button
                   onClick={() => onToggleTimer(task.id)}
-                  className={`flex items-center justify-center gap-4 px-10 py-5 rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl ${task.timerStartTime
+                  className={`flex items-center justify-center gap-2 md:gap-4 px-6 py-4 md:px-10 md:py-5 rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl ${task.timerStartTime
                     ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-red-500/30'
                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/30'
                     }`}
@@ -524,14 +282,6 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
           <div className="space-y-4">
             <div className="flex justify-between items-center ml-1">
               <h3 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">Subtasks ({completedSubtasks}/{totalSubtasks})</h3>
-              <button
-                onClick={handleGenerateSubtasks}
-                disabled={isGeneratingSubtasks}
-                className="flex items-center text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 disabled:opacity-30 group"
-              >
-                <SparklesIcon className={`w-4 h-4 mr-2 group-hover:scale-110 transition-all ${isGeneratingSubtasks ? 'animate-spin' : ''}`} />
-                {isGeneratingSubtasks ? 'Thinking...' : 'Generate with AI'}
-              </button>
             </div>
 
             <div className="w-full bg-black/5 dark:bg-white/5 rounded-full h-1.5 overflow-hidden shadow-inner">
@@ -542,68 +292,22 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               <ul className="space-y-3">
                 {(task.subtasks || []).map(subtask => (
                   <li key={subtask.id} className="flex items-center group bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-black/5 dark:border-white/5 hover:bg-white/60 dark:hover:bg-white/[0.08] transition-all shadow-sm">
-                    <input
-                      type="checkbox"
-                      checked={subtask.isCompleted}
-                      onChange={() => handleToggleSubtask(subtask.id)}
-                      className="h-5 w-5 bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 rounded-lg text-blue-500 focus:ring-blue-500/50 cursor-pointer transition-all"
-                    />
-                    <span className={`ml-4 text-xs font-bold flex-grow transition-all ${subtask.isCompleted ? 'text-slate-300 dark:text-white/20 line-through' : 'text-slate-700 dark:text-white/80'}`}>
+                    <div className={`h-5 w-5 rounded-lg border flex items-center justify-center ${subtask.isCompleted ? 'bg-blue-500 border-blue-500' : 'border-black/10 dark:border-white/10'}`}>
+                      {subtask.isCompleted && <CheckCircleIcon className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <span className={`ml-4 text-xs font-bold flex-grow ${subtask.isCompleted ? 'text-slate-300 dark:text-white/20 line-through' : 'text-slate-700 dark:text-white/80'}`}>
                       {subtask.title}
                     </span>
-                    <button
-                      onClick={() => handleDeleteSubtask(subtask.id)}
-                      className="p-2 text-slate-300 dark:text-white/10 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
                   </li>
                 ))}
                 {(task.subtasks || []).length === 0 && (
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/10 uppercase tracking-widest text-center py-4">No subtasks yet</p>
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/10 uppercase tracking-widest text-center py-4">No subtasks found</p>
                 )}
               </ul>
-
-              <form onSubmit={handleAddSubtask} className="flex gap-3 pt-2">
-                <input
-                  type="text"
-                  value={newSubtaskTitle}
-                  onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                  placeholder="Add a subtask..."
-                  className="flex-grow text-xs font-bold px-5 py-4 bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all outline-none shadow-sm"
-                />
-                <button type="submit" disabled={!newSubtaskTitle.trim()} className="p-4 bg-black/5 dark:bg-white/10 text-slate-400 dark:text-white rounded-2xl hover:bg-black/10 dark:hover:bg-white/20 disabled:opacity-30 transition-all shadow-sm">
-                  <PlusIcon className="w-5 h-5" />
-                </button>
-              </form>
             </div>
           </div>
 
-          <div className="bg-black/5 dark:bg-[#2A2A2D]/50 border border-black/5 dark:border-white/5 rounded-[40px] p-8 shadow-inner">
-            <div className="flex items-center gap-3 mb-6">
-              <SparklesIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              <h3 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest">AI Assistant</h3>
-            </div>
-            <form onSubmit={handleAskAI} className="space-y-4">
-              <textarea
-                value={aiQuestion}
-                onChange={(e) => setAiQuestion(e.target.value)}
-                placeholder="Ask about this task or get next steps..."
-                rows={3}
-                className="w-full px-6 py-4 bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl text-slate-700 dark:text-white font-medium placeholder-slate-300 dark:placeholder-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all resize-none outline-none shadow-sm"
-              />
-              <button type="submit" className="w-full py-4 bg-blue-500 hover:bg-blue-400 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl disabled:opacity-30 transition-all shadow-xl shadow-blue-500/20 active:scale-95" disabled={!aiQuestion.trim() || isAiLoading}>
-                {isAiLoading ? 'Thinking...' : 'Ask AI'}
-              </button>
-            </form>
-            {isAiLoading && <div className="text-center py-8 text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em] animate-pulse">Processing...</div>}
-            {aiError && <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">{aiError}</div>}
-            {aiResponse && (
-              <div className="mt-6 p-6 bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-3xl text-sm font-medium text-slate-700 dark:text-white/80 leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-sm">
-                {aiResponse}
-              </div>
-            )}
-          </div>
+
 
           <div className="space-y-6">
             <h3 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest ml-1">Activity & Comments</h3>
