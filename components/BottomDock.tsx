@@ -49,12 +49,12 @@ const BottomDock: React.FC<BottomDockProps> = ({
 
 
     return (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-            <div className="flex items-center gap-2 p-2 bg-transparent">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+            <div className="flex items-center gap-2 p-2 bg-white/10 dark:bg-black/20 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-full shadow-2xl">
 
                 {navItems.map((item, index) => {
                     if (item.type === 'separator') {
-                        return null;
+                        return <div key={`sep-${index}`} className="w-px h-5 bg-white/20 dark:bg-white/10 mx-1" />;
                     }
 
                     if (item.requiresSpace && !activeSpaceId) return null;
@@ -66,7 +66,7 @@ const BottomDock: React.FC<BottomDockProps> = ({
                         <button
                             key={item.id}
                             onClick={() => onViewChange(item.id!)}
-                            className={`relative group p-3.5 rounded-full transition-all duration-300 ${isActive
+                            className={`relative group p-3 rounded-full transition-all duration-300 ${isActive
                                 ? 'bg-black/5 dark:bg-white/10 text-lime-600 dark:text-[#CEFD4A]'
                                 : 'text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                                 }`}
@@ -90,6 +90,8 @@ const BottomDock: React.FC<BottomDockProps> = ({
             </div>
         </div>
     );
+
+
 };
 
 export default BottomDock;
