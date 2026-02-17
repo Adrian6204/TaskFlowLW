@@ -12,7 +12,6 @@ import TaskDetailsModal from './TaskDetailsModal';
 import AddTaskModal from './AddTaskModal';
 import ProfileModal from './ProfileModal';
 import Background from './Background';
-import ClickSpark from './ClickSpark';
 import UserManagementView from './UserManagementView';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 
@@ -147,8 +146,8 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
 
 
     return (
-        <ClickSpark sparkSize={10} sparkRadius={20} sparkCount={8} duration={400} className="h-screen w-full">
-            <div className="flex h-full overflow-hidden bg-transparent text-white relative font-sans">
+        <>
+            <div className="flex h-screen overflow-hidden bg-transparent text-white relative font-sans">
                 <Background videoSrc="/background.gif" />
 
                 <TopNav
@@ -259,7 +258,7 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
                     />
                 )}
             </div>
-        </ClickSpark>
+        </>
     );
 };
 

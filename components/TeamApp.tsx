@@ -13,7 +13,6 @@ import TaskDetailsModal from './TaskDetailsModal';
 import AddTaskModal from './AddTaskModal';
 import ProfileModal from './ProfileModal';
 import Background from './Background';
-import ClickSpark from './ClickSpark';
 import { useDailyTasks } from '../hooks/useDailyTasks';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 
@@ -203,7 +202,6 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
 
     return (
         <>
-            <ClickSpark sparkSize={10} sparkRadius={20} sparkCount={8} duration={400} />
             <div className="flex h-screen overflow-hidden bg-transparent text-white relative font-sans">
                 <Background videoSrc="/background.gif" />
 
