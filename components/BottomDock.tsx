@@ -15,6 +15,7 @@ interface BottomDockProps {
     onViewChange: (view: string) => void;
     activeSpaceId: string;
     isAdmin?: boolean;
+    isSuperAdmin?: boolean;
 }
 
 type NavItem =
@@ -25,13 +26,15 @@ const BottomDock: React.FC<BottomDockProps> = ({
     currentView,
     onViewChange,
     activeSpaceId,
-    isAdmin
+    isAdmin,
+    isSuperAdmin
 }) => {
 
     const navItems: NavItem[] = isAdmin
         ? [
             { id: 'analytics', icon: HomeIcon, label: 'Home' }, // New Command Center (Default)
             { id: 'overview', icon: ListBulletIcon, label: 'Tasks' }, // Overseer View
+            ...(isSuperAdmin ? [{ id: 'team', icon: UsersIcon, label: 'Team', requiresSpace: false }] : []), // User Management (Super Admin Only)
             { id: 'timeline', icon: CalendarIcon, label: 'Timeline', requiresSpace: true },
         ]
 

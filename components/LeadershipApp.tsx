@@ -13,6 +13,7 @@ import AddTaskModal from './AddTaskModal';
 import ProfileModal from './ProfileModal';
 import Background from './Background';
 import ClickSpark from './ClickSpark';
+import UserManagementView from './UserManagementView';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 
 interface LeadershipAppProps {
@@ -45,6 +46,7 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
         const path = location.pathname;
         if (path.includes('/analytics')) return 'analytics';
         if (path.includes('/overview')) return 'overview';
+        if (path.includes('/team')) return 'team';
         if (path.includes('/timeline')) return 'timeline';
         if (path.includes('/settings')) return 'settings';
         return 'analytics'; // Default
@@ -145,9 +147,8 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
 
 
     return (
-        <>
-            <ClickSpark sparkSize={10} sparkRadius={20} sparkCount={8} duration={400} />
-            <div className="flex h-screen overflow-hidden bg-transparent text-white relative font-sans">
+        <ClickSpark sparkSize={10} sparkRadius={20} sparkCount={8} duration={400} className="h-screen w-full">
+            <div className="flex h-full overflow-hidden bg-transparent text-white relative font-sans">
                 <Background videoSrc="/background.gif" />
 
                 <TopNav
@@ -188,6 +189,10 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
                                 />
                             )}
 
+                            {currentView === 'team' && user.isAdmin && (
+                                <UserManagementView currentUserId={user.employeeId} />
+                            )}
+
                             {currentView === 'timeline' && (
                                 <div className="h-[calc(100vh-200px)]">
                                     {timelineViewMode === 'calendar' ? (
@@ -215,6 +220,7 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
                     onViewChange={handleViewChange}
                     activeSpaceId="" // Admin view doesn't focus one space
                     isAdmin={true}
+                    isSuperAdmin={user.isAdmin}
                 />
 
                 {isProfileModalOpen && (
@@ -253,7 +259,7 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
                     />
                 )}
             </div>
-        </>
+        </ClickSpark>
     );
 };
 

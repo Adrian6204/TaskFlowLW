@@ -37,6 +37,13 @@ export interface Employee {
   phone?: string;
 }
 
+export interface EmployeeWithRole extends Employee {
+  spaceId: string;
+  spaceName: string;
+  role: 'admin' | 'member';
+  isSuperAdmin: boolean;
+}
+
 export interface Comment {
   id: number;
   authorId: string;
@@ -89,7 +96,7 @@ export interface Space {
 }
 
 // Deprecating strict 'admin' role in favor of Space Ownership
-export type Role = 'user' | 'admin';
+export type Role = 'user' | 'admin' | 'super_admin';
 
 export interface User {
   username: string;

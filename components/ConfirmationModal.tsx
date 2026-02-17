@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -8,6 +8,7 @@ interface ConfirmationModalProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
+  type?: 'danger' | 'warning' | 'info';
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -16,78 +17,68 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   title,
   message,
-  confirmText = 'Delete',
-  cancelText = 'Cancel'
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  type = 'warning'
 }) => {
-  const [show, setShow] = useState(false);
-  const cancelButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      // Trigger animation frame
-      const timer = setTimeout(() => setShow(true), 10);
-
-      // Accessibility: Focus the cancel button to prevent accidental confirmation via Enter key
-      const focusTimer = setTimeout(() => {
-        cancelButtonRef.current?.focus();
-      }, 50);
-
-      // Accessibility: Close on Escape key
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          onClose();
-        }
-      };
-
-      document.addEventListener('keydown', handleKeyDown);
-      return () => {
-        clearTimeout(timer);
-        clearTimeout(focusTimer);
-        document.removeEventListener('keydown', handleKeyDown);
-      };
-    } else {
-      setShow(false);
-    }
-  }, [isOpen, onClose]);
-
   if (!isOpen) return null;
 
+  const colors = {
+    danger: {
+      bg: 'bg-red-500',
+      text: 'text-red-500',
+      border: 'border-red-500',
+      hover: 'hover:bg-red-600',
+      lightBg: 'bg-red-500/10'
+    },
+    warning: {
+      bg: 'bg-orange-500',
+      text: 'text-orange-500',
+      border: 'border-orange-500',
+      hover: 'hover:bg-orange-600',
+      lightBg: 'bg-orange-500/10'
+    },
+    info: {
+      bg: 'bg-blue-500',
+      text: 'text-blue-500',
+      border: 'border-blue-500',
+      hover: 'hover:bg-blue-600',
+      lightBg: 'bg-blue-500/10'
+    }
+  };
+
+  const color = colors[type];
+
   return (
-    <div
-      className={`fixed inset-0 z-50 flex justify-center items-center p-4 transition-all duration-300 ${show ? 'visible' : 'invisible'}`}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-      aria-describedby="modal-description"
-    >
-      {/* Backdrop with click handler */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-xl transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
-        aria-hidden="true"
       />
 
-      {/* Modal Content */}
-      <div
-        className={`bg-white/80 dark:bg-slate-900/90 backdrop-blur-3xl rounded-[32px] border border-black/10 dark:border-white/10 shadow-2xl w-full max-w-md p-8 relative z-10 transition-all duration-300 transform ${show ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
-      >
-        <h2 id="modal-title" className="text-2xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tight">
-          {title}
-        </h2>
-        <p id="modal-description" className="text-sm font-bold text-slate-400 dark:text-slate-300 mb-8 leading-relaxed uppercase tracking-wider">
-          {message}
-        </p>
-        <div className="flex justify-end gap-3">
+      {/* Modal */}
+      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-6 border border-white/10 animate-in zoom-in-95 duration-200">
+        <div className="mb-4">
+          <h3 className={`text-xl font-black ${color.text} mb-2`}>{title}</h3>
+          <p className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+            {message}
+          </p>
+        </div>
+
+        <div className="flex gap-3 justify-end mt-8">
           <button
-            ref={cancelButtonRef}
             onClick={onClose}
-            className="px-6 py-3 bg-black/5 dark:bg-white/5 text-slate-400 dark:text-slate-400 rounded-2xl hover:bg-black/10 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-all text-[10px] font-black uppercase tracking-widest focus:outline-none"
+            className="px-4 py-2 rounded-xl text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
           >
             {cancelText}
           </button>
           <button
-            onClick={onConfirm}
-            className="px-6 py-3 bg-red-500 text-white rounded-2xl hover:bg-red-400 transition-all text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 active:scale-95"
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className={`px-6 py-2 rounded-xl text-white font-bold shadow-lg shadow-${type}-500/20 transition-all transform active:scale-95 ${color.bg} ${color.hover}`}
           >
             {confirmText}
           </button>

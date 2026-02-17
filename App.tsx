@@ -69,7 +69,8 @@ const RoleBasedGatekeeper: React.FC = () => {
   if (!user) return <Navigate to="/login" />;
 
   // Determine App based on Position/Role
-  if (isLeadership(user.position)) {
+  // Super Admin (System Admin) ONLY gets Leadership View
+  if (user.isAdmin || user.role === 'super_admin') {
     return <LeadershipApp user={user} onLogout={logout} />;
   }
 

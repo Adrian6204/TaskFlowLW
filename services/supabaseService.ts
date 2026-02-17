@@ -472,6 +472,57 @@ export const getAllTasksAcrossSpaces = async () => {
   return data.map(mapDbTaskToApp);
 };
 
+export const getAllUsersWithRoles = async () => {
+  // 1. Get all profiles (employees)
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('*');
+
+  if (profilesError) throw profilesError;
+
+  // 2. Get all space members to find their workspace and role
+  const { data: members, error: membersError } = await supabase
+    .from('space_members')
+    .select('user_id, role, space_id, spaces(name)');
+
+  if (membersError) throw membersError;
+
+  // 3. Merge data
+  const usersWithRoles = profiles.map((profile: any) => {
+    // Find the membership entry for this user (assuming 1 workspace per user for now, or take the first one)
+    const membership = members?.find((m: any) => m.user_id === profile.id);
+
+    return {
+      ...mapDbProfileToEmployee(profile),
+      spaceId: membership?.space_id || '',
+      spaceName: (membership?.spaces as any)?.name || 'Unassigned',
+      role: membership?.role || 'member', // Default to member if not found (or if they have no workspace)
+      isSuperAdmin: profile.is_admin || false,
+    };
+  });
+
+  return usersWithRoles;
+};
+
+export const updateWorkspaceRole = async (userId: string, spaceId: string, role: 'admin' | 'member') => {
+  const { error } = await supabase
+    .from('space_members')
+    .update({ role })
+    .eq('user_id', userId)
+    .eq('space_id', spaceId);
+
+  if (error) throw error;
+};
+
+export const updateSuperAdminStatus = async (userId: string, isSuperAdmin: boolean) => {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ is_admin: isSuperAdmin })
+    .eq('id', userId);
+
+  if (error) throw error;
+};
+
 // --- Daily Tasks Sync ---
 
 export const getDailyTasks = async (userId: string) => {

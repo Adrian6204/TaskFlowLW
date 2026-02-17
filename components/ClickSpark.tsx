@@ -9,6 +9,7 @@ interface ClickSparkProps {
     duration?: number;
     easing?: 'linear' | 'ease-in' | 'ease-in-out' | 'ease-out';
     extraScale?: number;
+    className?: string;
     children?: React.ReactNode;
 }
 
@@ -20,6 +21,7 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     duration = 400,
     easing = 'ease-out',
     extraScale = 1.0,
+    className = '',
     children
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -152,11 +154,10 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
 
     return (
         <div
+            className={className}
             style={{
                 position: 'relative',
-                width: '100%',
-                height: '100%',
-                overflow: 'hidden' // Ensure sparks don't cause scrollbars if somehow they go out of bounds? though canvas is usually localized
+                overflow: 'hidden'
             }}
             onClick={handleClick}
         >

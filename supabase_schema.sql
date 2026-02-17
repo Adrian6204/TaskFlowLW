@@ -133,7 +133,7 @@ create table if not exists public.spaces (
   id uuid default uuid_generate_v4() primary key,
   name text not null,
   join_code text unique not null,
-  owner_id uuid references public.profiles(id) not null,
+  owner_id uuid references public.profiles(id) on delete cascade not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

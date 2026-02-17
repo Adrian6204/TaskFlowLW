@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser({
         username: profile?.username || sbUser.email?.split('@')[0],
         fullName: profile?.full_name || profile?.username || sbUser.email?.split('@')[0],
-        role: 'user', // Default role, specific space roles handled in data layer
+        role: profile?.is_admin ? 'super_admin' : 'user', // Default 'user', but 'super_admin' if system admin
         employeeId: sbUser.id,
         department: profile?.department,
         isAdmin: profile?.is_admin || false,
@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Convert username to fake email for Supabase auth
     // Sanitize: lowercase and remove spaces
     const sanitizedUsername = username.toLowerCase().replace(/\s+/g, '');
-    const email = `${sanitizedUsername}@taskflow.local`;
+    const email = `${sanitizedUsername}@lifewood.com`;
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Convert username to fake email for Supabase auth
     // Sanitize: lowercase and remove spaces
     const sanitizedUsername = username.toLowerCase().replace(/\s+/g, '');
-    const email = `${sanitizedUsername}@taskflow.local`;
+    const email = `${sanitizedUsername}@lifewood.com`;
 
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
@@ -119,9 +119,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       let spaceId = workspaces?.id;
+      let isNewSpace = false;
 
       // 2. If not, create it
       if (!spaceId) {
+        isNewSpace = true;
         // Generate a random 6-char join code
         const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
@@ -138,7 +140,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (spaceError) {
           console.error("Error creating workspace:", spaceError);
-          // Fallback: don't block signup if workspace creation fails, but log it
         } else if (newSpace) {
           spaceId = newSpace.id;
         }
@@ -146,22 +147,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // 3. Add user to workspace members
       if (spaceId) {
+        // Role Logic: Admin if they created the space, Member otherwise
+        const role = isNewSpace ? 'admin' : 'member';
+
         const { error: memberError } = await supabase
           .from('space_members')
           .insert({
             space_id: spaceId,
             user_id: signUpData.user.id,
-            role: 'admin' // First user or creator gets admin, or default to admin for now as per "Space Ownership" model
+            role: role
           });
 
         if (memberError) {
           console.error("Error adding user to workspace:", memberError);
         }
       }
+
+      // 4. System Admin Check
+      // REMOVED hardcoded 'adrian' check.
+      // System Admin rights should be assigned manually in the database or via an Admin Console.
+      // For now, no automatic System Admin assignment on signup to keep it secure.
     }
   };
-
-
 
   const logout = async () => {
     if (!isSupabaseConfigured) return;
