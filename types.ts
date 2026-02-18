@@ -35,6 +35,8 @@ export interface Employee {
   avatarUrl: string;
   position?: Position | string; // Optional for backward compatibility
   phone?: string;
+  role?: 'admin' | 'member';
+  isSuperAdmin?: boolean;
 }
 
 export interface EmployeeWithRole extends Employee {

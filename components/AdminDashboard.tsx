@@ -9,7 +9,6 @@ import { ClockIcon } from './icons/ClockIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { FlagIcon } from './icons/FlagIcon';
 import BentoCard from './BentoCard';
-import { PlusIcon } from './icons/PlusIcon';
 import { BoltIcon } from './icons/BoltIcon';
 
 interface AdminDashboardProps {
@@ -203,9 +202,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ tasks, employees, activ
                                             <p className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider">{employeeTasks.length} Active Tasks</p>
                                         </div>
                                     </div>
-                                    <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A] hover:bg-lime-500 hover:text-black transition-all">
-                                        <PlusIcon className="w-4 h-4" />
-                                    </button>
+
                                 </div>
 
                                 <div className="p-4 flex-1 space-y-2 min-h-[160px] max-h-[300px] overflow-y-auto scrollbar-none">

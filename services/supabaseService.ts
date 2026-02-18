@@ -93,6 +93,7 @@ const mapDbProfileToEmployee = (dbProfile: any): Employee => ({
   avatarUrl: dbProfile.avatar_url || 'https://via.placeholder.com/150',
   position: dbProfile.position,
   phone: dbProfile.phone,
+  isSuperAdmin: dbProfile.is_admin,
 });
 
 // --- Services ---
@@ -142,6 +143,17 @@ export const getSpaces = async (userId: string) => {
   return spacesWithMembers;
 };
 
+
+export const getMemberships = async (spaceIds: string[]) => {
+  if (spaceIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from('space_members')
+    .select('space_id, user_id, role')
+    .in('space_id', spaceIds);
+
+  if (error) throw error;
+  return data;
+};
 
 export const createSpace = async (name: string, userId: string, description?: string) => {
   const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();

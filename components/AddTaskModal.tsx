@@ -311,9 +311,32 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, em
                 onChange={(e) => setAssigneeId(e.target.value)}
                 className="w-full px-6 py-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl text-slate-700 dark:text-white font-bold focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all cursor-pointer outline-none shadow-inner"
               >
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id} className="bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white">{emp.name}{emp.id === currentUserId ? ' (Active Self)' : ''}</option>
-                ))}
+                {employees
+                  .filter(emp => {
+                    // Find current user's role
+                    const currentUser = employees.find(e => e.id === currentUserId);
+                    const isSuperAdmin = currentUser?.isSuperAdmin;
+                    const isAdminRole = currentUser?.role === 'admin';
+
+                    // Same logic, but cleaner now that roles are correct
+                    // Super Admin: See everyone
+                    if (isSuperAdmin) return true;
+
+                    // Admin: See members + themselves
+                    if (isAdminRole) {
+                      return emp.role === 'member' || emp.id === currentUserId;
+                    }
+
+                    // Normal User: Only see themselves
+                    return emp.id === currentUserId;
+                  })
+                  .map(emp => (
+                    <option key={emp.id} value={emp.id} className="bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white">
+                      {emp.name}{emp.id === currentUserId ? ' (Active Self)' : ''}
+                      {emp.role === 'admin' ? ' (Admin)' : ''}
+                      {emp.isSuperAdmin ? ' (Super Admin)' : ''}
+                    </option>
+                  ))}
               </select>
             </div>
             <div className="space-y-2">

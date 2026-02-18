@@ -32,6 +32,7 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [allUserTasks, setAllUserTasks] = useState<Task[]>([]);
     const [activeSpaceId, setActiveSpaceId] = useState<string>('');
+    const [memberships, setMemberships] = useState<{ space_id: string; user_id: string; role: string }[]>([]);
 
     // View State
     const [searchTerm, setSearchTerm] = useState('');
@@ -88,6 +89,13 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
             setEmployees(emps);
             setSpaces(spcs);
 
+            // Fetch memberships to correctly identify roles in each space
+            const spaceIds = spcs.map(s => s.id);
+            if (spaceIds.length > 0) {
+                const mems = await dataService.getMemberships(spaceIds);
+                setMemberships(mems);
+            }
+
             // Fetch tasks for all user's spaces to populate overview/analytics
             await refreshAllUserTasks();
 
@@ -119,8 +127,19 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
 
     const spaceMembers = useMemo(() => {
         if (!currentSpace) return [];
-        return employees.filter(e => currentSpace.members.includes(e.id));
-    }, [currentSpace, employees]);
+        return employees
+            .filter(e => currentSpace.members.includes(e.id))
+            .map(e => {
+                const membership = memberships.find(m => m.user_id === e.id && m.space_id === currentSpace.id);
+                // Cast to specific string union if needed, or string is fine as it matches 'admin'|'member'
+                const role = (membership?.role || 'member') as 'admin' | 'member';
+                // Super admin status comes from profile (e.isAdmin in backend, or relying on auth user for self)
+                // For other employees, we might need isSuperAdmin check if we fetched it.
+                // NOTE: getAllEmployees returns basic Employee. isSuperAdmin might be missing if we reverted to getAllEmployees.
+
+                return { ...e, role };
+            });
+    }, [currentSpace, employees, memberships]);
 
     const handleUpdateTaskStatus = async (id: number, status: TaskStatus) => {
         try {
@@ -349,6 +368,7 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
                         activeSpaceId={activeSpaceId}
                         spaces={spaces}
                         currentUserId={user.employeeId}
+                        isAdmin={user.isAdmin}
                     />
                 )}
             </div>

@@ -59,7 +59,7 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
     const loadData = async () => {
         try {
             const [emps, spcs, tasks] = await Promise.all([
-                dataService.getAllEmployees(),
+                dataService.getAllUsersWithRoles(),
                 dataService.getAllSpaces(),
                 dataService.getAllTasksAcrossSpaces()
             ]);
@@ -242,6 +242,8 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
                         employees={employees}
                         activeSpaceId={allTasks[0]?.spaceId || ''} // Fallback
                         spaces={spaces} // Pass all spaces for admin to choose
+                        currentUserId={user.employeeId}
+                        isAdmin={user.isAdmin}
                     />
                 )}
 
