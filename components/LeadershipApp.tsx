@@ -213,7 +213,7 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
                                 )}
 
                                 {currentView === 'team' && user.isAdmin && (
-                                    <UserManagementView currentUserId={user.employeeId} />
+                                    <UserManagementView currentUserId={user.employeeId} spaces={spaces} />
                                 )}
 
                                 {currentView === 'timeline' && (

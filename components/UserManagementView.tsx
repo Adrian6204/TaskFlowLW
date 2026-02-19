@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { EmployeeWithRole } from '../types';
+import { EmployeeWithRole, Space, Employee } from '../types';
 import * as dataService from '../services/supabaseService';
 import BentoCard from './BentoCard';
 import { KeyIcon } from './icons/KeyIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { UsersIcon } from './icons/UsersIcon';
+import { PlusIcon } from './icons/PlusIcon';
+import { XMarkIcon } from './icons/XMarkIcon';
 import ConfirmationModal from './ConfirmationModal';
 
 interface UserManagementViewProps {
     currentUserId: string;
+    spaces?: Space[];
 }
 
-const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId }) => {
+const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, spaces = [] }) => {
     const [users, setUsers] = useState<EmployeeWithRole[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Enroll Modal State
+    const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+    const [selectedUserToEnroll, setSelectedUserToEnroll] = useState<string>('');
+    const [selectedSpaceToEnroll, setSelectedSpaceToEnroll] = useState<string>(spaces[0]?.id || '');
 
     // Confirmation State
     const [confirmModal, setConfirmModal] = useState<{
@@ -33,6 +41,13 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId }
     useEffect(() => {
         loadUsers();
     }, []);
+
+    // Update selected space default if spaces load later
+    useEffect(() => {
+        if (spaces.length > 0 && !selectedSpaceToEnroll) {
+            setSelectedSpaceToEnroll(spaces[0].id);
+        }
+    }, [spaces]);
 
     const loadUsers = async () => {
         try {
@@ -107,6 +122,89 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId }
         });
     };
 
+    const handleDeleteAccount = async (user: EmployeeWithRole) => {
+        if (user.id === currentUserId) {
+            alert("You cannot delete your own account.");
+            return;
+        }
+
+        setConfirmModal({
+            isOpen: true,
+            title: `PERMANENTLY DELETE ACCOUNT?`,
+            message: `DANGER: This will permanently delete ${user.name}'s account and remove them from all workspaces. This action CANNOT be undone.`,
+            type: 'danger',
+            onConfirm: async () => {
+                const confirmName = prompt(`Type "DELETE" to confirm deletion of ${user.name}:`);
+                if (confirmName !== 'DELETE') return;
+
+                try {
+                    await dataService.deleteUserAccount(user.id);
+                    setUsers(users.filter(u => u.id !== user.id)); // Optimistic remove
+                } catch (error) {
+                    console.error("Failed to delete account", error);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: "Error",
+                        message: "Failed to delete account. Please try again.",
+                        type: "warning",
+                        onConfirm: () => setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                    });
+                    loadUsers();
+                } finally {
+                    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                }
+            }
+        });
+    };
+
+    const handleRemoveFromWorkspace = async (user: EmployeeWithRole) => {
+        if (!user.spaceId) return;
+
+        setConfirmModal({
+            isOpen: true,
+            title: `Remove from Workspace?`,
+            message: `Are you sure you want to remove ${user.name} from "${user.spaceName}"? They will become unassigned.`,
+            type: 'warning',
+            onConfirm: async () => {
+                try {
+                    await dataService.removeMemberFromSpace(user.spaceId, user.id);
+                    loadUsers(); // Reload to reflect Unassigned
+                } catch (error) {
+                    console.error(error);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: "Error",
+                        message: "Failed to remove user from workspace.",
+                        type: "warning",
+                        onConfirm: () => setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                    });
+                } finally {
+                    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                }
+            }
+        })
+    }
+
+    const handleEnrollUser = async () => {
+        if (!selectedUserToEnroll || !selectedSpaceToEnroll) return;
+
+        try {
+            await dataService.addMemberToSpace(selectedSpaceToEnroll, selectedUserToEnroll, 'member');
+            setIsEnrollModalOpen(false);
+            loadUsers(); // Reload
+            setSelectedUserToEnroll('');
+        } catch (error) {
+            console.error(error);
+            setConfirmModal({
+                isOpen: true,
+                title: "Error",
+                message: "Failed to enroll user. They might already be a member of this workspace.",
+                type: "warning",
+                onConfirm: () => setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+            });
+        }
+    };
+
     // Filter users
     const filteredUsers = users.filter(u =>
         u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -125,14 +223,21 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId }
                             Manage access and roles across the organization
                         </p>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-3">
                         <input
                             type="text"
                             placeholder="Find user..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-lime-500/50 min-w-[250px]"
+                            className="bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-lime-500/50 min-w-[200px]"
                         />
+                        <button
+                            onClick={() => setIsEnrollModalOpen(true)}
+                            className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2"
+                        >
+                            <PlusIcon className="w-4 h-4" />
+                            Enroll Member
+                        </button>
                     </div>
                 </div>
             </div>
@@ -169,11 +274,24 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId }
                         <div className="space-y-3 mb-6">
                             <div className="flex items-center justify-between text-sm py-2 border-b border-black/5 dark:border-white/5">
                                 <span className="text-slate-500 dark:text-white/40 font-medium">Workspace</span>
-                                <span className="font-bold text-slate-700 dark:text-white/80">{user.spaceName}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`font-bold ${user.spaceName === 'Unassigned' ? 'text-slate-400 italic' : 'text-slate-700 dark:text-white/80'}`}>
+                                        {user.spaceName}
+                                    </span>
+                                    {user.spaceId && (
+                                        <button
+                                            onClick={() => handleRemoveFromWorkspace(user)}
+                                            className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded transition-colors"
+                                            title="Remove from Workspace"
+                                        >
+                                            <XMarkIcon className="w-3 h-3" />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex items-center justify-between text-sm py-2 border-b border-black/5 dark:border-white/5">
                                 <span className="text-slate-500 dark:text-white/40 font-medium">Email</span>
-                                <span className="font-bold text-slate-700 dark:text-white/80 text-xs truncate max-w-[150px]">{user.email}</span>
+                                <span className="font-bold text-slate-700 dark:text-white/80 text-xs truncate max-w-[150px]" title={user.email}>{user.email}</span>
                             </div>
                         </div>
 
@@ -204,10 +322,15 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId }
                                     `}
                                 >
                                     <KeyIcon className="w-4 h-4" />
-                                    {user.role === 'admin' ? 'Revoke Workspace Admin' : 'Make Workspace Admin'}
+                                    {user.role === 'admin' ? 'Revoke Admin' : 'Make Workspace Admin'}
                                 </button>
 
-                                <button className="p-2 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white transition-all">
+                                <button
+                                    onClick={() => handleDeleteAccount(user)}
+                                    disabled={user.id === currentUserId}
+                                    className={`p-2 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white transition-all ${user.id === currentUserId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    title="Delete Account"
+                                >
                                     <TrashIcon className="w-4 h-4" />
                                 </button>
                             </div>
@@ -220,6 +343,58 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId }
             {filteredUsers.length === 0 && (
                 <div className="text-center py-20">
                     <p className="text-slate-400 dark:text-white/30 font-bold text-lg">No users found.</p>
+                </div>
+            )}
+
+            {/* Enroll Modal */}
+            {isEnrollModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setIsEnrollModalOpen(false)}>
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-scale-in border border-white/10" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white">Enroll Member to Workspace</h3>
+                            <button onClick={() => setIsEnrollModalOpen(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors">
+                                <XMarkIcon className="w-6 h-6 text-slate-500" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mb-2">Select User</label>
+                                <select
+                                    value={selectedUserToEnroll}
+                                    onChange={(e) => setSelectedUserToEnroll(e.target.value)}
+                                    className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none appearance-none"
+                                >
+                                    <option value="">-- Choose User --</option>
+                                    {users.filter(u => u.id !== currentUserId).map(u => (
+                                        <option key={u.id} value={u.id}>{u.name} ({u.spaceName})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mb-2">Select Target Workspace</label>
+                                <select
+                                    value={selectedSpaceToEnroll}
+                                    onChange={(e) => setSelectedSpaceToEnroll(e.target.value)}
+                                    className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none appearance-none"
+                                >
+                                    {spaces.length === 0 && <option value="">No workspaces available</option>}
+                                    {spaces.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <button
+                                onClick={handleEnrollUser}
+                                disabled={!selectedUserToEnroll || !selectedSpaceToEnroll}
+                                className="w-full py-3 bg-lime-500 hover:bg-lime-400 text-black font-bold rounded-2xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                            >
+                                Enroll User
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

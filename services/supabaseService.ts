@@ -394,10 +394,10 @@ export const getSpaceById = async (spaceId: string) => {
   return { ...mapDbSpaceToApp(data), members: realMembers };
 };
 
-export const addMemberToSpace = async (spaceId: string, userId: string) => {
+export const addMemberToSpace = async (spaceId: string, userId: string, role: string = 'member') => {
   const { error } = await supabase
     .from('space_members')
-    .insert({ space_id: spaceId, user_id: userId });
+    .insert({ space_id: spaceId, user_id: userId, role });
 
   if (error) {
     if (error.code === '23505') { // Unique constraint violation
@@ -718,6 +718,32 @@ export const deleteList = async (listId: number) => {
     .from('lists')
     .delete()
     .eq('id', listId);
+
+  if (error) throw error;
+};
+
+export const searchUsers = async (query: string): Promise<Employee[]> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .or(`username.ilike.%${query}%,full_name.ilike.%${query}%,email.ilike.%${query}%`)
+    .limit(20);
+
+  if (error) throw error;
+  return data.map(mapDbProfileToEmployee);
+};
+
+
+
+export const deleteUserAccount = async (userId: string) => {
+  // This removes the user's profile info.
+  // Note: Deleting from auth.users requires Service Role Key or an RPC function in a secure environment.
+  // From the client side, we can only delete data we have access to (public tables).
+  // Assuming RLS allows admins to delete profiles.
+  const { error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', userId);
 
   if (error) throw error;
 };

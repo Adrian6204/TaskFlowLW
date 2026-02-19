@@ -392,9 +392,11 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
 
                                 {currentView === 'members' && (
                                     <MembersView
-                                        employees={employees}
+                                        employees={spaceMembers} // Show only space members? Or all? "Team Members" implies space members.
                                         tasks={allUserTasks}
                                         currentUser={user}
+                                        currentSpace={currentSpace} // Pass current space
+                                        onMemberUpdate={loadData} // callback to refresh
                                     />
                                 )}
 
