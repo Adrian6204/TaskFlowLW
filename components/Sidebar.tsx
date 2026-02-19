@@ -69,6 +69,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'home', label: 'Home', icon: HomeIcon },
     { id: 'overview', label: 'Overview', icon: ChartBarIcon },
     { id: 'whiteboard', label: 'Task of Today', icon: PencilSquareIcon },
+    // Conditionally add Team link for admins
+    ...(user.isAdmin || user.role === 'super_admin' || user.position === 'Admin' ? [{ id: 'team', label: 'Team', icon: UsersIcon }] : []),
   ];
 
   const workspaceViews = [
