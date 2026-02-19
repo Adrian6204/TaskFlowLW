@@ -10,6 +10,7 @@ import { SunIcon } from './icons/SunIcon';
 import { MoonIcon } from './icons/MoonIcon';
 import { useTheme, ColorScheme } from './hooks/useTheme';
 import { supabase } from '../lib/supabaseClient';
+import { deleteAvatar } from '../services/supabaseService';
 
 interface ProfileModalProps {
     isOpen: boolean;
@@ -109,10 +110,23 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
 
     if (!isOpen) return null;
 
-    const handleSaveProfile = (e: React.FormEvent) => {
+    const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         const fullName = `${firstName} ${lastName}`.trim();
         if (fullName) {
+            // Check if avatar has changed and delete old one if applicable
+            const originalAvatar = currentUserEmployee?.avatarUrl || user.avatarUrl;
+            if (avatarUrl && originalAvatar && avatarUrl !== originalAvatar) {
+                // Check if old avatar is stored in Supabase storage standard format
+                // Typical format: .../storage/v1/object/public/avatars/path/to/file
+                if (originalAvatar.includes('/storage/v1/object/public/avatars/')) {
+                    const oldPath = originalAvatar.split('/avatars/')[1];
+                    if (oldPath) {
+                        await deleteAvatar(oldPath);
+                    }
+                }
+            }
+
             onSave({
                 name: fullName,
                 avatarUrl,

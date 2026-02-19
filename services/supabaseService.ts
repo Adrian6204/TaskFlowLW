@@ -165,6 +165,14 @@ export const getSpaces = async (userId: string) => {
   return spacesWithMembers;
 };
 
+export const deleteAvatar = async (path: string) => {
+  const { error } = await supabase.storage.from('avatars').remove([path]);
+  if (error) {
+    console.error('Error deleting avatar:', error);
+    // We don't throw here to avoid blocking the main flow if deletion fails
+  }
+};
+
 
 export const getMemberships = async (spaceIds: string[]) => {
   if (spaceIds.length === 0) return [];
