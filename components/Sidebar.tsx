@@ -34,7 +34,7 @@ interface SidebarProps {
   onSelectList: (listId: number | null) => void;
   currentUserEmployee?: Employee;
   user: User;
-  compactMode?: boolean;
+
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSelectList,
   currentUserEmployee,
   user,
-  compactMode = false
+
 }) => {
   const [expandedSpaceId, setExpandedSpaceId] = React.useState<string | null>(activeSpaceId || null);
 
@@ -71,6 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'home', label: 'Home', icon: HomeIcon },
     { id: 'overview', label: 'Overview', icon: ChartBarIcon },
     { id: 'whiteboard', label: 'Task of Today', icon: PencilSquareIcon },
+    { id: 'timeline', label: 'Calendar', icon: CalendarIcon },
     // Conditionally add Team link for admins
     ...(user.isAdmin || user.role === 'super_admin' || user.position === 'Admin' ? [{ id: 'team', label: 'Team', icon: UsersIcon }] : []),
   ];
@@ -153,7 +154,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Spaces Section with Nested Views */}
-        <div className={compactMode ? 'mt-2' : 'mt-4'}>
+        <div className='mt-4'>
           <div className={`px-4 mb-3 flex items-center justify-between ${!isOpen && 'justify-center hidden'}`}>
             <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">
               {isOpen ? 'Workspaces' : ''}
@@ -169,13 +170,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
-          <div className={compactMode ? 'space-y-1' : 'space-y-4'}>
+          <div className='space-y-4'>
             {spaces.map((space) => (
               <div key={space.id} className="relative">
                 {/* Space Header */}
                 <button
                   onClick={() => handleSpaceClick(space.id)}
-                  className={`w-full flex items-center gap-3 px-4 ${compactMode ? 'py-2' : 'py-3'} rounded-[20px] text-sm font-bold transition-all duration-300 group relative
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-[20px] text-sm font-bold transition-all duration-300 group relative
                     ${activeSpaceId === space.id && !activeListId && isWorkspaceView
                       ? 'bg-slate-900/5 dark:bg-[#2A2A2D] text-slate-900 dark:text-white border border-slate-900/5 dark:border-white/5'
                       : 'text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'

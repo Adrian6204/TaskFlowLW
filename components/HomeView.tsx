@@ -8,6 +8,7 @@ import { CalendarIcon } from './icons/CalendarIcon';
 import { BoltIcon } from './icons/BoltIcon';
 
 import { useDailyTasks, DailyTaskPriority } from '../hooks/useDailyTasks';
+import { usePreferences } from './hooks/usePreferences';
 import { useScratchpad } from '../hooks/useScratchpad';
 import { PlusIcon } from './icons/PlusIcon';
 import { SearchIcon } from './icons/SearchIcon';
@@ -29,6 +30,7 @@ interface HomeViewProps {
 }
 
 const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, user, searchTerm: globalSearchTerm, onSearchChange, onUpdateTaskStatus, onUpdateTask, onAddTask, onViewTask }) => {
+  const [preferences] = usePreferences();
   const { tasks: dailyTasks, updateTaskStatus, deleteTask, addTask, updateTaskPriority, updateTaskSchedule, loading: dailyLoading } = useDailyTasks();
   const { note, updateNote, loading: scratchpadLoading } = useScratchpad();
   const today = new Date().toISOString().split('T')[0];
@@ -101,11 +103,37 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
     // Show if not done, OR if done today (to see progress)
     const isIncomplete = t.status !== TaskStatus.DONE;
     const isCompletedToday = t.completedAt?.startsWith(today);
+
+    // Respect preference for existing "Done" tasks check
+    if (t.status === TaskStatus.DONE) {
+      if (preferences.showCompletedTasks === 'never') return false;
+      if (preferences.showCompletedTasks === 'recent') {
+        if (t.completedAt) {
+          const completedDate = new Date(t.completedAt);
+          const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          if (completedDate <= cutoff) return false;
+        }
+      }
+    }
+
     return isIncomplete || isCompletedToday;
   });
   const overdueTasks = myTasks.filter(t => t.dueDate < today && t.status !== TaskStatus.DONE);
 
-  const allActiveTasks = myTasks.filter(t => t.status !== TaskStatus.DONE || t.completedAt?.startsWith(today));
+  const allActiveTasks = myTasks.filter(t => {
+    if (t.status !== TaskStatus.DONE) return true;
+    if (t.completedAt?.startsWith(today)) return true;
+    if (preferences.showCompletedTasks === 'always') return true;
+    if (preferences.showCompletedTasks === 'never') return false;
+    // recent
+    if (t.completedAt) {
+      const completedDate = new Date(t.completedAt);
+      const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      return completedDate > cutoff;
+    }
+    return false;
+  });
+
 
   // Daily Tasks (Local)
   // All daily tasks are shown in the task list regardless of status

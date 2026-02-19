@@ -10,6 +10,7 @@ import { SunIcon } from './icons/SunIcon';
 import { MoonIcon } from './icons/MoonIcon';
 import { PencilSquareIcon } from './icons/PencilSquareIcon';
 import { useTheme, ColorScheme } from './hooks/useTheme';
+import { usePreferences, LandingPage, WeekStartDay, TimeFormat, TaskVisibility } from './hooks/usePreferences';
 import { supabase } from '../lib/supabaseClient';
 import { deleteAvatar } from '../services/supabaseService';
 
@@ -22,7 +23,7 @@ interface ProfileModalProps {
     onLogout?: () => void;
 }
 
-type Tab = 'profile' | 'preferences' | 'notifications';
+type Tab = 'profile' | 'preferences' | 'workflow' | 'notifications';
 
 const ToggleSwitch: React.FC<{ enabled: boolean; onChange: (val: boolean) => void }> = ({ enabled, onChange }) => (
     <button
@@ -59,6 +60,42 @@ const ColorOption: React.FC<{ color: ColorScheme; selected: boolean; onSelect: (
     );
 };
 
+const SegmentedControl: React.FC<{ options: { label: string; value: string }[], value: string, onChange: (val: any) => void }> = ({ options, value, onChange }) => (
+    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-lg">
+        {options.map((opt) => (
+            <button
+                key={opt.value}
+                onClick={() => onChange(opt.value)}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${value === opt.value
+                    ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 dark:text-white/40 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+            >
+                {opt.label}
+            </button>
+        ))}
+    </div>
+);
+
+const Select: React.FC<{ options: { label: string; value: string }[], value: string, onChange: (val: any) => void }> = ({ options, value, onChange }) => (
+    <div className="relative">
+        <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full appearance-none bg-slate-100 dark:bg-white/5 border border-transparent dark:border-white/5 text-slate-900 dark:text-white text-sm rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+        >
+            {options.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 dark:text-white/40">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+        </div>
+    </div>
+);
+
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, currentUserEmployee, onSave, onLogout }) => {
     const [activeTab, setActiveTab] = useState<Tab>('profile');
     const [show, setShow] = useState(false);
@@ -72,8 +109,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
     const [email, setEmail] = useState('');
 
     // Preferences State
-    const [theme, toggleTheme, colorScheme, setColorScheme, compactMode, setCompactMode] = useTheme();
-    // const [compactMode, setCompactMode] = useState(false); // Managed by useTheme now
+    const [theme, toggleTheme, colorScheme, setColorScheme] = useTheme();
+    const [preferences, setPreferences] = usePreferences();
 
     // Notifications State
     const [emailNotifs, setEmailNotifs] = useState(true);
@@ -181,6 +218,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
     const menuItems = [
         { id: 'profile', label: 'My Profile', icon: UserIcon },
         { id: 'preferences', label: 'Preferences', icon: Cog6ToothIcon },
+        { id: 'workflow', label: 'Workflow', icon: SunIcon }, // Using SunIcon as placeholder for workflow/preferences
         { id: 'notifications', label: 'Notifications', icon: BellIcon },
     ];
 
@@ -423,16 +461,95 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                     </div>
                                 </section>
 
-                                {/* Interface */}
+
+                            </div>
+                        )}
+
+                        {activeTab === 'workflow' && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                                {/* General */}
                                 <section>
-                                    <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Interface</h4>
-                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 overflow-hidden">
-                                        <div className="flex items-center justify-between p-5">
+                                    <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">General</h4>
+                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 p-5 space-y-6">
+                                        <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Compact Mode</p>
-                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">Reduce spacing for higher density.</p>
+                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Default Landing Page</p>
+                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">Which view to show when you log in.</p>
                                             </div>
-                                            <ToggleSwitch enabled={compactMode} onChange={() => setCompactMode()} />
+                                            <div className="w-40">
+                                                <Select
+                                                    value={preferences.landingPage}
+                                                    onChange={(val) => setPreferences('landingPage', val)}
+                                                    options={[
+                                                        { label: 'Home', value: 'home' },
+                                                        { label: 'Dashboard', value: 'dashboard' },
+                                                        { label: 'Overview', value: 'overview' },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Calendar */}
+                                <section>
+                                    <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Calendar</h4>
+                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 p-5 space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Start of Week</p>
+                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">Adjust the calendar grid.</p>
+                                            </div>
+                                            <div className="w-32">
+                                                <SegmentedControl
+                                                    value={preferences.weekStartDay}
+                                                    onChange={(val) => setPreferences('weekStartDay', val)}
+                                                    options={[
+                                                        { label: 'Sunday', value: 'sunday' },
+                                                        { label: 'Monday', value: 'monday' },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between border-t border-slate-200/50 dark:border-white/5 pt-6">
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Time Format</p>
+                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">Display time in 12h or 24h format.</p>
+                                            </div>
+                                            <div className="w-32">
+                                                <SegmentedControl
+                                                    value={preferences.timeFormat}
+                                                    onChange={(val) => setPreferences('timeFormat', val)}
+                                                    options={[
+                                                        { label: '12h', value: '12h' },
+                                                        { label: '24h', value: '24h' },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Task Visibility */}
+                                <section>
+                                    <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Task Visibility</h4>
+                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 p-5">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Show Completed Tasks</p>
+                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">Control when completed tasks are visible.</p>
+                                            </div>
+                                            <div className="w-40">
+                                                <Select
+                                                    value={preferences.showCompletedTasks}
+                                                    onChange={(val) => setPreferences('showCompletedTasks', val)}
+                                                    options={[
+                                                        { label: 'Always', value: 'always' },
+                                                        { label: 'Never', value: 'never' },
+                                                        { label: 'Recent (24h)', value: 'recent' },
+                                                    ]}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </section>

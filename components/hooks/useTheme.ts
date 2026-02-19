@@ -37,7 +37,7 @@ const COLOR_PALETTES: Record<ColorScheme, Record<number, string>> = {
   }
 };
 
-export const useTheme = (): [Theme, () => void, ColorScheme, (scheme: ColorScheme) => void, boolean, () => void] => {
+export const useTheme = (): [Theme, () => void, ColorScheme, (scheme: ColorScheme) => void] => {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'light';
     const storedTheme = localStorage.getItem('theme');
@@ -50,11 +50,7 @@ export const useTheme = (): [Theme, () => void, ColorScheme, (scheme: ColorSchem
     return (storedScheme && COLOR_PALETTES[storedScheme as ColorScheme]) ? (storedScheme as ColorScheme) : 'indigo';
   });
 
-  const [compactMode, setCompactMode] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    const stored = localStorage.getItem('compactMode');
-    return stored === 'true';
-  });
+
 
   const applyColorScheme = useCallback((scheme: ColorScheme) => {
     const palette = COLOR_PALETTES[scheme];
@@ -84,13 +80,5 @@ export const useTheme = (): [Theme, () => void, ColorScheme, (scheme: ColorSchem
     applyColorScheme(newScheme);
   }, [applyColorScheme]);
 
-  const toggleCompactMode = useCallback(() => {
-    setCompactMode(prev => {
-      const newValue = !prev;
-      localStorage.setItem('compactMode', String(newValue));
-      return newValue;
-    });
-  }, []);
-
-  return [theme, toggleTheme, colorScheme, changeColorScheme, compactMode, toggleCompactMode];
+  return [theme, toggleTheme, colorScheme, changeColorScheme];
 };

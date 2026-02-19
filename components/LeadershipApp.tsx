@@ -17,6 +17,7 @@ import Background from './Background';
 import UserManagementView from './UserManagementView';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 import { useTheme } from './hooks/useTheme';
+import { usePreferences } from './hooks/usePreferences';
 
 interface LeadershipAppProps {
     user: User;
@@ -34,7 +35,8 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
 
     const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
     const [isSidebarOpen, setSidebarOpen] = useState(true);
-    const [, , , , compactMode] = useTheme();
+    const [, , , ,] = useTheme();
+    const [preferences] = usePreferences();
 
     // View State
     const [timelineViewMode, setTimelineViewMode] = useState<'calendar' | 'gantt'>('calendar');
@@ -52,13 +54,28 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
     // Derive Current View
     const currentView = useMemo(() => {
         const path = location.pathname;
+        if (path === '/app' || path === '/app/') {
+            // Redirect based on preference is handled in useEffect, but we need a default here
+            if (preferences.landingPage === 'dashboard') return 'analytics';
+            if (preferences.landingPage === 'overview') return 'overview';
+            return 'analytics'; // Default fallback
+        }
         if (path.includes('/analytics')) return 'analytics';
         if (path.includes('/overview')) return 'overview';
         if (path.includes('/team')) return 'team';
         if (path.includes('/timeline')) return 'timeline';
         if (path.includes('/settings')) return 'settings';
         return 'analytics'; // Default
-    }, [location.pathname]);
+    }, [location.pathname, preferences.landingPage]);
+
+    // Handle Initial Redirect based on Preference
+    useEffect(() => {
+        if (location.pathname === '/app' || location.pathname === '/app/') {
+            if (preferences.landingPage === 'dashboard') navigate('/app/analytics');
+            else if (preferences.landingPage === 'overview') navigate('/app/overview');
+            else navigate('/app/analytics');
+        }
+    }, [location.pathname, preferences.landingPage, navigate]);
 
     // Load Data
     useEffect(() => {
@@ -210,7 +227,7 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
                             onSelectList={() => { }}
                             currentUserEmployee={employees.find(e => e.id === user.employeeId)}
                             user={user}
-                            compactMode={compactMode}
+
                         />
 
                         <main className="flex-1 overflow-y-auto p-4 sm:p-8 scrollbar-none">

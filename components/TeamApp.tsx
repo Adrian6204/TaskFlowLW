@@ -22,6 +22,7 @@ import Background from './Background';
 import { useDailyTasks } from '../hooks/useDailyTasks';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 import { useTheme } from './hooks/useTheme';
+import { usePreferences } from './hooks/usePreferences';
 import AdminDashboard from './AdminDashboard';
 import MembersView from './MembersView';
 
@@ -45,7 +46,8 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
 
     // Sidebar State
     const [isSidebarOpen, setSidebarOpen] = useState(true);
-    const [, , , , compactMode] = useTheme();
+    const [, , , ,] = useTheme();
+    const [preferences] = usePreferences();
 
     // View State
     const [searchTerm, setSearchTerm] = useState('');
@@ -68,6 +70,11 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
     // Derive Current View
     const currentView = useMemo(() => {
         const path = location.pathname;
+        if (path === '/app' || path === '/app/') {
+            if (preferences.landingPage === 'home') return 'home';
+            if (preferences.landingPage === 'overview') return 'overview';
+            return 'home'; // Default
+        }
         if (path.includes('/home')) return 'home';
         if (path.includes('/overview')) return 'overview';
         if (path.includes('/members')) return 'members';
@@ -76,7 +83,16 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
         if (path.includes('/timeline')) return 'timeline';
         if (path.includes('/settings')) return 'settings';
         return 'home'; // Default
-    }, [location.pathname]);
+    }, [location.pathname, preferences.landingPage]);
+
+    // Handle Initial Redirect based on Preference
+    useEffect(() => {
+        if (location.pathname === '/app' || location.pathname === '/app/') {
+            if (preferences.landingPage === 'home') navigate('/app/home');
+            else if (preferences.landingPage === 'overview') navigate('/app/overview');
+            else navigate('/app/home');
+        }
+    }, [location.pathname, preferences.landingPage, navigate]);
 
     // Load Data
     useEffect(() => {
@@ -347,7 +363,7 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
                             onSelectList={(lid: number | null) => setActiveListId(lid)}
                             currentUserEmployee={employees.find(e => e.id === user.employeeId)}
                             user={user}
-                            compactMode={compactMode}
+
                         />
 
                         <main className="flex-1 overflow-y-auto p-4 sm:p-8 scrollbar-none">

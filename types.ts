@@ -85,6 +85,7 @@ export interface Task {
   blockedById?: number | null;
   listId?: number | null;
   isUnplanned?: boolean;
+  updated_at?: string;
 }
 
 export interface Space {
