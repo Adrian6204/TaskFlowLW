@@ -76,8 +76,6 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                     <div className="text-center md:text-left flex-1 min-w-0">
                         <h2 className="text-3xl font-black text-slate-900 dark:text-white truncate">{member.name}</h2>
                         <div className="flex flex-col md:flex-row items-center gap-2 mt-1 flex-wrap justify-center md:justify-start">
-                            <span className="text-sm font-bold text-slate-500 dark:text-white/40 truncate max-w-[200px] md:max-w-xs">{member.email}</span>
-                            <span className="hidden md:inline text-slate-300 dark:text-white/20">•</span>
                             <span className="px-2 py-0.5 rounded-md bg-lime-500/10 dark:bg-[#CEFD4A]/10 text-lime-600 dark:text-[#CEFD4A] text-[10px] font-black uppercase tracking-wider whitespace-nowrap">
                                 {member.id === 'emp-1' ? 'Owner' : 'Member'}
                                 {/* Fallback role logic or pass plain role if available in Employee */}
