@@ -72,8 +72,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
     const [email, setEmail] = useState('');
 
     // Preferences State
-    const [theme, toggleTheme, colorScheme, setColorScheme] = useTheme();
-    const [compactMode, setCompactMode] = useState(false);
+    const [theme, toggleTheme, colorScheme, setColorScheme, compactMode, setCompactMode] = useTheme();
+    // const [compactMode, setCompactMode] = useState(false); // Managed by useTheme now
 
     // Notifications State
     const [emailNotifs, setEmailNotifs] = useState(true);
@@ -204,7 +204,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                 <div className="w-64 flex flex-col border-r border-slate-200/50 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
                     <div className="p-6">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                            <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center text-primary-600 dark:text-primary-400">
                                 <UserIcon className="w-5 h-5" />
                             </div>
                             <div>
@@ -226,7 +226,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                             : 'text-slate-500 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                                             }`}
                                     >
-                                        <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-500 dark:text-indigo-400' : 'opacity-70'}`} />
+                                        <Icon className={`w-4 h-4 ${isActive ? 'text-primary-500 dark:text-primary-400' : 'opacity-70'}`} />
                                         {item.label}
                                     </button>
                                 );
@@ -268,7 +268,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                 {/* Avatar Section */}
                                 <div className="flex items-start gap-8">
                                     <div className="relative group">
-                                        <div className={`absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full opacity-75 blur transition duration-200 group-hover:opacity-100 ${isUploading ? 'animate-pulse' : ''}`}></div>
+                                        <div className={`absolute -inset-0.5 bg-gradient-to-r from-primary-500 to-purple-600 rounded-full opacity-75 blur transition duration-200 group-hover:opacity-100 ${isUploading ? 'animate-pulse' : ''}`}></div>
                                         <img
                                             src={avatarUrl || 'https://via.placeholder.com/150'}
                                             alt="Profile"
@@ -311,7 +311,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                                 value={firstName}
                                                 onChange={(e) => setFirstName(e.target.value)}
                                                 placeholder="First name"
-                                                className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-indigo-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
+                                                className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
                                             />
                                         </div>
                                         <div>
@@ -321,7 +321,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                                 value={lastName}
                                                 onChange={(e) => setLastName(e.target.value)}
                                                 placeholder="Last name"
-                                                className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-indigo-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
+                                                className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
                                             />
                                         </div>
                                     </div>
@@ -333,7 +333,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
                                             placeholder="+63 9XX XXX XXXX"
-                                            className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-indigo-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
+                                            className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
                                         />
                                     </div>
 
@@ -343,7 +343,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                             <select
                                                 value={position}
                                                 onChange={(e) => setPosition(e.target.value)}
-                                                className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-indigo-500/50 text-slate-900 dark:text-white appearance-none cursor-pointer transition-all font-medium text-sm"
+                                                className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white appearance-none cursor-pointer transition-all font-medium text-sm"
                                             >
                                                 <option value="" disabled>Select your position</option>
                                                 {Object.values(Position).map((pos) => (
@@ -362,7 +362,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                 <div className="pt-4 flex justify-end">
                                     <button
                                         type="submit"
-                                        className="px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 transition-all active:scale-95"
+                                        className="px-6 py-2.5 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-500/30 transition-all active:scale-95"
                                     >
                                         Save Changes
                                     </button>
@@ -379,7 +379,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                         <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-200/50 dark:border-white/5">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-orange-500/20 text-orange-500'}`}>
+                                                    <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-primary-500/20 text-primary-400' : 'bg-orange-500/20 text-orange-500'}`}>
                                                         {theme === 'dark' ? <MoonIcon className="w-6 h-6" /> : <SunIcon className="w-6 h-6" />}
                                                     </div>
                                                     <div>
@@ -432,7 +432,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                                 <p className="font-bold text-slate-900 dark:text-white text-sm">Compact Mode</p>
                                                 <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">Reduce spacing for higher density.</p>
                                             </div>
-                                            <ToggleSwitch enabled={compactMode} onChange={setCompactMode} />
+                                            <ToggleSwitch enabled={compactMode} onChange={() => setCompactMode()} />
                                         </div>
                                     </div>
                                 </section>
@@ -441,9 +441,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
 
                         {activeTab === 'notifications' && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-500/20 rounded-2xl p-4 flex gap-3">
-                                    <BellIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                                    <p className="text-sm font-medium text-indigo-900 dark:text-indigo-200">
+                                <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-500/20 rounded-2xl p-4 flex gap-3">
+                                    <BellIcon className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                                    <p className="text-sm font-medium text-primary-900 dark:text-primary-200">
                                         Notification settings are currently simulated. Changes will be saved to your local session instantly.
                                     </p>
                                 </div>

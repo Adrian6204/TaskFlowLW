@@ -21,6 +21,7 @@ import Sidebar from './Sidebar';
 import Background from './Background';
 import { useDailyTasks } from '../hooks/useDailyTasks';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
+import { useTheme } from './hooks/useTheme';
 import AdminDashboard from './AdminDashboard';
 import MembersView from './MembersView';
 
@@ -44,6 +45,7 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
 
     // Sidebar State
     const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [, , , , compactMode] = useTheme();
 
     // View State
     const [searchTerm, setSearchTerm] = useState('');
@@ -345,6 +347,7 @@ const TeamApp: React.FC<TeamAppProps> = ({ user, onLogout }) => {
                             onSelectList={(lid: number | null) => setActiveListId(lid)}
                             currentUserEmployee={employees.find(e => e.id === user.employeeId)}
                             user={user}
+                            compactMode={compactMode}
                         />
 
                         <main className="flex-1 overflow-y-auto p-4 sm:p-8 scrollbar-none">

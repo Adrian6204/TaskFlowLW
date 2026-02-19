@@ -16,6 +16,7 @@ import JoinSpaceModal from './JoinSpaceModal';
 import Background from './Background';
 import UserManagementView from './UserManagementView';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
+import { useTheme } from './hooks/useTheme';
 
 interface LeadershipAppProps {
     user: User;
@@ -29,8 +30,11 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [spaces, setSpaces] = useState<Space[]>([]);
     const [allTasks, setAllTasks] = useState<Task[]>([]);
+
+
     const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
     const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [, , , , compactMode] = useTheme();
 
     // View State
     const [timelineViewMode, setTimelineViewMode] = useState<'calendar' | 'gantt'>('calendar');
@@ -206,6 +210,7 @@ const LeadershipApp: React.FC<LeadershipAppProps> = ({ user, onLogout }) => {
                             onSelectList={() => { }}
                             currentUserEmployee={employees.find(e => e.id === user.employeeId)}
                             user={user}
+                            compactMode={compactMode}
                         />
 
                         <main className="flex-1 overflow-y-auto p-4 sm:p-8 scrollbar-none">

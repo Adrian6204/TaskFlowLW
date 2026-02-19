@@ -6,8 +6,8 @@ export type ColorScheme = 'indigo' | 'emerald' | 'rose' | 'amber' | 'violet' | '
 
 const COLOR_PALETTES: Record<ColorScheme, Record<number, string>> = {
   indigo: {
-    50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 
-    400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 
+    50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+    400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
     800: '#3730a3', 900: '#312e81', 950: '#1e1b4b'
   },
   emerald: {
@@ -37,7 +37,7 @@ const COLOR_PALETTES: Record<ColorScheme, Record<number, string>> = {
   }
 };
 
-export const useTheme = (): [Theme, () => void, ColorScheme, (scheme: ColorScheme) => void] => {
+export const useTheme = (): [Theme, () => void, ColorScheme, (scheme: ColorScheme) => void, boolean, () => void] => {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'light';
     const storedTheme = localStorage.getItem('theme');
@@ -48,6 +48,12 @@ export const useTheme = (): [Theme, () => void, ColorScheme, (scheme: ColorSchem
     if (typeof window === 'undefined') return 'indigo';
     const storedScheme = localStorage.getItem('colorScheme');
     return (storedScheme && COLOR_PALETTES[storedScheme as ColorScheme]) ? (storedScheme as ColorScheme) : 'indigo';
+  });
+
+  const [compactMode, setCompactMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const stored = localStorage.getItem('compactMode');
+    return stored === 'true';
   });
 
   const applyColorScheme = useCallback((scheme: ColorScheme) => {
@@ -78,5 +84,13 @@ export const useTheme = (): [Theme, () => void, ColorScheme, (scheme: ColorSchem
     applyColorScheme(newScheme);
   }, [applyColorScheme]);
 
-  return [theme, toggleTheme, colorScheme, changeColorScheme];
+  const toggleCompactMode = useCallback(() => {
+    setCompactMode(prev => {
+      const newValue = !prev;
+      localStorage.setItem('compactMode', String(newValue));
+      return newValue;
+    });
+  }, []);
+
+  return [theme, toggleTheme, colorScheme, changeColorScheme, compactMode, toggleCompactMode];
 };
