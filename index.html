@@ -123,19 +123,19 @@
     }
 
     .dark {
-      --bg-app: #000000;
-      --surface-glass: rgba(255, 255, 255, 0.05);
-      --border-glass: rgba(255, 255, 255, 0.1);
+      --bg-app: #111111;
+      --surface-glass: rgba(255, 255, 255, 0.06);
+      --border-glass: rgba(255, 255, 255, 0.09);
       --text-primary: #FFFFFF;
       --text-secondary: rgba(255, 255, 255, 0.5);
 
-      /* Mesh Colors Dark */
-      --mesh-1: hsla(253, 16%, 7%, 1);
-      --mesh-2: hsla(225, 39%, 30%, 1);
-      --mesh-3: hsla(339, 49%, 30%, 1);
-      --mesh-4: hsla(27, 96%, 20%, 1);
-      --mesh-5: hsla(222, 47%, 11%, 1);
-      --mesh-6: hsla(220, 13%, 10%, 1);
+      /* Mesh Colors Dark — neutral charcoal, NO BLUE */
+      --mesh-1: hsla(0, 0%, 8%, 1);
+      --mesh-2: hsla(150, 8%, 12%, 1);
+      --mesh-3: hsla(270, 6%, 10%, 1);
+      --mesh-4: hsla(30, 6%, 10%, 1);
+      --mesh-5: hsla(0, 0%, 9%, 1);
+      --mesh-6: hsla(0, 0%, 7%, 1);
     }
 
     html,
@@ -399,6 +399,56 @@
         opacity: 1;
         transform: translateY(0);
       }
+    }
+
+    /* ── Semantic Theme Utilities ──────────────────────────────────────
+       Use these classes anywhere instead of writing both light + dark:
+         .bg-surface     → card/panel background
+         .bg-surface-2   → slightly elevated surface
+         .text-primary   → main body text
+         .text-muted     → secondary / label text
+         .border-subtle  → hairline dividers
+    ──────────────────────────────────────────────────────────────────── */
+
+    .bg-surface {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+    }
+
+    .dark .bg-surface {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .bg-surface-2 {
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .dark .bg-surface-2 {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .text-primary {
+      color: #0f172a;
+    }
+
+    .dark .text-primary {
+      color: #ffffff;
+    }
+
+    .text-muted {
+      color: #64748b;
+    }
+
+    .dark .text-muted {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .border-subtle {
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .dark .border-subtle {
+      border-color: rgba(255, 255, 255, 0.08);
     }
 
     /* Radial vignette utility */

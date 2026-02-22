@@ -151,8 +151,10 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
     return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const formatDateTime = (date: Date) => {
+    const datePart = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const timePart = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    return `${datePart}  ·  ${timePart}`;
   };
 
   const getGreeting = () => {
@@ -232,17 +234,21 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
           </div>
 
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-5">
               <span className="px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-[10px] uppercase tracking-widest font-bold text-lime-600 dark:text-[#CEFD4A]">
                 Overview
               </span>
-              <span className="text-xs font-bold text-slate-400 dark:text-white/40 font-mono tracking-widest pl-2 border-l border-black/10 dark:border-white/10">
-                {formatTime(currentTime)}
+              <span className="text-xs font-bold text-slate-400 dark:text-white/40 font-mono tabular-nums pl-2 border-l border-black/10 dark:border-white/10">
+                {formatDateTime(currentTime)}
               </span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-black leading-tight mb-2">
-              {getGreeting()},<br />
-              <span className="text-lime-600 dark:text-[#CEFD4A]">{user.fullName || user.username}</span>
+            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400 dark:text-white/30 mb-1">
+              {getGreeting()}
+            </p>
+            <h1 className="text-5xl md:text-6xl font-black leading-none tracking-tight mb-2">
+              <span className="bg-gradient-to-r from-lime-500 via-emerald-400 to-teal-500 bg-clip-text text-transparent drop-shadow-[0_2px_20px_rgba(132,204,22,0.3)]">
+                {user.fullName || user.username}
+              </span>
             </h1>
             <p className="text-slate-500 dark:text-white/40 text-lg max-w-md">
               {todayTasks.length > 0

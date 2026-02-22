@@ -7,8 +7,8 @@ import MainApp from './components/MainApp';
 
 // Setup Required Screen Component
 const SetupRequiredScreen: React.FC = () => (
-  <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
-    <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
+  <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-[#111] p-4">
+    <div className="max-w-md w-full bg-white dark:bg-white/5 backdrop-blur-xl rounded-xl shadow-xl p-8 border border-slate-200 dark:border-white/10">
       <div className="flex items-center gap-4 mb-6">
         <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
           <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -23,10 +23,10 @@ const SetupRequiredScreen: React.FC = () => (
 
       <div className="space-y-4">
         <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700">
-          <p className="text-sm text-slate-600 dark:text-slate-300 mb-2 font-medium">
+          <p className="text-sm text-slate-600 dark:text-white/60 mb-2 font-medium">
             To connect the database, add these variables to Vercel:
           </p>
-          <div className="font-mono text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-700">
+          <div className="font-mono text-xs text-slate-500 dark:text-white/40 bg-white dark:bg-black/50 p-3 rounded border border-slate-200 dark:border-white/10">
             SUPABASE_URL<br />
             SUPABASE_ANON_KEY
           </div>
@@ -47,8 +47,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-[#111]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
       </div>
     );
   }
