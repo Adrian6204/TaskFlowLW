@@ -51,17 +51,12 @@ const LoginPage: React.FC = () => {
   // Signup flow state
   const [isSigningUp, setIsSigningUp] = useState(false);
 
-  // Redirect if already logged in
+  // Redirect if already logged in - all users go to /app/home (routing handled inside MainApp)
   if (!loading && user && !isSigningUp && !successMessage) {
-    const defaultPath = user.isAdmin ? '/app/overview' : '/app/home';
-    let from = (location as any).state?.from?.pathname || defaultPath;
-
-    const employeeOnlyViews = ['/app/home', '/app/board', '/app/list', '/app/calendar', '/app/gantt', '/app/timeline'];
-    if (user.isAdmin && employeeOnlyViews.some(view => from.startsWith(view))) {
-      from = '/app/overview';
-    }
-
-    return <Navigate to={from} replace />;
+    const from = (location as any).state?.from?.pathname || '/app/home';
+    // If the "from" path is an old-style route, always redirect to home
+    const safeFrom = from.startsWith('/app/') && !from.includes('/app/login') ? from : '/app/home';
+    return <Navigate to={safeFrom} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

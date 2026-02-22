@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, Employee, Space, List, Task, TaskStatus } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { UserIcon } from './icons/UserIcon';
@@ -67,6 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   currentSpaceRole = 'member',
   allUserTasks = [],
 }) => {
+  const navigate = useNavigate();
   const isInsideWorkspace = !!activeSpaceId;
   const currentSpace = spaces.find(s => s.id === activeSpaceId);
 
@@ -223,7 +225,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <>
             {/* Back to Home */}
             <button
-              onClick={() => onViewChange('home')}
+              onClick={() => navigate('/app/home')}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-[20px] text-sm font-bold text-slate-500 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-300 mb-1 group relative ${!isOpen && 'justify-center px-0'}`}
             >
               <ArrowLeftIcon className="w-4 h-4 flex-shrink-0" />

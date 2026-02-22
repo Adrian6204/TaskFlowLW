@@ -45,6 +45,25 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const [, , , ,] = useTheme();
     const [preferences] = usePreferences();
 
+    // ─── URL Slug Helpers ────────────────────────────────────────────────
+    /** Convert a space name to a URL-safe slug: "AI Interviewer" → "ai-interviewer" */
+    const toSlug = (name: string) =>
+        name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+    /** Map internal view IDs to URL-readable segments and back */
+    const VIEW_TO_URL: Record<string, string> = {
+        home: 'overview',
+        board: 'task-board',
+        whiteboard: 'whiteboard',
+        timeline: 'calendar',
+        members: 'members',
+        overview: 'analytics',
+        team: 'user-management',
+        settings: 'settings',
+    };
+    const URL_TO_VIEW: Record<string, string> = Object.fromEntries(
+        Object.entries(VIEW_TO_URL).map(([k, v]) => [v, k])
+    );
     // ─── Data State ──────────────────────────────────────────────────────
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [spaces, setSpaces] = useState<Space[]>([]);
@@ -54,11 +73,17 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const [lists, setLists] = useState<List[]>([]);
 
     // ─── Active Space ─────────────────────────────────────────────────────
-    // Derived from the URL: /app/workspace/:spaceId/view
+    // Derived from the URL: /app/workspace/:spaceSlug/view
+    // We match on slug (name-based) and resolve back to the real space ID.
     const activeSpaceId = useMemo(() => {
         const match = location.pathname.match(/\/app\/workspace\/([^/]+)/);
-        return match ? match[1] : '';
-    }, [location.pathname]);
+        if (!match) return '';
+        const slug = match[1];
+        // First try direct UUID match (legacy URLs), then try slug match
+        const byId = spaces.find(s => s.id === slug);
+        const bySlug = spaces.find(s => toSlug(s.name) === slug);
+        return (byId || bySlug)?.id || '';
+    }, [location.pathname, spaces]);
 
     const [activeListId, setActiveListId] = useState<number | null>(null);
 
@@ -85,9 +110,9 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const currentView = useMemo(() => {
         const path = location.pathname;
         if (path === '/app' || path === '/app/' || path === '/app/home') return 'home';
-        // Workspace-specific views
+        // Workspace-specific views: map URL segment back to internal view ID
         const match = path.match(/\/app\/workspace\/[^/]+\/(.+)/);
-        if (match) return match[1];
+        if (match) return URL_TO_VIEW[match[1]] || match[1];
         return 'home';
     }, [location.pathname]);
 
@@ -193,14 +218,21 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
 
     // ─── Handlers ─────────────────────────────────────────────────────────
     const handleSelectSpace = (spaceId: string) => {
-        navigate(`/app/workspace/${spaceId}/home`);
+        const space = spaces.find(s => s.id === spaceId);
+        const slug = space ? toSlug(space.name) : spaceId;
+        navigate(`/app/workspace/${slug}/overview`);
     };
 
     const handleViewChange = (view: string) => {
-        if (view === 'home') {
+        if (activeSpaceId) {
+            // Inside a workspace — all views including 'home' (Overview) stay in workspace context
+            const space = spaces.find(s => s.id === activeSpaceId);
+            const slug = space ? toSlug(space.name) : activeSpaceId;
+            const urlView = VIEW_TO_URL[view] || view;
+            navigate(`/app/workspace/${slug}/${urlView}`);
+        } else {
+            // On the global home page
             navigate('/app/home');
-        } else if (activeSpaceId) {
-            navigate(`/app/workspace/${activeSpaceId}/${view}`);
         }
     };
 
