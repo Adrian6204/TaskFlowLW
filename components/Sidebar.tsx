@@ -34,7 +34,8 @@ interface SidebarProps {
   onSelectList: (listId: number | null) => void;
   currentUserEmployee?: Employee;
   user: User;
-
+  isSuperAdmin?: boolean;
+  currentSpaceRole?: 'admin' | 'member';
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -56,7 +57,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSelectList,
   currentUserEmployee,
   user,
-
+  isSuperAdmin = false,
+  currentSpaceRole = 'member',
 }) => {
   const [expandedSpaceId, setExpandedSpaceId] = React.useState<string | null>(activeSpaceId || null);
 
@@ -67,13 +69,25 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [activeSpaceId]);
 
-  const mainNavItems = [
+  // Items always in the global nav section
+  const globalNavItems = [
     { id: 'home', label: 'Home', icon: HomeIcon },
-    { id: 'overview', label: 'Overview', icon: ChartBarIcon },
-    { id: 'whiteboard', label: 'Task of Today', icon: PencilSquareIcon },
+  ];
+
+  // Items shown when inside a workspace
+  const workspaceNavItems = [
+    { id: 'home', label: 'Overview', icon: ChartBarIcon },
+    { id: 'board', label: 'Task Board', icon: ViewColumnsIcon },
+    { id: 'whiteboard', label: 'Whiteboard', icon: PencilSquareIcon },
     { id: 'timeline', label: 'Calendar', icon: CalendarIcon },
-    // Conditionally add Team link for admins
-    ...(user.isAdmin || user.role === 'super_admin' || user.position === 'Admin' ? [{ id: 'team', label: 'Team', icon: UsersIcon }] : []),
+    { id: 'members', label: 'Members', icon: UsersIcon },
+    ...(user.isAdmin || user.role === 'super_admin' || user.position === 'Admin'
+      ? [{ id: 'overview', label: 'Analytics', icon: ChartBarIcon }]
+      : []),
+    ...(isSuperAdmin ? [{ id: 'team', label: 'User Mgmt', icon: UsersIcon }] : []),
+    ...(currentSpaceRole === 'admin' || isSuperAdmin
+      ? [{ id: 'settings', label: 'Settings', icon: Cog6ToothIcon }]
+      : []),
   ];
 
   const workspaceViews = [
@@ -86,23 +100,20 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleSpaceClick = (spaceId: string) => {
     if (expandedSpaceId === spaceId) {
-      // Already expanded, collapse it
       setExpandedSpaceId(null);
     } else {
-      // Expand and select
       setExpandedSpaceId(spaceId);
       onSelectSpace(spaceId);
-      onViewChange('list'); // Default to list view when selecting a space
+      onViewChange('home'); // Default to workspace home/overview when selecting a space
     }
   };
-
 
   const handleViewClick = (spaceId: string, viewId: string) => {
     onSelectSpace(spaceId);
     onViewChange(viewId);
   };
 
-  const isWorkspaceView = ['list', 'board', 'gantt', 'calendar', 'settings'].includes(currentView);
+  const isWorkspaceView = activeSpaceId !== '';
 
   return (
     <aside
@@ -127,17 +138,38 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </button>
 
-        {/* Main Navigation (Dashboard) */}
+        {/* Main Navigation */}
         <div className={`px-4 mb-2 text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest ${!isOpen && 'text-center'}`}>
-          {isOpen ? 'Overview' : '---'}
+          {isOpen ? (activeSpaceId ? 'Navigation' : 'Menu') : '---'}
         </div>
         <div className="space-y-2 mb-8">
-          {mainNavItems.map((item) => (
+          {/* Home is always shown */}
+          {globalNavItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
               className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-[20px] text-sm font-bold transition-all duration-300 group relative
-                ${currentView === item.id && !isWorkspaceView
+                ${currentView === item.id && !activeSpaceId
+                  ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg shadow-slate-200 dark:shadow-white/10'
+                  : 'text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+                } ${!isOpen && 'justify-center px-0'}`}
+            >
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              {isOpen && <span>{item.label}</span>}
+              {!isOpen && (
+                <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-[#1E1E1E] text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                  {item.label}
+                </div>
+              )}
+            </button>
+          ))}
+          {/* Workspace views - only shown when inside a workspace */}
+          {activeSpaceId && workspaceNavItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => onViewChange(item.id)}
+              className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-[20px] text-sm font-bold transition-all duration-300 group relative
+                ${currentView === item.id && activeSpaceId
                   ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg shadow-slate-200 dark:shadow-white/10'
                   : 'text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                 } ${!isOpen && 'justify-center px-0'}`}
@@ -159,7 +191,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">
               {isOpen ? 'Workspaces' : ''}
             </span>
-            {isOpen && (
+            {isOpen && isSuperAdmin && (
               <button
                 onClick={onCreateSpace}
                 className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
@@ -279,12 +311,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             {spaces.length === 0 && isOpen && (
               <div className="px-4 py-6 text-center bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 mx-2">
                 <p className="text-xs font-medium text-slate-500 dark:text-white/40 mb-4">No workspaces yet</p>
-                <button
-                  onClick={onCreateSpace}
-                  className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-neutral-200 transition-all duration-300 mb-2"
-                >
-                  Create One
-                </button>
+                {isSuperAdmin && (
+                  <button
+                    onClick={onCreateSpace}
+                    className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-neutral-200 transition-all duration-300 mb-2"
+                  >
+                    Create One
+                  </button>
+                )}
                 <button
                   onClick={onJoinSpace}
                   className="w-full py-2.5 bg-transparent border border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/60 text-sm font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-300"

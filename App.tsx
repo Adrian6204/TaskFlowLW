@@ -3,9 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LoginPage from './components/LoginPage';
 import { useAuth } from './auth/AuthContext';
 import { isSupabaseConfigured } from './lib/supabaseClient';
-import LeadershipApp from './components/LeadershipApp';
-import TeamApp from './components/TeamApp';
-import { isLeadership } from './utils/roles';
+import MainApp from './components/MainApp';
 
 // Setup Required Screen Component
 const SetupRequiredScreen: React.FC = () => (
@@ -62,20 +60,13 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
-// Role-Based Router Component
-const RoleBasedGatekeeper: React.FC = () => {
+// Single App for all authenticated users (role-based views handled inside MainApp)
+const AppGateway: React.FC = () => {
   const { user, logout } = useAuth();
 
   if (!user) return <Navigate to="/login" />;
 
-  // Determine App based on Position/Role
-  // Super Admin (System Admin) ONLY gets Leadership View
-  if (user.isAdmin || user.role === 'super_admin') {
-    return <LeadershipApp user={user} onLogout={logout} />;
-  }
-
-  // Default to Team App
-  return <TeamApp user={user} onLogout={logout} />;
+  return <MainApp user={user} onLogout={logout} />;
 };
 
 // Main App Component with Routes
@@ -95,7 +86,7 @@ const App: React.FC = () => {
       {/* Both /app and /app/* routes go to the Gatekeeper, which handles sub-routing */}
       <Route path="/app/*" element={
         <ProtectedRoute>
-          <RoleBasedGatekeeper />
+          <AppGateway />
         </ProtectedRoute>
       } />
 
