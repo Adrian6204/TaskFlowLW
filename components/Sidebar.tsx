@@ -1,19 +1,17 @@
 
 import React from 'react';
-import { User, Employee, Space, List } from '../types';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { LogoutIcon } from './icons/LogoutIcon';
+import { User, Employee, Space, List, Task, TaskStatus } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { UserIcon } from './icons/UserIcon';
 import { HomeIcon } from './icons/HomeIcon';
 import { ChartBarIcon } from './icons/ChartBarIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { PencilSquareIcon } from './icons/PencilSquareIcon';
-import { GanttIcon } from './icons/GanttIcon';
 import { ListBulletIcon } from './icons/ListBulletIcon';
 import { ViewColumnsIcon } from './icons/ViewColumnsIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
+import { LogoutIcon } from './icons/LogoutIcon';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -36,7 +34,15 @@ interface SidebarProps {
   user: User;
   isSuperAdmin?: boolean;
   currentSpaceRole?: 'admin' | 'member';
+  allUserTasks?: Task[];
 }
+
+// Tiny arrow-left icon inline
+const ArrowLeftIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+  </svg>
+);
 
 const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
@@ -59,305 +65,284 @@ const Sidebar: React.FC<SidebarProps> = ({
   user,
   isSuperAdmin = false,
   currentSpaceRole = 'member',
+  allUserTasks = [],
 }) => {
-  const [expandedSpaceId, setExpandedSpaceId] = React.useState<string | null>(activeSpaceId || null);
+  const isInsideWorkspace = !!activeSpaceId;
+  const currentSpace = spaces.find(s => s.id === activeSpaceId);
 
-  // Sync expanded space with active space
-  React.useEffect(() => {
-    if (activeSpaceId) {
-      setExpandedSpaceId(activeSpaceId);
-    }
-  }, [activeSpaceId]);
-
-  // Items always in the global nav section
-  const globalNavItems = [
-    { id: 'home', label: 'Home', icon: HomeIcon },
-  ];
-
-  // Items shown when inside a workspace
-  const workspaceNavItems = [
-    { id: 'home', label: 'Overview', icon: ChartBarIcon },
+  // ── Workspace-specific navigation items ──────────────────────────────────
+  const workspaceViews: { id: string; label: string; icon: React.FC<{ className?: string }> }[] = [
+    { id: 'home', label: 'Overview', icon: HomeIcon },
     { id: 'board', label: 'Task Board', icon: ViewColumnsIcon },
     { id: 'whiteboard', label: 'Whiteboard', icon: PencilSquareIcon },
     { id: 'timeline', label: 'Calendar', icon: CalendarIcon },
     { id: 'members', label: 'Members', icon: UsersIcon },
-    ...(user.isAdmin || user.role === 'super_admin' || user.position === 'Admin'
+    ...(currentSpaceRole === 'admin' || isSuperAdmin
       ? [{ id: 'overview', label: 'Analytics', icon: ChartBarIcon }]
-      : []),
-    ...(isSuperAdmin ? [{ id: 'team', label: 'User Mgmt', icon: UsersIcon }] : []),
+      : []
+    ),
+    ...(isSuperAdmin
+      ? [{ id: 'team', label: 'User Mgmt', icon: UsersIcon }]
+      : []
+    ),
     ...(currentSpaceRole === 'admin' || isSuperAdmin
       ? [{ id: 'settings', label: 'Settings', icon: Cog6ToothIcon }]
-      : []),
+      : []
+    ),
   ];
-
-  const workspaceViews = [
-    { id: 'list', label: 'List', icon: ListBulletIcon },
-    { id: 'board', label: 'Board', icon: ViewColumnsIcon },
-    { id: 'gantt', label: 'Gantt', icon: GanttIcon },
-    { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
-    { id: 'settings', label: 'Settings', icon: Cog6ToothIcon },
-  ];
-
-  const handleSpaceClick = (spaceId: string) => {
-    if (expandedSpaceId === spaceId) {
-      setExpandedSpaceId(null);
-    } else {
-      setExpandedSpaceId(spaceId);
-      onSelectSpace(spaceId);
-      onViewChange('home'); // Default to workspace home/overview when selecting a space
-    }
-  };
-
-  const handleViewClick = (spaceId: string, viewId: string) => {
-    onSelectSpace(spaceId);
-    onViewChange(viewId);
-  };
-
-  const isWorkspaceView = activeSpaceId !== '';
 
   return (
     <aside
       className={`${isOpen ? 'w-72' : 'w-24'} h-[calc(100%-2rem)] m-4 rounded-[32px] bg-white/10 dark:bg-black/40 backdrop-blur-[40px] border border-white/20 dark:border-white/5 flex flex-col transition-all duration-500 ease-out relative z-30 shadow-2xl shadow-black/10 dark:shadow-black/50`}
     >
-      {/* Brand removed - now in TopNav */}
-      <div className="mt-4"></div>
+      <div className="mt-4" />
 
-      {/* Navigation */}
-      <div className="flex-1 py-2 px-4 overflow-y-auto scrollbar-none">
-        {/* Create Task Action */}
-        <button
-          onClick={onCreateTask}
-          className={`w-full flex items-center gap-3 px-4 py-3 mb-6 rounded-2xl bg-gradient-to-r from-lime-500 to-emerald-500 text-black shadow-lg shadow-lime-500/20 hover:shadow-lime-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group ${!isOpen && 'justify-center px-0'}`}
-        >
-          <PlusIcon className="w-5 h-5 text-black" />
-          {isOpen && <span className="text-sm font-black uppercase tracking-wider">New Task</span>}
-          {!isOpen && (
-            <div className="absolute left-full ml-4 px-4 py-2 bg-lime-500 text-black text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-              New Task
-            </div>
-          )}
-        </button>
+      <div className="flex-1 py-2 px-4 overflow-y-auto scrollbar-none flex flex-col gap-2">
 
-        {/* Main Navigation */}
-        <div className={`px-4 mb-2 text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest ${!isOpen && 'text-center'}`}>
-          {isOpen ? (activeSpaceId ? 'Navigation' : 'Menu') : '---'}
-        </div>
-        <div className="space-y-2 mb-8">
-          {/* Home is always shown */}
-          {globalNavItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-[20px] text-sm font-bold transition-all duration-300 group relative
-                ${currentView === item.id && !activeSpaceId
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg shadow-slate-200 dark:shadow-white/10'
-                  : 'text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
-                } ${!isOpen && 'justify-center px-0'}`}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {isOpen && <span>{item.label}</span>}
-              {!isOpen && (
-                <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-[#1E1E1E] text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-                  {item.label}
-                </div>
-              )}
-            </button>
-          ))}
-          {/* Workspace views - only shown when inside a workspace */}
-          {activeSpaceId && workspaceNavItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-[20px] text-sm font-bold transition-all duration-300 group relative
-                ${currentView === item.id && activeSpaceId
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg shadow-slate-200 dark:shadow-white/10'
-                  : 'text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
-                } ${!isOpen && 'justify-center px-0'}`}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {isOpen && <span>{item.label}</span>}
-              {!isOpen && (
-                <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-[#1E1E1E] text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-                  {item.label}
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Spaces Section with Nested Views */}
-        <div className='mt-4'>
-          <div className={`px-4 mb-3 flex items-center justify-between ${!isOpen && 'justify-center hidden'}`}>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">
-              {isOpen ? 'Workspaces' : ''}
-            </span>
-            {isOpen && isSuperAdmin && (
-              <button
-                onClick={onCreateSpace}
-                className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
-                title="Create Space"
-              >
-                <PlusIcon className="w-4 h-4" />
-              </button>
+        {/* ── New Task button ─────────────────────────────── */}
+        {isInsideWorkspace && (
+          <button
+            onClick={onCreateTask}
+            className={`w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-2xl bg-gradient-to-r from-lime-500 to-emerald-500 text-black shadow-lg shadow-lime-500/20 hover:shadow-lime-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group ${!isOpen && 'justify-center px-0'}`}
+          >
+            <PlusIcon className="w-5 h-5 text-black" />
+            {isOpen && <span className="text-sm font-black uppercase tracking-wider">New Task</span>}
+            {!isOpen && (
+              <div className="absolute left-full ml-4 px-4 py-2 bg-lime-500 text-black text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                New Task
+              </div>
             )}
-          </div>
+          </button>
+        )}
 
-          <div className='space-y-4'>
-            {spaces.map((space) => (
-              <div key={space.id} className="relative">
-                {/* Space Header */}
+        {/* ═══════════════════════════════════════════════════════════════
+            MODE A — HOME: cross-workspace task insights
+        ════════════════════════════════════════════════════════════════ */}
+        {!isInsideWorkspace && (() => {
+          const now = new Date();
+          const todayStr = now.toISOString().split('T')[0];
+          const weekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+          const myTasks = allUserTasks.filter(t => t.assigneeId === user.employeeId && t.status !== TaskStatus.DONE);
+          const overdue = myTasks.filter(t => t.dueDate && t.dueDate < todayStr);
+          const dueToday = myTasks.filter(t => t.dueDate === todayStr);
+          const inProg = myTasks.filter(t => t.status === TaskStatus.IN_PROGRESS);
+          const upcoming = myTasks
+            .filter(t => t.dueDate && t.dueDate > todayStr && new Date(t.dueDate) <= weekLater)
+            .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''))
+            .slice(0, 5);
+
+          const fmt = (d: string) => {
+            const diff = Math.round((new Date(d).getTime() - now.getTime()) / 86400000);
+            if (diff === 0) return 'Today';
+            if (diff === 1) return 'Tomorrow';
+            return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          };
+
+          return (
+            <>
+              {/* Header */}
+              {isOpen && (
+                <div className="px-4 mb-3 text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">
+                  My Tasks
+                </div>
+              )}
+
+              {/* Stats row */}
+              {isOpen ? (
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  {[
+                    { label: 'Overdue', count: overdue.length, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-500/10', border: 'border-red-200 dark:border-red-500/20' },
+                    { label: 'Due Today', count: dueToday.length, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10', border: 'border-amber-200 dark:border-amber-500/20' },
+                    { label: 'In Progress', count: inProg.length, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10', border: 'border-blue-200 dark:border-blue-500/20' },
+                  ].map(({ label, count, color, bg, border }) => (
+                    <div key={label} className={`flex flex-col items-center justify-center py-3 rounded-2xl border ${bg} ${border}`}>
+                      <span className={`text-xl font-black ${color}`}>{count}</span>
+                      <span className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-wide mt-0.5 text-center leading-tight">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // Collapsed: show dot indicators
+                <div className="flex flex-col items-center gap-2 mb-4">
+                  {overdue.length > 0 && <div className="w-2 h-2 rounded-full bg-red-500" title={`${overdue.length} overdue`} />}
+                  {dueToday.length > 0 && <div className="w-2 h-2 rounded-full bg-amber-500" title={`${dueToday.length} due today`} />}
+                  {inProg.length > 0 && <div className="w-2 h-2 rounded-full bg-blue-500" title={`${inProg.length} in progress`} />}
+                </div>
+              )}
+
+              {/* Upcoming deadlines */}
+              {isOpen && upcoming.length > 0 && (
+                <>
+                  <div className="px-4 mb-2 text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">
+                    Upcoming
+                  </div>
+                  <div className="space-y-1">
+                    {upcoming.map(task => {
+                      const space = spaces.find(s => s.id === task.spaceId);
+                      return (
+                        <button
+                          key={task.id}
+                          onClick={() => onSelectSpace(task.spaceId)}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-[16px] text-left hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-200 group"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-white/20 group-hover:bg-violet-500 transition-colors flex-shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-slate-700 dark:text-white/70 truncate group-hover:text-slate-900 dark:group-hover:text-white">
+                              {task.title}
+                            </p>
+                            <p className="text-[10px] text-slate-400 dark:text-white/30 truncate">
+                              {space?.name || '—'}
+                            </p>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 whitespace-nowrap flex-shrink-0">
+                            {fmt(task.dueDate!)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {isOpen && myTasks.length === 0 && (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-2xl mb-2">✓</p>
+                  <p className="text-xs font-semibold text-slate-400 dark:text-white/30">All caught up!</p>
+                </div>
+              )}
+            </>
+          );
+        })()}
+
+
+        {/* ═══════════════════════════════════════════════════════════════
+            MODE B — WORKSPACE: focused navigation
+        ════════════════════════════════════════════════════════════════ */}
+        {isInsideWorkspace && (
+          <>
+            {/* Back to Home */}
+            <button
+              onClick={() => onViewChange('home')}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-[20px] text-sm font-bold text-slate-500 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-300 mb-1 group relative ${!isOpen && 'justify-center px-0'}`}
+            >
+              <ArrowLeftIcon className="w-4 h-4 flex-shrink-0" />
+              {isOpen && <span>All Workspaces</span>}
+              {!isOpen && (
+                <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-[#1E1E1E] text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200">
+                  All Workspaces
+                </div>
+              )}
+            </button>
+
+            {/* Current workspace header */}
+            {isOpen && currentSpace && (
+              <div className="px-4 py-3 mb-2 rounded-2xl bg-white/5 dark:bg-white/5 border border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center text-white text-sm font-black shadow-lg shadow-orange-500/30 flex-shrink-0">
+                    {currentSpace.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{currentSpace.name}</p>
+                    <p className="text-[10px] text-slate-400 dark:text-white/30 uppercase tracking-wider font-semibold mt-0.5">
+                      {currentSpaceRole === 'admin' || isSuperAdmin ? 'Admin' : 'Member'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Workspace nav label */}
+            <div className={`px-4 mb-1 text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest ${!isOpen && 'text-center'}`}>
+              {isOpen ? 'Navigate' : '—'}
+            </div>
+
+            {/* Workspace view navigation */}
+            <div className="space-y-1">
+              {workspaceViews.map((item) => (
                 <button
-                  onClick={() => handleSpaceClick(space.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-[20px] text-sm font-bold transition-all duration-300 group relative
-                    ${activeSpaceId === space.id && !activeListId && isWorkspaceView
-                      ? 'bg-slate-900/5 dark:bg-[#2A2A2D] text-slate-900 dark:text-white border border-slate-900/5 dark:border-white/5'
+                  key={item.id}
+                  onClick={() => onViewChange(item.id)}
+                  className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-[20px] text-sm font-bold transition-all duration-300 group relative
+                    ${currentView === item.id
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg shadow-slate-200 dark:shadow-white/10'
                       : 'text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                     } ${!isOpen && 'justify-center px-0'}`}
                 >
-                  <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all duration-300 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${activeSpaceId === space.id ? 'bg-orange-500 shadow-orange-500/50' : 'bg-white/20'}`} />
-                  {isOpen && (
-                    <>
-                      <span className="flex-1 text-left truncate">{space.name}</span>
-                      <svg
-                        className={`w-4 h-4 text-white/30 transition-transform duration-300 ${expandedSpaceId === space.id ? 'rotate-180' : ''}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </>
-                  )}
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  {isOpen && <span>{item.label}</span>}
                   {!isOpen && (
-                    <div className="absolute left-full ml-4 px-4 py-2 bg-[#2A2A2D] text-white border border-white/10 text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-                      {space.name}
+                    <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-[#1E1E1E] text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                      {item.label}
                     </div>
                   )}
                 </button>
+              ))}
+            </div>
 
-                {/* Nested Lists & Views */}
-                {isOpen && expandedSpaceId === space.id && (
-                  <div className="mt-2 space-y-1 pl-4 border-l border-white/5 ml-4">
-                    {/* Lists Section */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between px-3 py-1 mb-1 group/header">
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Lists</span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onCreateList(space.id); }}
-                          className="text-slate-400 dark:text-white/20 hover:text-slate-900 dark:hover:text-white transition-colors opacity-0 group-hover/header:opacity-100"
-                        >
-                          <PlusIcon className="w-3 h-3" />
-                        </button>
-                      </div>
-                      {lists.filter(l => l.spaceId === space.id).map(list => (
-                        <button
-                          key={list.id}
-                          onClick={() => {
-                            onSelectSpace(space.id);
-                            onSelectList(list.id);
-                            onViewChange('list');
-                          }}
-                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200
-                              ${activeListId === list.id
-                              ? 'bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
-                              : 'text-slate-500 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                            }`}
-                        >
-                          <div className={`w-1.5 h-1.5 rounded-full ${list.color ? '' : 'bg-current opacity-50'}`} style={{ backgroundColor: list.color }} />
-                          <span className="truncate">{list.name}</span>
-                        </button>
-                      ))}
-                      {lists.filter(l => l.spaceId === space.id).length === 0 && (
-                        <div className="px-3 py-2 text-[10px] text-slate-400 dark:text-white/20 italic">No lists yet</div>
-                      )}
-                    </div>
-
-                    {/* Views (apply to current selection) */}
-                    <div className="pt-2 border-t border-slate-200/50 dark:border-white/5">
-                      <span className="px-3 text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest block mb-1">Views</span>
-                      {workspaceViews.map((view) => (
-                        <button
-                          key={view.id}
-                          onClick={() => handleViewClick(space.id, view.id)}
-                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 relative
-                            ${activeSpaceId === space.id && currentView === view.id
-                              ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10'
-                              : 'text-slate-500 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                            }`}
-                        >
-                          <view.icon className="w-3.5 h-3.5" />
-                          <span>{view.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* Join/Create Space Actions */}
-            {isOpen && spaces.length > 0 && (
-              <div className="pt-2 space-y-2">
-                <button
-                  onClick={onJoinSpace}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-slate-500 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-white/5"
-                >
-                  <UserIcon className="w-5 h-5" />
-                  <span>Join with Code</span>
-                </button>
-              </div>
-            )}
-
-            {spaces.length === 0 && isOpen && (
-              <div className="px-4 py-6 text-center bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 mx-2">
-                <p className="text-xs font-medium text-slate-500 dark:text-white/40 mb-4">No workspaces yet</p>
-                {isSuperAdmin && (
+            {/* Lists sub-section */}
+            {isOpen && lists.filter(l => l.spaceId === activeSpaceId).length > 0 && (
+              <div className="mt-3 pt-3 border-t border-slate-200/50 dark:border-white/5">
+                <div className="flex items-center justify-between px-4 py-1 mb-1 group/header">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Lists</span>
                   <button
-                    onClick={onCreateSpace}
-                    className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-neutral-200 transition-all duration-300 mb-2"
+                    onClick={() => onCreateList(activeSpaceId)}
+                    className="text-slate-400 dark:text-white/20 hover:text-slate-900 dark:hover:text-white transition-colors opacity-0 group-hover/header:opacity-100"
                   >
-                    Create One
+                    <PlusIcon className="w-3 h-3" />
                   </button>
-                )}
-                <button
-                  onClick={onJoinSpace}
-                  className="w-full py-2.5 bg-transparent border border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/60 text-sm font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
-                >
-                  Join with Code
-                </button>
+                </div>
+                {lists.filter(l => l.spaceId === activeSpaceId).map(list => (
+                  <button
+                    key={list.id}
+                    onClick={() => { onSelectList(list.id); onViewChange('board'); }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200
+                      ${activeListId === list.id
+                        ? 'bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white'
+                        : 'text-slate-500 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                      }`}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: list.color || '#6b7280' }}
+                    />
+                    <span className="truncate">{list.name}</span>
+                  </button>
+                ))}
               </div>
             )}
-          </div>
-        </div>
+          </>
+        )}
+
       </div>
 
-      {/* User Footer */}
-      <div className="p-4 mx-2 mb-2 border-t border-slate-200/50 dark:border-white/5 flex items-center gap-2">
+      {/* ── User Footer ────────────────────────────────────────────── */}
+      <div className={`p-4 mx-2 mb-2 border-t border-slate-200/50 dark:border-white/5 flex items-center gap-2 ${!isOpen && 'justify-center'}`}>
         <button
           onClick={onOpenProfile}
-          className={`flex items-center gap-3 flex-1 p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-300 ${!isOpen && 'justify-center'}`}
+          className={`flex items-center gap-3 flex-1 p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-300 ${!isOpen && 'justify-center flex-none'}`}
         >
-          <div className="relative flex-shrink-0">
-            <img
-              src={currentUserEmployee?.avatarUrl}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-[#1E1E1E] ring-2 ring-indigo-500/20 dark:ring-white/10 transition-transform duration-300 hover:scale-105"
-            />
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-[#1E1E1E] rounded-full"></div>
-          </div>
+          {currentUserEmployee?.avatarUrl ? (
+            <img src={currentUserEmployee.avatarUrl} alt="" className="w-9 h-9 rounded-2xl object-cover border border-white/10 flex-shrink-0" />
+          ) : (
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-sm font-black flex-shrink-0">
+              {(user.fullName || user.username || 'U').charAt(0).toUpperCase()}
+            </div>
+          )}
           {isOpen && (
-            <div className="text-left overflow-hidden">
-              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{currentUserEmployee?.name || user.username}</p>
-              <p className="text-[10px] text-slate-400 dark:text-white/40 font-bold uppercase tracking-wider">Online</p>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.fullName || user.username}</p>
+              <p className="text-xs text-slate-400 dark:text-white/30 capitalize truncate">
+                {isSuperAdmin ? 'Super Admin' : currentSpaceRole === 'admin' ? 'Admin' : 'Member'}
+              </p>
             </div>
           )}
         </button>
-
         {isOpen && (
           <button
             onClick={onLogout}
-            className="p-3 text-slate-400 dark:text-white/30 hover:text-red-500 dark:hover:text-white hover:bg-red-50 dark:hover:bg-white/10 rounded-xl transition-all duration-300"
-            title="Sign Out"
+            className="p-2 rounded-xl text-slate-400 dark:text-white/30 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200 flex-shrink-0"
+            title="Logout"
           >
             <LogoutIcon className="w-5 h-5" />
           </button>

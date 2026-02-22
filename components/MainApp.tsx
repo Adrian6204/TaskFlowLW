@@ -352,6 +352,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                             user={user}
                             isSuperAdmin={isSuperAdmin}
                             currentSpaceRole={currentSpaceRole}
+                            allUserTasks={allUserTasks}
                         />
 
                         <main className="flex-1 overflow-y-auto p-4 sm:p-8 scrollbar-none">
