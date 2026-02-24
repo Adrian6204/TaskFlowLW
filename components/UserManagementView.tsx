@@ -22,6 +22,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
     const [selectedUserToEnroll, setSelectedUserToEnroll] = useState<string>('');
     const [selectedSpaceToEnroll, setSelectedSpaceToEnroll] = useState<string>(spaces[0]?.id || '');
+    const [selectedRoleToEnroll, setSelectedRoleToEnroll] = useState<'member' | 'admin' | 'assistant'>('member');
 
     // Confirmation State
     const [confirmModal, setConfirmModal] = useState<{
@@ -59,7 +60,13 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
     };
 
     const handleToggleAdmin = (user: EmployeeWithRole) => {
-        if (!user.spaceId) return; // Can't start admin if not in a space
+        if (!user.spaceId) {
+            // If they aren't in a workspace, open the enroll modal to put them in one as an admin
+            setSelectedUserToEnroll(user.id);
+            setSelectedRoleToEnroll('admin');
+            setIsEnrollModalOpen(true);
+            return;
+        }
 
         const action = user.role === 'admin' ? 'Revoke' : 'Grant';
         const newRole = user.role === 'admin' ? 'member' : 'admin';
@@ -189,7 +196,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
         if (!selectedUserToEnroll || !selectedSpaceToEnroll) return;
 
         try {
-            await dataService.addMemberToSpace(selectedSpaceToEnroll, selectedUserToEnroll, 'member');
+            await dataService.addMemberToSpace(selectedSpaceToEnroll, selectedUserToEnroll, selectedRoleToEnroll);
             setIsEnrollModalOpen(false);
             loadUsers(); // Reload
             setSelectedUserToEnroll('');
@@ -232,7 +239,11 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                             className="bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-lime-500/50 min-w-[200px]"
                         />
                         <button
-                            onClick={() => setIsEnrollModalOpen(true)}
+                            onClick={() => {
+                                setSelectedUserToEnroll('');
+                                setSelectedRoleToEnroll('member');
+                                setIsEnrollModalOpen(true);
+                            }}
                             className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2"
                         >
                             <PlusIcon className="w-4 h-4" />
@@ -313,16 +324,17 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => handleToggleAdmin(user)}
-                                    disabled={!user.spaceId}
                                     className={`flex-1 py-2 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all
-                                        ${user.role === 'admin'
-                                            ? 'bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white'
-                                            : 'bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A] hover:bg-lime-500 hover:text-black'
-                                        } ${(!user.spaceId) ? 'opacity-50 cursor-not-allowed' : ''}
+                                        ${(!user.spaceId)
+                                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black'
+                                            : user.role === 'admin'
+                                                ? 'bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white'
+                                                : 'bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A] hover:bg-lime-500 hover:text-black'
+                                        } 
                                     `}
                                 >
                                     <KeyIcon className="w-4 h-4" />
-                                    {user.role === 'admin' ? 'Revoke Admin' : 'Make Workspace Admin'}
+                                    {(!user.spaceId) ? 'Assign & Make Admin' : (user.role === 'admin' ? 'Revoke Admin' : 'Make Workspace Admin')}
                                 </button>
 
                                 <button
@@ -383,6 +395,19 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                     {spaces.map(s => (
                                         <option key={s.id} value={s.id}>{s.name}</option>
                                     ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mb-2">Role in Workspace</label>
+                                <select
+                                    value={selectedRoleToEnroll}
+                                    onChange={(e) => setSelectedRoleToEnroll(e.target.value as 'member' | 'admin' | 'assistant')}
+                                    className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none appearance-none"
+                                >
+                                    <option value="member">Member</option>
+                                    <option value="assistant">Workspace Assistant</option>
+                                    <option value="admin">Workspace Admin</option>
                                 </select>
                             </div>
 

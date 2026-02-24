@@ -19,6 +19,7 @@ interface SpaceSettingsViewProps {
   onAddMember: (spaceId: string, memberId: string) => void;
   onDeleteSpace: (spaceId: string) => void;
   onUpdateRole?: (spaceId: string, memberId: string, role: 'admin' | 'assistant' | 'member') => void;
+  onUpdateSpace?: (spaceId: string, name: string, description: string) => Promise<void>;
 }
 
 const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
@@ -31,11 +32,33 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
   onRemoveMember,
   onAddMember,
   onDeleteSpace,
-  onUpdateRole
+  onUpdateRole,
+  onUpdateSpace
 }) => {
   const [copied, setCopied] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [selectedNewMember, setSelectedNewMember] = useState('');
+
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [editName, setEditName] = useState(space.name);
+  const [editDescription, setEditDescription] = useState(space.description || '');
+  const [isSaving, setIsSaving] = useState(false);
+
+  React.useEffect(() => {
+    setEditName(space.name);
+    setEditDescription(space.description || '');
+  }, [space]);
+
+  const handleSaveInfo = async () => {
+    if (!editName.trim() || !onUpdateSpace) return;
+    setIsSaving(true);
+    try {
+      await onUpdateSpace(space.id, editName, editDescription);
+      setIsEditingInfo(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Confirmation modals state
   const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
@@ -86,50 +109,102 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
   const isOwner = currentUserId === space.ownerId;
 
   return (
-    <div className="h-full flex flex-col bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl rounded-2xl border border-neutral-200/50 dark:border-neutral-800/50 overflow-hidden animate-fade-in">
+    <div className="h-full flex flex-col bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-none rounded-[32px] overflow-hidden animate-fade-in">
       {/* Header */}
-      <div className="p-6 border-b border-neutral-200/50 dark:border-neutral-800/50">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-neutral-900 dark:bg-white rounded-xl">
-            <Cog6ToothIcon className="w-6 h-6 text-white dark:text-neutral-900" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white">Workspace Settings</h2>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{space.name}</p>
-          </div>
+      <div className="p-8 border-b border-black/5 dark:border-white/5 flex items-center gap-4">
+        <div className="p-3 bg-slate-900 dark:bg-white rounded-2xl shadow-lg">
+          <Cog6ToothIcon className="w-6 h-6 text-white dark:text-slate-900" />
+        </div>
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-1">Workspace Settings</h2>
+          <p className="text-sm font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">{space.name}</p>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-8">
+      <div className="flex-1 overflow-y-auto p-8 space-y-8">
 
         {/* Workspace Info */}
-        <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-xl p-6 border border-neutral-200/50 dark:border-neutral-700/50">
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-white mb-4 uppercase tracking-wider">Workspace Information</h3>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Name</label>
-              <p className="text-base font-semibold text-neutral-900 dark:text-white mt-1">{space.name}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Description</label>
-              <p className="text-sm text-neutral-600 dark:text-neutral-300 mt-1">{space.description || 'No description provided'}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Created</label>
-              <p className="text-sm text-neutral-600 dark:text-neutral-300 mt-1">
-                {new Date(space.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
-            </div>
+        <div className="bg-white/50 dark:bg-white/5 rounded-[24px] p-6 border border-white/40 dark:border-white/5 shadow-sm">
+          <div className="flex justify-between items-start mb-6">
+            <h3 className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Workspace Information</h3>
+            {(isAdmin || isSuperAdmin || isOwner) && !isEditingInfo && (
+              <button
+                onClick={() => setIsEditingInfo(true)}
+                className="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
+              >
+                Edit
+              </button>
+            )}
           </div>
+
+          {isEditingInfo ? (
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest block mb-2">Workspace Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none"
+                  placeholder="Enter workspace name"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest block mb-2">Description</label>
+                <textarea
+                  value={editDescription}
+                  onChange={e => setEditDescription(e.target.value)}
+                  className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none min-h-[100px] resize-none"
+                  placeholder="Add a description..."
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleSaveInfo}
+                  disabled={isSaving || !editName.trim()}
+                  className="px-6 py-2.5 bg-lime-500 hover:bg-lime-400 text-black font-bold rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditingInfo(false);
+                    setEditName(space.name);
+                    setEditDescription(space.description || '');
+                  }}
+                  className="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white font-bold rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Name</label>
+                <p className="text-lg font-bold text-slate-900 dark:text-white mt-1">{space.name}</p>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Description</label>
+                <p className="text-sm font-medium text-slate-600 dark:text-white/70 mt-1">{space.description || 'No description provided.'}</p>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Created</label>
+                <p className="text-sm font-medium text-slate-600 dark:text-white/70 mt-1">
+                  {new Date(space.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Invite Section */}
-        <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-xl p-6 border border-neutral-200/50 dark:border-neutral-700/50">
+        <div className="bg-white/50 dark:bg-white/5 rounded-[24px] p-6 border border-white/40 dark:border-white/5 shadow-sm">
           <h3 className="text-sm font-semibold text-neutral-900 dark:text-white mb-2 uppercase tracking-wider">Invite New Members</h3>
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">Share this code with your team. They can enter it after clicking "Join with Code" in the sidebar.</p>
 
@@ -151,7 +226,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
         </div>
 
         {/* Members Section */}
-        <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-xl p-6 border border-neutral-200/50 dark:border-neutral-700/50">
+        <div className="bg-white/50 dark:bg-white/5 rounded-[24px] p-6 border border-white/40 dark:border-white/5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wider">
               Active Members ({members.length})
@@ -268,7 +343,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
 
         {/* Danger Zone - Delete Workspace */}
         {(isOwner || isSuperAdmin) && (
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-6 border-2 border-red-200 dark:border-red-800">
+          <div className="bg-red-50/80 dark:bg-red-950/30 rounded-[24px] p-6 border border-red-200/50 dark:border-red-900/40 shadow-sm backdrop-blur-md">
             <div className="flex items-start gap-4">
               <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-lg">
                 <TrashIcon className="w-6 h-6 text-red-600 dark:text-red-400" />

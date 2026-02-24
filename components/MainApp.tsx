@@ -512,6 +512,12 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                                 loadData();
                                             } catch (e) { console.error(e); }
                                         }}
+                                        onUpdateSpace={async (spaceId, name, description) => {
+                                            try {
+                                                await dataService.updateSpace(spaceId, { name, description });
+                                                loadData();
+                                            } catch (e) { console.error(e); }
+                                        }}
                                     />
                                 )}
 
