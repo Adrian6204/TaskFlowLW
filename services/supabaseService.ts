@@ -381,26 +381,7 @@ export const deleteTask = async (taskId: number) => {
   if (error) throw error;
 };
 
-export const getSpaceById = async (spaceId: string) => {
-  const { data, error } = await supabase
-    .from('spaces')
-    .select('*')
-    .eq('id', spaceId)
-    .single();
 
-  if (error) throw error;
-
-  // Get members
-  const { data: membersData, error: membersError } = await supabase
-    .from('space_members')
-    .select('user_id')
-    .eq('space_id', spaceId);
-
-  if (membersError) throw membersError;
-
-  const realMembers = membersData.map(m => m.user_id);
-  return { ...mapDbSpaceToApp(data), members: realMembers };
-};
 
 export const addMemberToSpace = async (spaceId: string, userId: string, role: string = 'member') => {
   const { error } = await supabase
@@ -611,13 +592,7 @@ export const syncDailyTask = async (userId: string, task: any) => {
   return data;
 };
 
-export const deleteDailyTask = async (taskId: string) => {
-  const { error } = await supabase
-    .from('daily_tasks')
-    .delete()
-    .eq('id', taskId);
-  if (error) throw error;
-};
+
 
 // --- Scratchpad Sync ---
 
@@ -641,43 +616,7 @@ export const syncScratchpad = async (userId: string, content: string) => {
 
 // --- Notifications ---
 
-export const getNotifications = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('notifications')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(50);
 
-  if (error) throw error;
-  return data;
-};
-
-export const markNotificationAsRead = async (id: string) => {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('id', id);
-
-  if (error) throw error;
-};
-
-export const createNotification = async (notification: {
-  user_id: string;
-  title: string;
-  message: string;
-  type: string;
-  target_id?: string | null;
-}) => {
-  const { data, error } = await supabase
-    .from('notifications')
-    .insert(notification)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-};
 
 // --- List Services ---
 
@@ -703,43 +642,9 @@ export const createList = async (spaceId: string, name: string) => {
   return mapDbListToApp(data);
 };
 
-export const updateList = async (listId: number, updates: Partial<List>) => {
-  const payload: any = {};
-  if (updates.name) payload.name = updates.name;
-  if (updates.color) payload.color = updates.color;
-  if (updates.position) payload.position = updates.position;
 
-  const { data, error } = await supabase
-    .from('lists')
-    .update(payload)
-    .eq('id', listId)
-    .select()
-    .single();
 
-  if (error) throw error;
-  return mapDbListToApp(data);
-};
 
-export const deleteList = async (listId: number) => {
-  // Tasks specifically in this list will have list_id set to null due to ON DELETE SET NULL
-  const { error } = await supabase
-    .from('lists')
-    .delete()
-    .eq('id', listId);
-
-  if (error) throw error;
-};
-
-export const searchUsers = async (query: string): Promise<Employee[]> => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .or(`username.ilike.%${query}%,full_name.ilike.%${query}%,email.ilike.%${query}%`)
-    .limit(20);
-
-  if (error) throw error;
-  return data.map(mapDbProfileToEmployee);
-};
 
 
 
