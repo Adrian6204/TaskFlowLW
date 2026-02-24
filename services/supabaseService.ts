@@ -626,9 +626,9 @@ export const getScratchpad = async (userId: string) => {
     .from('scratchpads')
     .select('content')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "No rows found"
+  if (error) throw error;
   return data?.content || '';
 };
 

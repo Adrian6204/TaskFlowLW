@@ -122,10 +122,10 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
                         const isOwner = space.ownerId === user.employeeId || isSuperAdmin;
 
                         return (
-                            <button
+                            <div
                                 key={space.id}
                                 onClick={() => onSelectSpace(space.id)}
-                                className={`group relative text-left rounded-[28px] p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${accent.shadow} ${accent.glow} active:scale-[0.98] overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500`}
+                                className={`group relative text-left rounded-[28px] p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${accent.shadow} ${accent.glow} active:scale-[0.98] overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 cursor-pointer`}
                             >
                                 {/* Card background */}
                                 <div className="absolute inset-0 bg-white/60 dark:bg-white/[0.06] backdrop-blur-md rounded-[28px] border border-slate-200/50 dark:border-white/10 group-hover:border-slate-300/60 dark:group-hover:border-white/15 transition-colors duration-300" />
@@ -195,7 +195,7 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
                                         </svg>
                                     </div>
                                 </div>
-                            </button>
+                            </div>
                         );
                     })}
                 </div>
