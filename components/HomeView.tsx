@@ -287,9 +287,12 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-2xl bg-lime-500/10 dark:bg-[#CEFD4A]/10 flex items-center justify-center text-lime-600 dark:text-[#CEFD4A] mb-4 group-hover:scale-110 transition-transform duration-300">
+              <button
+                onClick={() => onAddTask({})}
+                className="w-16 h-16 rounded-2xl bg-lime-500/10 dark:bg-[#CEFD4A]/10 flex items-center justify-center text-lime-600 dark:text-[#CEFD4A] mb-4 hover:scale-110 active:scale-95 hover:bg-lime-500/20 dark:hover:bg-[#CEFD4A]/20 transition-all duration-300 cursor-pointer"
+              >
                 <PlusIcon className="w-8 h-8" />
-              </div>
+              </button>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Create New Task</h3>
               <p className="text-xs text-slate-500 dark:text-white/40 max-w-[200px]">
                 Add a task to a list with assignee, due date, and priority.

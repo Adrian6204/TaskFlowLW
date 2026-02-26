@@ -150,11 +150,9 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
                                     </h3>
 
                                     {/* Description */}
-                                    {space.description && (
-                                        <p className="text-slate-400 dark:text-white/40 text-xs font-medium line-clamp-2 leading-relaxed mb-3">
-                                            {space.description}
-                                        </p>
-                                    )}
+                                    <p className="text-slate-400 dark:text-white/40 text-xs font-medium line-clamp-2 leading-relaxed mb-3 h-10">
+                                        {space.description || 'No description provided.'}
+                                    </p>
 
                                     {/* Footer row */}
                                     <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-white/6">

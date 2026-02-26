@@ -50,7 +50,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
   }, [space]);
 
   const handleSaveInfo = async () => {
-    if (!editName.trim() || !onUpdateSpace) return;
+    if (!editName.trim() || !editDescription.trim() || !onUpdateSpace) return;
     setIsSaving(true);
     try {
       await onUpdateSpace(space.id, editName, editDescription);
@@ -162,7 +162,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleSaveInfo}
-                  disabled={isSaving || !editName.trim()}
+                  disabled={isSaving || !editName.trim() || !editDescription.trim()}
                   className="px-6 py-2.5 bg-lime-500 hover:bg-lime-400 text-black font-bold rounded-xl transition-colors disabled:opacity-50"
                 >
                   {isSaving ? 'Saving...' : 'Save Changes'}
