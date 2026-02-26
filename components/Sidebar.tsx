@@ -76,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const workspaceViews: { id: string; label: string; icon: React.FC<{ className?: string }> }[] = [
     { id: 'home', label: 'Overview', icon: HomeIcon },
     { id: 'board', label: 'Task Board', icon: ViewColumnsIcon },
-    { id: 'whiteboard', label: 'Whiteboard', icon: PencilSquareIcon },
+    { id: 'summary', label: 'Task Summary', icon: ListBulletIcon },
     { id: 'timeline', label: 'Calendar', icon: CalendarIcon },
     { id: 'members', label: 'Members', icon: UsersIcon },
     ...(currentSpaceRole === 'admin' || isSuperAdmin

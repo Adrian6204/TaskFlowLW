@@ -7,7 +7,7 @@ import * as dataService from '../services/supabaseService';
 import WorkspaceHomePage from './WorkspaceHomePage';
 import HomeView from './HomeView';
 import TaskBoard from './TaskBoard';
-import Whiteboard from './Whiteboard';
+import TaskSummaryView from './TaskSummaryView';
 import CalendarView from './CalendarView';
 import GanttChart from './GanttChart';
 import AdminDashboard from './AdminDashboard';
@@ -54,7 +54,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const VIEW_TO_URL: Record<string, string> = {
         home: 'overview',
         board: 'task-board',
-        whiteboard: 'whiteboard',
+        summary: 'task-summary',
         timeline: 'calendar',
         members: 'members',
         overview: 'analytics',
@@ -438,8 +438,13 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                     />
                                 )}
 
-                                {/* Whiteboard */}
-                                {isOnWorkspace && currentView === 'whiteboard' && <Whiteboard />}
+                                {/* Task Summary */}
+                                {isOnWorkspace && currentView === 'summary' && (
+                                    <TaskSummaryView
+                                        tasks={allUserTasks.filter(t => t.spaceId === activeSpaceId)}
+                                        employees={spaceMembers}
+                                    />
+                                )}
 
                                 {/* Timeline / Calendar */}
                                 {isOnWorkspace && currentView === 'timeline' && (
