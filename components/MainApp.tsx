@@ -427,7 +427,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                 {/* Task Board */}
                                 {isOnWorkspace && currentView === 'board' && (
                                     <TaskBoard
-                                        tasks={filteredTasks}
+                                        tasks={filteredTasks.filter((t: Task) => t.assigneeId === user.employeeId)}
                                         allTasks={tasks}
                                         employees={spaceMembers}
                                         onUpdateTaskStatus={handleUpdateTaskStatus}
