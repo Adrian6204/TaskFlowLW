@@ -22,6 +22,7 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Employee[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
 
   const isAdmin = currentUser.isAdmin || currentUser.role === 'super_admin' || currentUser.position === 'Admin';
   // Check if current user is admin of THIS space specifically? 
@@ -73,12 +74,12 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
     }
   };
 
-  const handleRemoveMember = async (userId: string) => {
+  const handleConfirmRemove = async (userId: string) => {
     if (!currentSpace) return;
-    if (!window.confirm('Are you sure you want to remove this member from the workspace?')) return;
     try {
       await dataService.removeMemberFromSpace(currentSpace.id, userId);
       if (onMemberUpdate) onMemberUpdate();
+      setMemberToRemove(null);
     } catch (error) {
       console.error(error);
       alert('Failed to remove member');
@@ -143,21 +144,12 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
               {isAdmin && !isMe && (
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => handleRemoveMember(employee.id)}
+                    onClick={() => setMemberToRemove(employee.id)}
                     className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
                     title="Remove from Workspace"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                  {(currentUser.role === 'super_admin' || currentUser.isAdmin) && (
-                    <button
-                      onClick={(e) => handleDeleteAccount(employee.id, e)}
-                      className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors border border-red-500/20"
-                      title="Delete Account (Stictly Super Admin)"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-                  )}
                 </div>
               )}
 
@@ -188,6 +180,38 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
       {employees.length === 0 && (
         <div className="text-center py-12">
           <p className="text-neutral-500 dark:text-neutral-400">No members in this space yet</p>
+        </div>
+      )}
+
+      {/* Remove Member Confirmation Modal */}
+      {memberToRemove && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setMemberToRemove(null)}>
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] w-full max-w-md p-8 shadow-2xl animate-scale-in border border-white/10" onClick={e => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <XMarkIcon className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Remove Member</h3>
+              <p className="text-slate-500 dark:text-white/60 mb-8">
+                Are you sure you want to remove this member from the workspace?
+              </p>
+
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setMemberToRemove(null)}
+                  className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white rounded-2xl font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleConfirmRemove(memberToRemove)}
+                  className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-500/25"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
