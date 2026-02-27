@@ -5,8 +5,7 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import { FlagIcon } from './icons/FlagIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
 import { TrashIcon } from './icons/TrashIcon';
-import { PlayIcon } from './icons/PlayIcon';
-import { StopIcon } from './icons/StopIcon';
+
 import { ClockIcon } from './icons/ClockIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import TagPill from './TagPill';
@@ -21,7 +20,6 @@ interface TaskDetailsModalProps {
   allTasks: Task[];
   onAddComment: (taskId: number, content: string) => Promise<void>;
   onDeleteTask?: (taskId: number) => void;
-  onToggleTimer: (taskId: number) => Promise<void>;
   currentUserId?: string;
   isAdmin?: boolean;
 }
@@ -41,7 +39,7 @@ const formatDuration = (ms: number) => {
   return `${hours}h ${minutes}m ${seconds}s`;
 };
 
-const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, onToggleTimer, currentUserId, isAdmin }) => {
+const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, currentUserId, isAdmin }) => {
   const [newComment, setNewComment] = useState('');
   const [dummyState, setDummyState] = useState(false); // Used to force re-render for optimistic updates
   const { user } = useAuth();

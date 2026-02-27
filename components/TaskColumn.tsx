@@ -13,7 +13,6 @@ interface TaskColumnProps {
   onDeleteTask?: (taskId: number) => void;
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onViewTask: (task: Task) => void;
-  onToggleTimer: (taskId: number) => void;
   currentUserId?: string;
   isAdmin?: boolean;
 }
@@ -24,7 +23,7 @@ const statusConfig = {
   [TaskStatus.DONE]: { glow: 'bg-emerald-500 shadow-emerald-500/50', text: 'text-white', label: 'Completed' },
 };
 
-const TaskColumn: React.FC<TaskColumnProps> = ({ status, tasks, allTasks, employees, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, onToggleTimer, currentUserId, isAdmin }) => {
+const TaskColumn: React.FC<TaskColumnProps> = ({ status, tasks, allTasks, employees, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, currentUserId, isAdmin }) => {
   const config = statusConfig[status];
   const [isOver, setIsOver] = useState(false);
 
@@ -88,7 +87,6 @@ const TaskColumn: React.FC<TaskColumnProps> = ({ status, tasks, allTasks, employ
             onDeleteTask={onDeleteTask}
             onUpdateTaskStatus={onUpdateTaskStatus}
             onViewTask={onViewTask}
-            onToggleTimer={onToggleTimer}
             currentUserId={currentUserId}
             isAdmin={isAdmin}
           />

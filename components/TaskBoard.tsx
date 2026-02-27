@@ -13,12 +13,11 @@ interface TaskBoardProps {
   onDeleteTask?: (taskId: number) => void;
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onViewTask: (task: Task) => void;
-  onToggleTimer: (taskId: number) => void;
   currentUserId?: string;
   isAdmin?: boolean;
 }
 
-const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, onToggleTimer, currentUserId, isAdmin }) => {
+const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, currentUserId, isAdmin }) => {
   const [preferences] = usePreferences();
 
   const filteredTasks = tasks.filter(task => {
@@ -72,7 +71,6 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEdi
               onDeleteTask={onDeleteTask}
               onUpdateTaskStatus={onUpdateTaskStatus}
               onViewTask={onViewTask}
-              onToggleTimer={onToggleTimer}
               currentUserId={currentUserId}
               isAdmin={isAdmin}
             />

@@ -7,8 +7,7 @@ import { ChatBubbleIcon } from './icons/ChatBubbleIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
 import { ListBulletIcon } from './icons/ListBulletIcon';
 import { ClockIcon } from './icons/ClockIcon';
-import { PlayIcon } from './icons/PlayIcon';
-import { StopIcon } from './icons/StopIcon';
+
 import TagPill from './TagPill';
 
 interface TaskCardProps {
@@ -19,7 +18,6 @@ interface TaskCardProps {
   onDeleteTask?: (taskId: number) => void;
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onViewTask: (task: Task) => void;
-  onToggleTimer: (taskId: number) => void;
   currentUserId?: string;
   isAdmin?: boolean;
 }
@@ -31,7 +29,7 @@ const priorityConfig = {
   [Priority.LOW]: { glow: 'bg-slate-200 dark:bg-white/20 shadow-white/10', border: 'border-black/5 dark:border-white/5' },
 };
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, onToggleTimer, currentUserId, isAdmin }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, currentUserId, isAdmin }) => {
   const isOverdue = new Date(task.dueDate) < new Date() && task.status !== TaskStatus.DONE;
   const [isDragging, setIsDragging] = useState(false);
 
@@ -43,7 +41,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
   const completedSubtasks = (task.subtasks || []).filter(st => st.isCompleted).length;
   const totalSubtasks = (task.subtasks || []).length;
   const progressPercentage = totalSubtasks === 0 ? 0 : Math.round((completedSubtasks / totalSubtasks) * 100);
-  const isTracking = !!task.timerStartTime;
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     if (isBlocked || !canEdit) {
@@ -79,12 +76,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
           )}
         </div>
         <div className="flex items-center gap-1.5 p-1.5 bg-black/5 dark:bg-black/40 rounded-xl border border-black/5 dark:border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-          <button
-            onClick={(e) => { e.stopPropagation(); onToggleTimer(task.id); }}
-            className={`p-2 rounded-lg transition-all ${isTracking ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-          >
-            {isTracking ? <StopIcon className="w-3.5 h-3.5" /> : <PlayIcon className="w-3.5 h-3.5" />}
-          </button>
           {canEdit && (
             <button onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="p-2 text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-all">
               <PencilIcon className="w-3.5 h-3.5" />

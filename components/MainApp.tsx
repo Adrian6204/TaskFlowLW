@@ -286,22 +286,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
         } catch (e) { console.error(e); }
     };
 
-    const handleToggleTimer = async (taskId: number) => {
-        const task = tasks.find(t => t.id === taskId);
-        if (!task) return;
-        try {
-            if (task.timerStartTime) {
-                const start = new Date(task.timerStartTime);
-                const end = new Date();
-                const duration = end.getTime() - start.getTime();
-                await dataService.logTaskTime(taskId, task.timerStartTime, end.toISOString(), duration);
-                await dataService.upsertTask({ ...task, timerStartTime: null, spaceId: task.spaceId, title: task.title });
-            } else {
-                await dataService.upsertTask({ ...task, timerStartTime: new Date().toISOString(), spaceId: task.spaceId, title: task.title });
-            }
-            loadSpaceTasks(activeSpaceId);
-        } catch (e) { console.error(e); }
-    };
 
     const handleAddComment = async (taskId: number, content: string) => {
         try {
@@ -441,7 +425,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                         onUpdateTaskStatus={handleUpdateTaskStatus}
                                         onEditTask={(t) => { setTaskToEdit(t); setCreateTaskModalOpen(true); }}
                                         onViewTask={(t) => { setSelectedTask(t); setTaskDetailsModalOpen(true); }}
-                                        onToggleTimer={handleToggleTimer}
                                         currentUserId={user.employeeId}
                                         isAdmin={currentSpaceRole === 'admin' || isSuperAdmin}
                                     />
@@ -576,7 +559,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         employees={employees}
                         allTasks={tasks}
                         onAddComment={handleAddComment}
-                        onToggleTimer={handleToggleTimer}
                         currentUserId={user.employeeId}
                     />
                 )}
