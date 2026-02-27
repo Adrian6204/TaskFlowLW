@@ -65,7 +65,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
       className={`
             bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-[24px] p-5 border border-black/5 dark:border-white/5 shadow-lg shadow-black/5 dark:shadow-none
             group relative transition-all duration-300
-            ${priorityConfig[task.priority].border}
+            ${isOverdue ? 'border-red-500/50 bg-red-50 dark:bg-red-500/10 shadow-red-500/20' : priorityConfig[task.priority].border}
             ${isDragging ? 'opacity-30 scale-95 grayscale' : 'hover:-translate-y-1 hover:bg-white/60 dark:hover:bg-white/10 hover:border-black/10 dark:hover:border-white/20'}
             ${(isBlocked || !canEdit) ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}
             ${!canEdit ? 'opacity-80' : ''}
@@ -119,9 +119,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
           ) : (
             <div className="w-7 h-7 rounded-lg border border-dashed border-white/20 bg-white/5"></div>
           )}
-          <span className={`text-[10px] font-black font-mono tracking-tight uppercase ${isOverdue ? 'text-red-500' : 'text-slate-400 dark:text-white/30'}`}>
-            {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] font-black font-mono tracking-tight uppercase ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-white/30'}`}>
+              {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+            </span>
+            {isOverdue && (
+              <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">
+                Overdue
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-4">

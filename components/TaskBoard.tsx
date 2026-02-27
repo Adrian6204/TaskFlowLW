@@ -47,23 +47,38 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEdi
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {TASK_STATUSES.map(status => (
-        <div key={status} className="h-full">
-          <TaskColumn
-            status={status}
-            tasks={filteredTasks.filter(task => task.status === status)}
-            allTasks={allTasks}
-            employees={employees}
-            onEditTask={onEditTask}
-            onDeleteTask={onDeleteTask}
-            onUpdateTaskStatus={onUpdateTaskStatus}
-            onViewTask={onViewTask}
-            onToggleTimer={onToggleTimer}
-            currentUserId={currentUserId}
-            isAdmin={isAdmin}
-          />
-        </div>
-      ))}
+      {TASK_STATUSES.map(status => {
+        const columnTasks = filteredTasks
+          .filter(task => task.status === status)
+          .sort((a, b) => {
+            if (status !== TaskStatus.DONE) {
+              const now = new Date();
+              const aOverdue = new Date(a.dueDate) < now;
+              const bOverdue = new Date(b.dueDate) < now;
+              if (aOverdue && !bOverdue) return -1;
+              if (!aOverdue && bOverdue) return 1;
+            }
+            return 0; // Maintain original creation sort
+          });
+
+        return (
+          <div key={status} className="h-full">
+            <TaskColumn
+              status={status}
+              tasks={columnTasks}
+              allTasks={allTasks}
+              employees={employees}
+              onEditTask={onEditTask}
+              onDeleteTask={onDeleteTask}
+              onUpdateTaskStatus={onUpdateTaskStatus}
+              onViewTask={onViewTask}
+              onToggleTimer={onToggleTimer}
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 };
