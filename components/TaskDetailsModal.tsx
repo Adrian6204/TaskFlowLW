@@ -88,11 +88,32 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
     return () => clearInterval(interval);
   }, [task.timerStartTime]);
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
-    onAddComment(task.id, newComment.trim());
+    if (!newComment.trim() || !user) return;
+
+    const commentText = newComment.trim();
     setNewComment('');
+
+    // Optimistic UI Update
+    const optimisticComment = {
+      id: Date.now(), // Temporary ID until the parent component pulls the real one from the DB
+      authorId: user.employeeId,
+      content: commentText,
+      timestamp: new Date().toISOString(),
+    };
+
+    task.comments = [...(task.comments || []), optimisticComment];
+    setDummyState(prev => !prev);
+
+    try {
+      await onAddComment(task.id, commentText);
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+      // Revert if failed
+      task.comments = task.comments.filter(c => c.id !== optimisticComment.id);
+      setDummyState(prev => !prev);
+    }
   };
 
 
