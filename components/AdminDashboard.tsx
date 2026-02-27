@@ -10,6 +10,7 @@ import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { FlagIcon } from './icons/FlagIcon';
 import BentoCard from './BentoCard';
 import { BoltIcon } from './icons/BoltIcon';
+import { UsersIcon } from './icons/UsersIcon';
 
 interface AdminDashboardProps {
     tasks: Task[];
@@ -38,6 +39,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ tasks, employees, activ
     const overdueTasks = tasks.filter((t: Task) => new Date(t.dueDate) < new Date() && t.status !== TaskStatus.DONE);
     const criticalTasks = tasks.filter((t: Task) => t.priority === Priority.URGENT && t.status !== TaskStatus.DONE);
 
+    // New metrics calculations
+    const today = new Date().toISOString().split('T')[0];
+    const tasksCreatedToday = tasks.filter(t => t.createdAt.startsWith(today)).length;
+    const tasksCompletedToday = tasks.filter(t => t.status === TaskStatus.DONE && t.completedAt?.startsWith(today)).length;
+    const activeAssignees = new Set(tasks.filter(t => t.status !== TaskStatus.DONE && t.assigneeId).map(t => t.assigneeId)).size;
+    const highPriorityActive = tasks.filter(t => (t.priority === Priority.HIGH || t.priority === Priority.URGENT) && t.status !== TaskStatus.DONE).length;
+
     // Calculate average completion time (mock calculation for demo)
     const avgCompletionTime = "2.5 Days";
 
@@ -63,23 +71,69 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ tasks, employees, activ
                         </div>
 
                         <h1 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.9] mb-4">
-                            Project <br />
+                            Project{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-600">Velocity</span>
                         </h1>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-8 relative z-10 mt-8">
-                        <div>
-                            <p className="text-4xl font-black text-slate-900 dark:text-white">{totalTasks}</p>
-                            <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Total Active</p>
+                    <div className="flex flex-col lg:flex-row gap-8 mt-8">
+                        {/* Primary Stats */}
+                        <div className="lg:w-1/3 flex flex-col gap-6 justify-end relative z-10 border-t border-white/5 pt-6 lg:border-t-0 lg:pt-0 lg:border-l lg:pl-6">
+                            <div>
+                                <p className="text-4xl font-black text-slate-900 dark:text-white">{totalTasks}</p>
+                                <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Total Active</p>
+                            </div>
+                            <div>
+                                <p className="text-4xl font-black text-lime-500 dark:text-[#CEFD4A]">{completionRate}%</p>
+                                <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Completion Rate</p>
+                            </div>
+                            <div>
+                                <p className="text-4xl font-black text-orange-500">{overdueTasks.length}</p>
+                                <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Critical Overdue</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-4xl font-black text-lime-500 dark:text-[#CEFD4A]">{completionRate}%</p>
-                            <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Completion Rate</p>
-                        </div>
-                        <div>
-                            <p className="text-4xl font-black text-orange-500">{overdueTasks.length}</p>
-                            <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Critical Overdue</p>
+
+                        {/* Quick Metric Cards Grid */}
+                        <div className="lg:w-2/3 grid grid-cols-2 gap-4 relative z-10 border-t border-white/5 pt-6 lg:border-t-0 lg:pt-0 pl-0 lg:pl-6">
+                            <div className="bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/40 dark:border-white/10 flex flex-col justify-between hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-lg">
+                                        <SparklesIcon className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{tasksCreatedToday}</span>
+                                </div>
+                                <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-white/40">Created Today</p>
+                            </div>
+
+                            <div className="bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/40 dark:border-white/10 flex flex-col justify-between hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-2 bg-green-500/10 text-green-500 rounded-lg">
+                                        <CheckCircleIcon className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{tasksCompletedToday}</span>
+                                </div>
+                                <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-white/40">Completed Today</p>
+                            </div>
+
+                            <div className="bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/40 dark:border-white/10 flex flex-col justify-between hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg">
+                                        <UsersIcon className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{activeAssignees}</span>
+                                </div>
+                                <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-white/40">Active Assignees</p>
+                            </div>
+
+                            <div className="bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/40 dark:border-white/10 flex flex-col justify-between hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg">
+                                        <FlagIcon className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{highPriorityActive}</span>
+                                </div>
+                                <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-white/40">High Priority Active</p>
+                            </div>
                         </div>
                     </div>
                 </BentoCard>
