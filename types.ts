@@ -142,4 +142,5 @@ export interface AuthContextType {
   signup: (username: string, password: string, fullName: string, department: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }

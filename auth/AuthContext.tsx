@@ -146,8 +146,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const updatePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    if (!user || !isSupabaseConfigured) throw new Error("Supabase not configured or user not logged in");
+
+    // First verify the current password by trying to sign in again
+    const email = user.email || `${user.username.toLowerCase().replace(/\s+/g, '')}@lifewood.com`;
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      throw new Error("Incorrect current password.");
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (updateError) throw updateError;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

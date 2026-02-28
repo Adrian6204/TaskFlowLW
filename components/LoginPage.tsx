@@ -19,11 +19,8 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isLogin = location.pathname !== '/signup';
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [department, setDepartment] = useState('AIE & Production');
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,8 +28,6 @@ const LoginPage: React.FC = () => {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -47,44 +42,23 @@ const LoginPage: React.FC = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
-  const { user, loading, login, signup, logout } = useAuth(); // Ensure logout is destructured
-  // Signup flow state
-  const [isSigningUp, setIsSigningUp] = useState(false);
+  const { user, loading, login, logout } = useAuth(); // Ensure logout is destructured
 
   // Always redirect to home after login — MainApp handles routing from there
-  if (!loading && user && !isSigningUp && !successMessage) {
+  if (!loading && user) {
     return <Navigate to="/app/home" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMessage(null);
     setIsLoading(true);
     try {
-      if (isLogin) {
-        await login(username, password);
-      } else {
-        setIsSigningUp(true);
-        await signup(username, password, fullName, department);
-        // Sign out immediately to prevent auto-login
-        await logout();
-        setSuccessMessage("Account created successfully! Redirecting to login...");
-        setTimeout(() => {
-          setIsSigningUp(false);
-          setSuccessMessage(null);
-          setUsername('');
-          setPassword('');
-          setFullName('');
-          setDepartment('AIE & Production');
-          navigate('/login');
-        }, 1500);
-      }
+      await login(username, password);
     } catch (err) {
       let message = err instanceof Error ? err.message : 'An unknown error occurred';
       message = message.replace(/email address/gi, 'username').replace(/email/gi, 'username');
       setError(message);
-      setIsSigningUp(false);
     } finally {
       setIsLoading(false);
     }
@@ -111,15 +85,7 @@ const LoginPage: React.FC = () => {
     }, 1500);
   };
 
-  const toggleAuthMode = () => {
-    setError(null);
-    setSuccessMessage(null);
-    if (isLogin) {
-      navigate('/signup');
-    } else {
-      navigate('/login');
-    }
-  };
+
 
   return (
     <div className="h-screen w-full relative flex items-center justify-center bg-slate-50 dark:bg-black overflow-hidden font-sans transition-colors duration-500">
@@ -186,88 +152,40 @@ const LoginPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-slate-500 dark:text-white/40 text-xs font-semibold tracking-wide">
-                  {isLogin ? "Don't have an account?" : "Already have an account?"}
-                  <button
-                    onClick={toggleAuthMode}
-                    className="px-4 py-1.5 bg-transparent border border-black/10 dark:border-white/20 hover:border-black/20 dark:hover:border-white/40 rounded-xl text-slate-900 dark:text-white font-semibold text-xs transition-all"
-                  >
-                    {isLogin ? "Sign up" : "Log in"}
-                  </button>
-                </div>
               </div>
 
               <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tight leading-[1.1] text-center lg:text-left">
-                {isLogin ? "Sign In to Your Workspace" : "Create Your Account to Unleash Your Dreams"}
+                Sign In to Your Workspace
               </h1>
             </div>
 
             {/* Primary Entry: ID Scanner */}
-            {isLogin && (
-              <div className="space-y-4">
-                <button
-                  type="button"
-                  onClick={() => setIsScannerOpen(true)}
-                  className="group relative w-full py-4 px-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-[2rem] transition-all duration-500 flex items-center justify-center gap-4 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] hover:-translate-y-1 active:scale-[0.98] overflow-hidden"
-                >
-                  <div className="p-2 bg-white/10 dark:bg-black/5 rounded-xl">
-                    <VideoCameraIcon className="w-6 h-6" />
-                  </div>
-                  <span className="text-xl tracking-tight">Scan Identity Card</span>
-                  <div className="absolute right-8 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 dark:bg-black/5 rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
-                    <span className="text-xl">→</span>
-                  </div>
-                </button>
-
-                {/* Decorative Separator */}
-                <div className="relative flex items-center gap-4 py-2">
-                  <div className="flex-1 h-[1px] bg-slate-200 dark:bg-white/10" />
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">or sign in with</span>
-                  <div className="flex-1 h-[1px] bg-slate-200 dark:bg-white/10" />
+            <div className="space-y-4">
+              <button
+                type="button"
+                onClick={() => setIsScannerOpen(true)}
+                className="group relative w-full py-4 px-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-[2rem] transition-all duration-500 flex items-center justify-center gap-4 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] hover:-translate-y-1 active:scale-[0.98] overflow-hidden"
+              >
+                <div className="p-2 bg-white/10 dark:bg-black/5 rounded-xl">
+                  <VideoCameraIcon className="w-6 h-6" />
                 </div>
+                <span className="text-xl tracking-tight">Scan Identity Card</span>
+                <div className="absolute right-8 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 dark:bg-black/5 rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
+                  <span className="text-xl">→</span>
+                </div>
+              </button>
+
+              {/* Decorative Separator */}
+              <div className="relative flex items-center gap-4 py-2">
+                <div className="flex-1 h-[1px] bg-slate-200 dark:bg-white/10" />
+                <span className="text-[10px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">or sign in with</span>
+                <div className="flex-1 h-[1px] bg-slate-200 dark:bg-white/10" />
               </div>
-            )}
+            </div>
 
             {/* Form Section (Secondary) */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <>
-                  <div className="relative group">
-                    <input
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-3 px-5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300"
-                      placeholder="Full name"
-                    />
-                  </div>
-                  <div className="relative group">
-                    <select
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-3 px-5 text-slate-900 dark:text-white appearance-none focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300 cursor-pointer"
-                    >
-                      <option value="AIE & Production" className="dark:bg-slate-900">AIE & Production</option>
-                      <option value="Founder and CEO" className="dark:bg-slate-900">Founder and CEO</option>
-                      <option value="Managing Director" className="dark:bg-slate-900">Managing Director</option>
-                      <option value="Admin" className="dark:bg-slate-900">Admin</option>
-                      <option value="HR Assistant" className="dark:bg-slate-900">HR Assistant</option>
-                      <option value="Production Support" className="dark:bg-slate-900">Production Support</option>
-                      <option value="Admin and Research Assistant" className="dark:bg-slate-900">Admin and Research Assistant</option>
-                      <option value="AI Executive" className="dark:bg-slate-900">AI Executive</option>
-                      <option value="AIE Assistant" className="dark:bg-slate-900">AIE Assistant</option>
-                      <option value="Project Coordinator" className="dark:bg-slate-900">Project Coordinator</option>
-                      <option value="Admin Accounting" className="dark:bg-slate-900">Admin Accounting</option>
-                      <option value="IT Executive Assistant" className="dark:bg-slate-900">IT Executive Assistant</option>
-                      <option value="IT Assistant" className="dark:bg-slate-900">IT Assistant</option>
-                    </select>
-                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                      <svg className="w-4 h-4 text-slate-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                  </div>
-                </>
-              )}
+
 
               <div className="relative group">
                 <input
@@ -306,20 +224,13 @@ const LoginPage: React.FC = () => {
                 </div>
               )}
 
-              {successMessage && (
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold animate-fade-in flex items-center gap-2">
-                  <CheckCircleIcon className="w-4 h-4" />
-                  {successMessage}
-                </div>
-              )}
-
               <div className="pt-2">
                 <button
                   type="submit"
                   disabled={isLoading || isAutoLoggingIn}
                   className="w-full py-3 px-6 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white font-bold rounded-2xl border border-black/5 dark:border-white/5 transition-all duration-300 flex items-center justify-center"
                 >
-                  {isLoading ? "Processing..." : (isLogin ? "Sign In" : "Create Account")}
+                  {isLoading ? "Processing..." : "Sign In"}
                 </button>
               </div>
             </form>

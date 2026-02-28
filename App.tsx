@@ -107,7 +107,6 @@ const AppWithSplash: React.FC = () => {
       <Routes>
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<LoginPage />} />
 
         {/* Protected App Routes */}
         <Route path="/app/*" element={

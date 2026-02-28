@@ -5,14 +5,18 @@ import { UserIcon } from './icons/UserIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
 import { BellIcon } from './icons/BellIcon';
+import { LockClosedIcon } from './icons/LockClosedIcon';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 import { SunIcon } from './icons/SunIcon';
 import { MoonIcon } from './icons/MoonIcon';
 import { PencilSquareIcon } from './icons/PencilSquareIcon';
+import { EyeIcon } from './icons/EyeIcon';
+import { EyeSlashIcon } from './icons/EyeSlashIcon';
 import { useTheme, ColorScheme } from './hooks/useTheme';
 import { usePreferences, LandingPage, WeekStartDay, TimeFormat, TaskVisibility } from './hooks/usePreferences';
 import { supabase } from '../lib/supabaseClient';
 import { deleteAvatar } from '../services/supabaseService';
+import { useAuth } from '../auth/AuthContext';
 
 interface ProfileModalProps {
     isOpen: boolean;
@@ -23,7 +27,7 @@ interface ProfileModalProps {
     onLogout?: () => void;
 }
 
-type Tab = 'profile' | 'preferences' | 'workflow' | 'notifications';
+type Tab = 'profile' | 'preferences' | 'workflow' | 'notifications' | 'security';
 
 const ToggleSwitch: React.FC<{ enabled: boolean; onChange: (val: boolean) => void }> = ({ enabled, onChange }) => (
     <button
@@ -97,6 +101,7 @@ const Select: React.FC<{ options: { label: string; value: string }[], value: str
 );
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, currentUserEmployee, onSave, onLogout }) => {
+    const { updatePassword, logout } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('profile');
     const [show, setShow] = useState(false);
 
@@ -117,6 +122,17 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
     const [pushNotifs, setPushNotifs] = useState(true);
     const [mentionNotifs, setMentionNotifs] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
+
+    // Password State
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+    const [passwordSuccess, setPasswordSuccess] = useState('');
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -142,7 +158,17 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
         } else {
             setShow(false);
             // Reset tab when closing
-            setTimeout(() => setActiveTab('profile'), 300);
+            setTimeout(() => {
+                setActiveTab('profile');
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+                setPasswordError('');
+                setPasswordSuccess('');
+                setShowCurrentPassword(false);
+                setShowNewPassword(false);
+                setShowConfirmPassword(false);
+            }, 300);
         }
     }, [isOpen, onClose, user, currentUserEmployee]);
 
@@ -172,6 +198,44 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                 position,
                 email
             });
+        }
+    };
+
+    const handleUpdatePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordError('');
+        setPasswordSuccess('');
+
+        if (!currentPassword) {
+            setPasswordError('Current password is required');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setPasswordError('New passwords do not match');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            setPasswordError('Password must be at least 6 characters');
+            return;
+        }
+
+        setIsUpdatingPassword(true);
+        try {
+            await updatePassword(currentPassword, newPassword);
+            setPasswordSuccess('Password updated successfully. Logging out...');
+            setShowCurrentPassword(false);
+            setShowNewPassword(false);
+            setShowConfirmPassword(false);
+            setTimeout(async () => {
+                await logout();
+                onClose();
+            }, 1500);
+        } catch (error: any) {
+            setPasswordError(error.message || 'Failed to update password');
+        } finally {
+            setIsUpdatingPassword(false);
         }
     };
 
@@ -217,6 +281,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
 
     const menuItems = [
         { id: 'profile', label: 'My Profile', icon: UserIcon },
+        { id: 'security', label: 'Security', icon: LockClosedIcon },
         { id: 'preferences', label: 'Preferences', icon: Cog6ToothIcon },
         { id: 'workflow', label: 'Workflow', icon: SunIcon }, // Using SunIcon as placeholder for workflow/preferences
         { id: 'notifications', label: 'Notifications', icon: BellIcon },
@@ -404,6 +469,107 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                     >
                                         Save Changes
                                     </button>
+                                </div>
+                            </form>
+                        )}
+
+                        {activeTab === 'security' && (
+                            <form onSubmit={handleUpdatePassword} className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <div>
+                                    <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Change Password</h4>
+                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 p-5 space-y-6">
+                                        <p className="text-xs text-slate-500 dark:text-white/40">Secure your account by updating your password regularly.</p>
+
+                                        <div className="space-y-4">
+                                            <div className="relative group">
+                                                <label className="block text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Current Password</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showCurrentPassword ? "text" : "password"}
+                                                        value={currentPassword}
+                                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                                        placeholder="Enter current password"
+                                                        className="w-full px-4 py-3 pr-12 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
+                                                        required
+                                                    />
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                            className="text-slate-400 dark:text-white/20 hover:text-slate-600 dark:hover:text-white transition-colors"
+                                                        >
+                                                            {showCurrentPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="pt-2 relative group">
+                                                <label className="block text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">New Password</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showNewPassword ? "text" : "password"}
+                                                        value={newPassword}
+                                                        onChange={(e) => setNewPassword(e.target.value)}
+                                                        placeholder="Enter new password"
+                                                        className="w-full px-4 py-3 pr-12 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
+                                                        required
+                                                    />
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                                            className="text-slate-400 dark:text-white/20 hover:text-slate-600 dark:hover:text-white transition-colors"
+                                                        >
+                                                            {showNewPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="pt-2 relative group">
+                                                <label className="block text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Confirm New Password</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showConfirmPassword ? "text" : "password"}
+                                                        value={confirmPassword}
+                                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                                        placeholder="Confirm new password"
+                                                        className="w-full px-4 py-3 pr-12 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
+                                                        required
+                                                    />
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                            className="text-slate-400 dark:text-white/20 hover:text-slate-600 dark:hover:text-white transition-colors"
+                                                        >
+                                                            {showConfirmPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {passwordError && (
+                                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-semibold">
+                                                {passwordError}
+                                            </div>
+                                        )}
+                                        {passwordSuccess && (
+                                            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500 text-xs font-semibold">
+                                                {passwordSuccess}
+                                            </div>
+                                        )}
+
+                                        <div className="pt-2 flex justify-end">
+                                            <button
+                                                type="submit"
+                                                disabled={isUpdatingPassword}
+                                                className="px-6 py-2.5 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </form>
                         )}
