@@ -77,9 +77,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!isSupabaseConfigured) throw new Error("Supabase not configured");
 
     // Convert username to fake email for Supabase auth
-    // Sanitize: lowercase and remove spaces
-    const sanitizedUsername = username.toLowerCase().replace(/\s+/g, '');
-    const email = `${sanitizedUsername}@lifewood.com`;
+    // If it's already an email (contains @), use it directly
+    const email = username.includes('@')
+      ? username.trim()
+      : `${username.toLowerCase().replace(/\s+/g, '')}@lifewood.com`;
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -93,9 +94,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!isSupabaseConfigured) throw new Error("Supabase not configured");
 
     // Convert username to fake email for Supabase auth
-    // Sanitize: lowercase and remove spaces
-    const sanitizedUsername = username.toLowerCase().replace(/\s+/g, '');
-    const email = `${sanitizedUsername}@lifewood.com`;
+    // If it's already an email (contains @), use it directly
+    const email = username.includes('@')
+      ? username.trim()
+      : `${username.toLowerCase().replace(/\s+/g, '')}@lifewood.com`;
 
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
@@ -150,7 +152,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!user || !isSupabaseConfigured) throw new Error("Supabase not configured or user not logged in");
 
     // First verify the current password by trying to sign in again
-    const email = user.email || `${user.username.toLowerCase().replace(/\s+/g, '')}@lifewood.com`;
+    const email = user.email || (user.username.includes('@') ? user.username : `${user.username.toLowerCase().replace(/\s+/g, '')}@lifewood.com`);
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password: currentPassword,
