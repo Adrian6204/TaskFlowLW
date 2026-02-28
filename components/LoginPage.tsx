@@ -77,12 +77,10 @@ const LoginPage: React.FC = () => {
         await login(usernameFromScan, 'PHCBIT@12345');
       } catch (err) {
         let message = err instanceof Error ? err.message : 'Login failed';
-        // Sanitize error: replace email with username if applicable
-        message = message.replace(/email address/gi, 'username').replace(/email/gi, 'username');
         setError(`${message} (Attempted login for ${name})`);
+        setIsAutoLoggingIn(false);
       } finally {
         setIsLoading(false);
-        setIsAutoLoggingIn(false);
       }
     }, 1500);
   };

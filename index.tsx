@@ -6,7 +6,6 @@ import { AuthProvider } from './auth/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { AppNotificationProvider } from './context/AppNotificationContext';
 import { ThemeProvider } from './context/ThemeContext';
-import './index.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
