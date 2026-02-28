@@ -57,7 +57,8 @@ const LoginPage: React.FC = () => {
       await login(username, password);
     } catch (err) {
       let message = err instanceof Error ? err.message : 'An unknown error occurred';
-      message = message.replace(/email address/gi, 'username').replace(/email/gi, 'username');
+      // Temporarily disabled masking to see exact Supabase error
+      // message = message.replace(/email address/gi, 'username').replace(/email/gi, 'username');
       setError(message);
     } finally {
       setIsLoading(false);
