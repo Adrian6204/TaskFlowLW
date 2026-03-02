@@ -7,6 +7,7 @@ import { TrashIcon } from './icons/TrashIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
+import { PencilSquareIcon } from './icons/PencilSquareIcon';
 import ConfirmationModal from './ConfirmationModal';
 
 interface UserManagementViewProps {
@@ -23,6 +24,10 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
     const [selectedUserToEnroll, setSelectedUserToEnroll] = useState<string>('');
     const [selectedSpaceToEnroll, setSelectedSpaceToEnroll] = useState<string>(spaces[0]?.id || '');
     const [selectedRoleToEnroll, setSelectedRoleToEnroll] = useState<'member' | 'admin' | 'assistant'>('member');
+
+    // Inline Editing State
+    const [editingPositionUserId, setEditingPositionUserId] = useState<string | null>(null);
+    const [editingPositionValue, setEditingPositionValue] = useState<string>('');
 
     // Confirmation State
     const [confirmModal, setConfirmModal] = useState<{
@@ -129,6 +134,25 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
         });
     };
 
+    const handlePositionSave = async (user: EmployeeWithRole) => {
+        if (!editingPositionValue.trim()) {
+            setEditingPositionUserId(null);
+            return;
+        }
+
+        try {
+            // Optimistic update
+            setUsers(users.map(u => u.id === user.id ? { ...u, position: editingPositionValue } : u));
+            setEditingPositionUserId(null);
+
+            await dataService.updateProfile(user.id, { position: editingPositionValue });
+        } catch (error) {
+            console.error("Failed to update position", error);
+            alert("Failed to update position. Please try again.");
+            loadUsers(); // Revert on error
+        }
+    };
+
     const handleDeleteAccount = async (user: EmployeeWithRole) => {
         if (user.id === currentUserId) {
             alert("You cannot delete your own account.");
@@ -159,6 +183,36 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                     loadUsers();
                 } finally {
                     setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                }
+            }
+        });
+    };
+
+    const handleResetPassword = async (user: EmployeeWithRole) => {
+        setConfirmModal({
+            isOpen: true,
+            title: `RESET PASSWORD?`,
+            message: `Are you sure you want to reset ${user.name}'s password to the default ("PHCBIT@12345")? They will be forced to change it on their next login.`,
+            type: 'warning',
+            onConfirm: async () => {
+                try {
+                    await dataService.resetUserPassword(user.id);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: "Success",
+                        message: `Password for ${user.name} has been reset to the default.`,
+                        type: "info",
+                        onConfirm: () => setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                    });
+                } catch (error: any) {
+                    console.error("Failed to reset password", error);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: "Error",
+                        message: error.message || "Failed to reset password. Please try again.",
+                        type: "warning",
+                        onConfirm: () => setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                    });
                 }
             }
         });
@@ -212,31 +266,44 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
         }
     };
 
-    // Filter users
-    const filteredUsers = users.filter(u =>
-        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.spaceName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter users with extra safety
+    const filteredUsers = users.filter(u => {
+        const name = (u.name || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const space = (u.spaceName || '').toLowerCase();
+        const search = (searchTerm || '').toLowerCase();
+
+        return name.includes(search) ||
+            email.includes(search) ||
+            space.includes(search);
+    });
 
     return (
-        <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="min-h-full space-y-6 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-8 shadow-xl shadow-black/5 dark:shadow-none mb-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">Team Management</h1>
+                        <div className="flex items-center gap-4 mb-2">
+                            <h1 className="text-3xl font-black text-slate-900 dark:text-white">Team Management</h1>
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 shadow-sm animate-in fade-in zoom-in duration-500">
+                                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">
+                                    {users.length} Total Users
+                                </span>
+                            </div>
+                        </div>
                         <p className="text-slate-500 dark:text-white/40 font-bold text-sm uppercase tracking-wide">
                             Manage access and roles across the organization
                         </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 w-full md:w-auto">
                         <input
                             type="text"
                             placeholder="Find user..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-lime-500/50 min-w-[200px]"
+                            className="bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-lime-500/50 flex-1 md:min-w-[300px]"
                         />
                         <button
                             onClick={() => {
@@ -244,9 +311,9 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                 setSelectedRoleToEnroll('member');
                                 setIsEnrollModalOpen(true);
                             }}
-                            className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2"
+                            className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2 shadow-lg shadow-black/5"
                         >
-                            <PlusIcon className="w-4 h-4" />
+                            <PlusIcon className="w-5 h-5" />
                             Enroll Member
                         </button>
                     </div>
@@ -254,98 +321,141 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
             </div>
 
             {/* Users Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 {filteredUsers.map(user => (
-                    <BentoCard key={user.id} className="p-6 group relative overflow-hidden">
+                    <BentoCard
+                        key={user.id}
+                        className={`p-8 group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/5 dark:hover:shadow-none ${user.mustChangePassword ? 'ring-1 ring-rose-500/30 bg-rose-500/[0.02] shadow-[0_0_20px_-5px_rgba(244,63,94,0.1)]' : ''}`}
+                    >
+                        {/* Maintenance Actions — Subtle top-right row */}
+                        <div className="absolute top-6 right-6 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+                            <button
+                                onClick={() => handleResetPassword(user)}
+                                className="p-2 rounded-lg bg-white dark:bg-white/10 text-slate-400 dark:text-white/40 hover:text-amber-500 hover:bg-amber-500/10 transition-all border border-slate-200/50 dark:border-white/5"
+                                title="Reset Password"
+                            >
+                                <KeyIcon className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                                onClick={() => handleDeleteAccount(user)}
+                                disabled={user.id === currentUserId}
+                                className={`p-2 rounded-lg bg-white dark:bg-white/10 text-slate-400 dark:text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-all border border-slate-200/50 dark:border-white/5 ${user.id === currentUserId ? 'opacity-0 pointer-events-none' : ''}`}
+                                title="Delete Account"
+                            >
+                                <TrashIcon className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
 
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-4">
-                                <img src={user.avatarUrl} alt={user.name} className="w-12 h-12 rounded-xl object-cover bg-slate-100 dark:bg-slate-800" />
-                                <div>
-                                    <h3 className="font-bold text-slate-900 dark:text-white text-lg">{user.name}</h3>
-                                    <div className="flex flex-col gap-0.5">
-                                        <p className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider">{user.position || 'No Position'}</p>
-                                    </div>
+                        <div className="flex items-start justify-between mb-8">
+                            <div className="flex items-center gap-5">
+                                <div className="relative">
+                                    <img src={user.avatarUrl} alt={user.name} className="w-14 h-14 rounded-2xl object-cover bg-slate-100 dark:bg-slate-800 z-10 relative shadow-md" />
+                                    {user.mustChangePassword && (
+                                        <div className="absolute inset-0 rounded-2xl bg-rose-500 animate-pulse opacity-20 scale-110"></div>
+                                    )}
                                 </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-2">
-                                {user.isSuperAdmin && (
-                                    <span className="px-2 py-1 rounded bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[10px] font-black uppercase tracking-widest border border-primary-500/20">
-                                        Super Admin
-                                    </span>
-                                )}
-                                {user.role === 'admin' && (
-                                    <span className="px-2 py-1 rounded bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A] text-[10px] font-black uppercase tracking-widest border border-lime-500/20">
-                                        Workspace Admin
-                                    </span>
-                                )}
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-slate-900 dark:text-white text-xl leading-tight mb-1 truncate" title={user.name}>{user.name}</h3>
+                                    {editingPositionUserId === user.id ? (
+                                        <input
+                                            autoFocus
+                                            type="text"
+                                            value={editingPositionValue}
+                                            onChange={(e) => setEditingPositionValue(e.target.value)}
+                                            onBlur={() => handlePositionSave(user)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handlePositionSave(user)}
+                                            className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded px-2 py-0.5 text-[10px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-rose-500"
+                                        />
+                                    ) : (
+                                        <button
+                                            onClick={() => {
+                                                setEditingPositionUserId(user.id);
+                                                setEditingPositionValue(user.position || '');
+                                            }}
+                                            className="group/pos flex items-center gap-1.5 text-[10px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-widest hover:text-rose-600 dark:hover:text-rose-300 transition-colors"
+                                        >
+                                            {user.position || 'No Position'}
+                                            <PencilSquareIcon className="w-3 h-3 opacity-0 group-hover/pos:opacity-100 transition-opacity" />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="space-y-3 mb-6">
-                            <div className="flex items-center justify-between text-sm py-2 border-b border-black/5 dark:border-white/5">
-                                <span className="text-slate-500 dark:text-white/40 font-medium">Workspace</span>
+                        <div className="flex items-center gap-2 mb-6 flex-wrap">
+                            {user.isSuperAdmin && (
+                                <span className="px-2.5 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[9px] font-black uppercase tracking-widest border border-primary-500/20">
+                                    Super Admin
+                                </span>
+                            )}
+                            {user.role === 'admin' && (
+                                <span className="px-2.5 py-1 rounded-lg bg-lime-500 text-black text-[9px] font-black uppercase tracking-widest border border-lime-500/20 shadow-sm">
+                                    Workspace Admin
+                                </span>
+                            )}
+                            {user.mustChangePassword && (
+                                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[9px] font-black uppercase tracking-widest border border-rose-500/20">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                                        <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                                    </svg>
+                                    Initial Password
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="space-y-4 mb-8 p-5 bg-slate-50 dark:bg-white/[0.03] rounded-2xl border border-slate-200/40 dark:border-white/5">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Workspace</span>
                                 <div className="flex items-center gap-2">
-                                    <span className={`font-bold ${user.spaceName === 'Unassigned' ? 'text-slate-400 italic' : 'text-slate-700 dark:text-white/80'}`}>
+                                    <span className={`text-sm font-bold ${user.spaceName === 'Unassigned' ? 'text-slate-400 italic' : 'text-slate-900 dark:text-white/90'}`}>
                                         {user.spaceName}
                                     </span>
                                     {user.spaceId && (
                                         <button
                                             onClick={() => handleRemoveFromWorkspace(user)}
-                                            className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded transition-colors"
+                                            className="p-1 hover:bg-red-500/20 hover:text-red-500 text-slate-400 rounded transition-colors"
                                             title="Remove from Workspace"
                                         >
-                                            <XMarkIcon className="w-3 h-3" />
+                                            <XMarkIcon className="w-3.5 h-3.5" />
                                         </button>
                                     )}
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between text-sm py-2 border-b border-black/5 dark:border-white/5">
-                                <span className="text-slate-500 dark:text-white/40 font-medium">Email</span>
-                                <span className="font-bold text-slate-700 dark:text-white/80 text-xs truncate max-w-[150px]" title={user.email}>{user.email}</span>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Email Address</span>
+                                <span className="text-xs font-bold text-slate-900 dark:text-white/90 truncate" title={user.email}>{user.email}</span>
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2.5">
                             <button
                                 onClick={() => handleToggleSuperAdmin(user)}
-                                disabled={user.id === currentUserId} // Can't toggle self
-                                className={`w-full py-2 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all
+                                disabled={user.id === currentUserId}
+                                className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all duration-300
                                     ${user.isSuperAdmin
-                                        ? 'bg-primary-500/10 text-primary-600 hover:bg-primary-500 hover:text-white'
-                                        : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 hover:bg-primary-500 hover:text-white'
-                                    } ${user.id === currentUserId ? 'opacity-50 cursor-not-allowed' : ''}
+                                        ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25 ring-2 ring-primary-500'
+                                        : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/40 border border-slate-200 dark:border-white/10 hover:border-primary-500 hover:text-primary-600'
+                                    } ${user.id === currentUserId ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}
                                 `}
                             >
                                 <UsersIcon className="w-4 h-4" />
-                                {user.isSuperAdmin ? 'Revoke Super Admin' : 'Make Super Admin'}
+                                {user.isSuperAdmin ? 'Full Access Granted' : 'Give Super Admin Access'}
                             </button>
 
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleToggleAdmin(user)}
-                                    className={`flex-1 py-2 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all
-                                        ${(!user.spaceId)
-                                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black'
-                                            : user.role === 'admin'
-                                                ? 'bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white'
-                                                : 'bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A] hover:bg-lime-500 hover:text-black'
-                                        } 
-                                    `}
-                                >
-                                    <KeyIcon className="w-4 h-4" />
-                                    {(!user.spaceId) ? 'Assign & Make Admin' : (user.role === 'admin' ? 'Revoke Admin' : 'Make Workspace Admin')}
-                                </button>
-
-                                <button
-                                    onClick={() => handleDeleteAccount(user)}
-                                    disabled={user.id === currentUserId}
-                                    className={`p-2 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white transition-all ${user.id === currentUserId ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    title="Delete Account"
-                                >
-                                    <TrashIcon className="w-4 h-4" />
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => handleToggleAdmin(user)}
+                                className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all duration-300
+                                    ${(!user.spaceId)
+                                        ? 'bg-amber-100 dark:bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500 hover:text-white'
+                                        : user.role === 'admin'
+                                            ? 'bg-lime-500 text-black shadow-lg shadow-lime-500/25 ring-2 ring-lime-500'
+                                            : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/40 border border-slate-200 dark:border-white/10 hover:border-lime-500 hover:text-lime-600'
+                                    } active:scale-95
+                                `}
+                            >
+                                <KeyIcon className="w-4 h-4" />
+                                {(!user.spaceId) ? 'Quick Assign & Manage' : (user.role === 'admin' ? 'Workspace Admin Active' : 'Promote to Admin')}
+                            </button>
                         </div>
 
                     </BentoCard>

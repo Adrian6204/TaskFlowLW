@@ -27,7 +27,16 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
+  const [rememberMe, setRememberMe] = useState(localStorage.getItem('rememberMe') === 'true');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+
+  // Load remembered username
+  useEffect(() => {
+    if (rememberMe) {
+      const saved = localStorage.getItem('remembered_username');
+      if (saved) setUsername(saved);
+    }
+  }, []);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -54,6 +63,13 @@ const LoginPage: React.FC = () => {
     setError(null);
     setIsLoading(true);
     try {
+      if (rememberMe) {
+        localStorage.setItem('remembered_username', username);
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        localStorage.removeItem('remembered_username');
+        localStorage.setItem('rememberMe', 'false');
+      }
       await login(username, password);
     } catch (err) {
       let message = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -185,28 +201,32 @@ const LoginPage: React.FC = () => {
             </div>
 
             {/* Form Section (Secondary) */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-
-
+            <form id="login-form" onSubmit={handleSubmit} className="space-y-4">
               <div className="relative group">
                 <input
+                  id="username"
+                  name="username"
                   type="text"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-3 px-5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300"
                   placeholder="Username"
+                  autoComplete="username"
                 />
               </div>
 
               <div className="relative group">
                 <input
+                  id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl py-3 px-5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-black/10 dark:focus:border-white/10 transition-all duration-300"
                   placeholder="Password"
+                  autoComplete="current-password"
                 />
                 <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-3">
                   <button
@@ -217,6 +237,23 @@ const LoginPage: React.FC = () => {
                     {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
                   </button>
                 </div>
+              </div>
+
+              {/* Remember Me Checkbox */}
+              <div className="flex items-center justify-between px-1">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-5 h-5 border-2 border-slate-200 dark:border-white/10 rounded-lg group-hover:border-slate-300 dark:group-hover:border-white/20 transition-all peer-checked:bg-slate-900 dark:peer-checked:bg-white peer-checked:border-slate-900 dark:peer-checked:border-white" />
+                    <svg className="absolute top-1 left-1 w-3 h-3 text-white dark:text-black opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-white/30 uppercase tracking-widest group-hover:text-slate-700 dark:group-hover:text-white/50 transition-colors">Remember Me</span>
+                </label>
               </div>
 
               {error && (

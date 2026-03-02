@@ -5,6 +5,7 @@ import { useAuth } from './auth/AuthContext';
 import { isSupabaseConfigured } from './lib/supabaseClient';
 import MainApp from './components/MainApp';
 import SplashScreen from './components/SplashScreen';
+import ForceChangePasswordPage from './components/ForceChangePasswordPage';
 
 // Setup Required Screen Component
 const SetupRequiredScreen: React.FC = () => (
@@ -41,7 +42,7 @@ const SetupRequiredScreen: React.FC = () => (
   </div>
 );
 
-// Protected Route Component
+// Protected Route Component — also gates force-password-change
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -56,6 +57,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // If user must change password and is NOT already on the force-change page, redirect there
+  if (user.mustChangePassword && location.pathname !== '/force-change-password') {
+    return <Navigate to="/force-change-password" replace />;
   }
 
   return <>{children}</>;
@@ -107,6 +113,13 @@ const AppWithSplash: React.FC = () => {
       <Routes>
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
+
+        {/* Force Password Change — accessible only when mustChangePassword is true */}
+        <Route path="/force-change-password" element={
+          <ProtectedRoute>
+            <ForceChangePasswordPage />
+          </ProtectedRoute>
+        } />
 
         {/* Protected App Routes */}
         <Route path="/app/*" element={

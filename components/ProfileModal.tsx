@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, Employee, Position } from '../types';
 import { UserIcon } from './icons/UserIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
@@ -15,7 +16,7 @@ import { EyeSlashIcon } from './icons/EyeSlashIcon';
 import { useTheme, ColorScheme } from './hooks/useTheme';
 import { usePreferences, LandingPage, WeekStartDay, TimeFormat, TaskVisibility } from './hooks/usePreferences';
 import { supabase } from '../lib/supabaseClient';
-import { deleteAvatar } from '../services/supabaseService';
+import { deleteAvatar, getFallbackAvatar } from '../services/supabaseService';
 import { useAuth } from '../auth/AuthContext';
 
 interface ProfileModalProps {
@@ -101,9 +102,11 @@ const Select: React.FC<{ options: { label: string; value: string }[], value: str
 );
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, currentUserEmployee, onSave, onLogout }) => {
-    const { updatePassword, logout } = useAuth();
+    const navigate = useNavigate();
+    const { updatePassword, logout, markPasswordChanged } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('profile');
     const [show, setShow] = useState(false);
+    const [showDefaultPasswordWarning, setShowDefaultPasswordWarning] = useState(false);
 
     // Profile State
     const [fullName, setFullName] = useState('');
@@ -216,9 +219,25 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
             return;
         }
 
+        if (!/[A-Z]/.test(newPassword)) {
+            setPasswordError('Password must contain at least one uppercase letter');
+            return;
+        }
+
+        if (!/[0-9]/.test(newPassword)) {
+            setPasswordError('Password must contain at least one number');
+            return;
+        }
+
         setIsUpdatingPassword(true);
         try {
+            // updatePassword now handles:
+            // 1. Current password verification
+            // 2. Default password rejection (RPC)
+            // 3. Auth password update
+            // 4. Clearing the must_change_password flag
             await updatePassword(currentPassword, newPassword);
+
             setPasswordSuccess('Password updated successfully. Logging out...');
             setShowCurrentPassword(false);
             setShowNewPassword(false);
@@ -228,7 +247,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                 onClose();
             }, 1500);
         } catch (error: any) {
-            setPasswordError(error.message || 'Failed to update password');
+            if (error.message === "New password cannot be the default password.") {
+                setShowDefaultPasswordWarning(true);
+            } else {
+                setPasswordError(error.message || 'Failed to update password');
+            }
         } finally {
             setIsUpdatingPassword(false);
         }
@@ -371,12 +394,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                         <div className={`absolute -inset-1 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full opacity-0 group-hover/avatar:opacity-60 blur transition-all duration-300 ${isUploading ? 'opacity-60 animate-pulse' : ''}`}></div>
                                         <div className="relative">
                                             <img
-                                                src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName.trim())}&background=random`}
+                                                src={avatarUrl || getFallbackAvatar(fullName)}
                                                 alt="Profile"
                                                 className={`w-28 h-28 rounded-full object-cover border-4 border-white dark:border-[#2A2A2D] shadow-xl transition-all duration-300 ${isUploading ? 'blur-sm scale-95' : ''}`}
                                                 onError={(e) => {
                                                     const target = e.target as HTMLImageElement;
-                                                    const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName.trim())}&background=random`;
+                                                    const fallbackUrl = getFallbackAvatar(fullName);
                                                     if (target.src !== fallbackUrl) target.src = fallbackUrl;
                                                 }}
                                             />
@@ -419,7 +442,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                             </svg>
                                             {isUploading ? 'Uploading…' : 'Upload Photo'}
                                         </label>
-                                        {avatarUrl && (
+                                        {avatarUrl && !avatarUrl.includes('ui-avatars.com') && (
                                             <button
                                                 type="button"
                                                 onClick={async () => {
@@ -511,12 +534,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                                 <label className="block text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Current Password</label>
                                                 <div className="relative">
                                                     <input
+                                                        id="current-password"
+                                                        name="current-password"
                                                         type={showCurrentPassword ? "text" : "password"}
                                                         value={currentPassword}
                                                         onChange={(e) => setCurrentPassword(e.target.value)}
                                                         placeholder="Enter current password"
                                                         className="w-full px-4 py-3 pr-12 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
                                                         required
+                                                        autoComplete="current-password"
                                                     />
                                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
                                                         <button
@@ -533,12 +559,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                                 <label className="block text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">New Password</label>
                                                 <div className="relative">
                                                     <input
+                                                        id="new-password"
+                                                        name="new-password"
                                                         type={showNewPassword ? "text" : "password"}
                                                         value={newPassword}
                                                         onChange={(e) => setNewPassword(e.target.value)}
                                                         placeholder="Enter new password"
                                                         className="w-full px-4 py-3 pr-12 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
                                                         required
+                                                        autoComplete="new-password"
                                                     />
                                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
                                                         <button
@@ -555,12 +584,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                                 <label className="block text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Confirm New Password</label>
                                                 <div className="relative">
                                                     <input
+                                                        id="confirm-password"
+                                                        name="confirm-password"
                                                         type={showConfirmPassword ? "text" : "password"}
                                                         value={confirmPassword}
                                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                                         placeholder="Confirm new password"
                                                         className="w-full px-4 py-3 pr-12 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 transition-all font-medium text-sm"
                                                         required
+                                                        autoComplete="new-password"
                                                     />
                                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
                                                         <button
@@ -801,6 +833,39 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                     </div>
                 </div>
             </div>
+
+            {/* Default Password Warning Modal */}
+            {showDefaultPasswordWarning && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-3xl">
+                    <div className="bg-white dark:bg-[#1E1E20] rounded-2xl shadow-2xl border border-amber-500/30 p-6 mx-6 max-w-sm w-full animate-in zoom-in-95 duration-200">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">Default Password Detected</h3>
+                                <p className="text-xs text-slate-500 dark:text-white/50 leading-relaxed">
+                                    You are using the default password. For your security, you must set a unique password before continuing.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-5 flex justify-end">
+                            <button
+                                onClick={() => {
+                                    setShowDefaultPasswordWarning(false);
+                                    onClose();
+                                    navigate('/force-change-password', { replace: true });
+                                }}
+                                className="px-5 py-2 bg-amber-500 text-white text-xs font-bold rounded-xl hover:bg-amber-600 shadow-lg shadow-amber-500/30 transition-all active:scale-95"
+                            >
+                                Set a New Password
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -37,6 +37,7 @@ export interface Employee {
   phone?: string;
   role?: 'admin' | 'assistant' | 'member';
   isSuperAdmin?: boolean;
+  mustChangePassword?: boolean;
 }
 
 export interface EmployeeWithRole extends Employee {
@@ -123,6 +124,7 @@ export interface User {
   position?: Position | string;
   phone?: string;
   email?: string;
+  mustChangePassword?: boolean;
 }
 
 export interface ActivityLog {
@@ -143,4 +145,5 @@ export interface AuthContextType {
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  markPasswordChanged: (newPassword: string) => Promise<boolean>;
 }

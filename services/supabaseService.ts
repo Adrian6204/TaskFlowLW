@@ -96,16 +96,33 @@ const mapDbSpaceToApp = (dbSpace: any): Space => ({
   createdAt: dbSpace.created_at,
 });
 
-const mapDbProfileToEmployee = (dbProfile: any): Employee => ({
-  id: dbProfile.id,
-  name: dbProfile.full_name || dbProfile.username || 'Unknown',
-  fullName: dbProfile.full_name,
-  email: dbProfile.email || '',
-  avatarUrl: dbProfile.avatar_url || 'https://via.placeholder.com/150',
-  position: dbProfile.position,
-  phone: dbProfile.phone,
-  isSuperAdmin: dbProfile.is_admin,
-});
+export const getFallbackAvatar = (name: string) => {
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Unknown')}&background=random&color=fff&bold=true&length=2`;
+}
+
+const mapDbProfileToEmployee = (dbProfile: any): Employee => {
+  const name = dbProfile.full_name || dbProfile.username || 'Unknown';
+
+  // Treat placeholder URLs as empty so they trigger the fallback
+  const dbAvatar = dbProfile.avatar_url || '';
+  const isPlaceholder = dbAvatar.includes('placeholder.com') || dbAvatar.includes('via.placeholder');
+
+  const avatarUrl = (!dbAvatar || isPlaceholder)
+    ? getFallbackAvatar(name)
+    : dbAvatar;
+
+  return {
+    id: dbProfile.id,
+    name,
+    fullName: dbProfile.full_name,
+    email: dbProfile.email || '',
+    avatarUrl,
+    position: dbProfile.position,
+    phone: dbProfile.phone,
+    isSuperAdmin: dbProfile.is_admin,
+    mustChangePassword: dbProfile.must_change_password,
+  };
+};
 
 
 
@@ -565,6 +582,7 @@ export const getAllUsersWithRoles = async () => {
       spaceName: (membership?.spaces as any)?.name || 'Unassigned',
       role: membership?.role || 'member', // Default to member if not found (or if they have no workspace)
       isSuperAdmin: profile.is_admin || false,
+      mustChangePassword: profile.must_change_password || false,
     };
   });
 
@@ -716,16 +734,24 @@ export const createList = async (spaceId: string, name: string) => {
 
 
 export const deleteUserAccount = async (userId: string) => {
-  // This removes the user's profile info.
-  // Note: Deleting from auth.users requires Service Role Key or an RPC function in a secure environment.
-  // From the client side, we can only delete data we have access to (public tables).
-  // Assuming RLS allows admins to delete profiles.
-  const { error } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', userId);
+  // Use the admin-delete-user Edge Function to perform a "hard" delete
+  // This removes the user from auth.users, which triggers a cascade
+  // deleting their profile and all related application data.
+  const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+    body: { userId }
+  });
 
   if (error) throw error;
+  return data;
+};
+
+export const resetUserPassword = async (userId: string) => {
+  const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+    body: { userId }
+  });
+
+  if (error) throw error;
+  return data;
 };
 
 

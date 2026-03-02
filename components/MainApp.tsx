@@ -417,7 +417,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                             allUserTasks={allUserTasks}
                         />
 
-                        <main className="flex-1 overflow-y-auto p-4 sm:p-8 scrollbar-none">
+                        <main className="flex-1 overflow-y-auto p-4 sm:p-8">
                             <div className="max-w-[1800px] mx-auto animate-in fade-in duration-500">
 
                                 {/* ── Home: Workspace Cards ── */}

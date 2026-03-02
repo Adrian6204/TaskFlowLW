@@ -15,6 +15,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
+    // Safety timeout: Ensure loading is ALWAYS turned off after 10 seconds 
+    // even if Supabase/Database is flagging/experiencing issues
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false);
+      console.warn('Auth loading timed out after 10 seconds. Forcing state.');
+    }, 10000);
+
     // Realtime subscription for profile changes
     let profileSubscription: any = null;
 
@@ -40,6 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               position: payload.new.position,
               department: payload.new.department,
               isAdmin: payload.new.is_admin,
+              mustChangePassword: payload.new.must_change_password,
             };
           });
         })
@@ -70,6 +78,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     return () => {
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
       if (profileSubscription) profileSubscription.unsubscribe();
     };
@@ -77,15 +86,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const mapSupabaseUser = async (sbUser: any) => {
     try {
-      // Fetch public profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', sbUser.id)
         .single();
 
-      // Verify session is still active and matches the user we are mapping
-      // This prevents race conditions where a logout happens while profile is fetching
       const { data: { session } } = await supabase.auth.getSession();
       if (!session || session.user.id !== sbUser.id) {
         return;
@@ -94,17 +100,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser({
         username: profile?.username || sbUser.email?.split('@')[0],
         fullName: profile?.full_name || profile?.username || sbUser.email?.split('@')[0],
-        role: profile?.is_admin ? 'super_admin' : 'user', // Default 'user', but 'super_admin' if system admin
+        role: profile?.is_admin ? 'super_admin' : 'user',
         employeeId: sbUser.id,
         department: profile?.department,
         isAdmin: profile?.is_admin || false,
         avatarUrl: profile?.avatar_url,
-        position: profile?.position, // Map position from DB
+        position: profile?.position,
         phone: profile?.phone,
         email: profile?.email || sbUser.email,
+        mustChangePassword: profile?.must_change_password ?? true,
       });
     } catch (error) {
-      console.error("Error mapping user", error);
+      console.error("Error mapping user:", error);
     } finally {
       setLoading(false);
     }
@@ -199,7 +206,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updatePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
     if (!user || !isSupabaseConfigured) throw new Error("Supabase not configured or user not logged in");
 
-    // First verify the current password by trying to sign in again
+    // 1. Verify the current password by trying to sign in again
     const sanitizedInput = user.username.trim().toLowerCase();
     const email = user.email || (sanitizedInput.includes('@') ? sanitizedInput : `${sanitizedInput.replace(/\s+/g, '')}@lifewood.com`);
     const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -211,15 +218,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       throw new Error("Incorrect current password.");
     }
 
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword
+    // 2. Use markPasswordChanged to handle both the flag reset (RPC) and the Auth update.
+    // This prevents double-calling supabase.auth.updateUser.
+    const isAcceptable = await markPasswordChanged(newPassword);
+
+    if (!isAcceptable) {
+      throw new Error("New password cannot be the default password.");
+    }
+  };
+
+  const markPasswordChanged = async (newPassword: string): Promise<boolean> => {
+    if (!user || !isSupabaseConfigured) throw new Error("Supabase not configured or user not logged in");
+
+    // Call server-side RPC — it checks if the password is the default (PHCBIT@12345)
+    // and only clears the flag if it is NOT the default.
+    const { data: isAcceptable, error } = await supabase.rpc('mark_password_changed', {
+      new_password: newPassword,
     });
 
-    if (updateError) throw updateError;
+    if (error) throw error;
+
+    if (isAcceptable) {
+      // RPC approved — now actually change the Auth password
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) throw updateError;
+
+      // Sync local state
+      setUser(prev => prev ? { ...prev, mustChangePassword: false } : null);
+    }
+
+    return isAcceptable as boolean;
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser, updatePassword }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser, updatePassword, markPasswordChanged }}>
       {children}
     </AuthContext.Provider>
   );
