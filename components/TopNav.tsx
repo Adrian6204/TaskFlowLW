@@ -128,9 +128,16 @@ const TopNav: React.FC<TopNavProps> = ({
                 >
                     <div className="relative">
                         <img
-                            src={currentUserEmployee?.avatarUrl}
+                            src={currentUserEmployee?.avatarUrl || user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`}
                             alt=""
                             className={`w-9 h-9 rounded-full object-cover border-2 transition-all ${user.isAdmin ? 'border-primary-500 dark:border-primary-400' : 'border-transparent group-hover:border-[#CEFD4A]'}`}
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`;
+                                if (target.src !== fallbackUrl) {
+                                    target.src = fallbackUrl;
+                                }
+                            }}
                         />
                         <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 border-2 border-white dark:border-black rounded-full ${user.isAdmin ? 'bg-primary-500 dark:bg-primary-400' : 'bg-lime-400 dark:bg-[#CEFD4A]'}`}></div>
                     </div>
@@ -148,8 +155,8 @@ const TopNav: React.FC<TopNavProps> = ({
                     isOpen={isNotificationPanelOpen}
                     onClose={() => setNotificationPanelOpen(false)}
                 />
-            </div>
-        </header>
+            </div >
+        </header >
     );
 };
 

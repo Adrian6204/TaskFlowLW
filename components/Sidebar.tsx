@@ -403,13 +403,18 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClick={onOpenProfile}
           className={`flex items-center gap-3 flex-1 p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-300 ${!isOpen && 'justify-center flex-none'}`}
         >
-          {currentUserEmployee?.avatarUrl ? (
-            <img src={currentUserEmployee.avatarUrl} alt="" className="w-9 h-9 rounded-2xl object-cover border border-white/10 flex-shrink-0" />
-          ) : (
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-500 to-primary-600 flex items-center justify-center text-white text-sm font-black flex-shrink-0">
-              {(user.fullName || user.username || 'U').charAt(0).toUpperCase()}
-            </div>
-          )}
+          <img
+            src={currentUserEmployee?.avatarUrl || user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`}
+            alt=""
+            className="w-9 h-9 rounded-2xl object-cover border border-white/10 flex-shrink-0"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`;
+              if (target.src !== fallbackUrl) {
+                target.src = fallbackUrl;
+              }
+            }}
+          />
           {isOpen && (
             <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.fullName || user.username}</p>

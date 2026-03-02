@@ -373,12 +373,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                     <div className="relative group">
                                         <div className={`absolute -inset-0.5 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full opacity-75 blur transition duration-200 group-hover:opacity-100 ${isUploading ? 'animate-pulse' : ''}`}></div>
                                         <img
-                                            src={avatarUrl || 'https://via.placeholder.com/150'}
+                                            src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${firstName} ${lastName}`.trim())}&background=random`}
                                             alt="Profile"
                                             className={`relative w-28 h-28 rounded-full object-cover border-4 border-white dark:border-[#2A2A2D] shadow-xl ${isUploading ? 'blur-[2px]' : ''}`}
                                             onError={(e) => {
                                                 const fullName = `${firstName} ${lastName}`.trim();
-                                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${fullName}&background=random`;
+                                                const target = e.target as HTMLImageElement;
+                                                const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+                                                if (target.src !== fallbackUrl) {
+                                                    target.src = fallbackUrl;
+                                                }
                                             }}
                                         />
                                         <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 bg-white dark:bg-[#3A3A3E] text-slate-700 dark:text-white p-2 rounded-full shadow-lg border border-slate-100 dark:border-white/10 cursor-pointer hover:scale-105 transition-transform">
