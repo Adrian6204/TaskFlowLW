@@ -7,6 +7,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { UserIcon } from './icons/UserIcon';
 import ConfirmationModal from './ConfirmationModal';
+import { cardAccents } from './WorkspaceHomePage';
 
 interface SpaceSettingsViewProps {
   space: Space;
@@ -19,7 +20,7 @@ interface SpaceSettingsViewProps {
   onAddMember: (spaceId: string, memberId: string) => void;
   onDeleteSpace: (spaceId: string) => void;
   onUpdateRole?: (spaceId: string, memberId: string, role: 'admin' | 'assistant' | 'member') => void;
-  onUpdateSpace?: (spaceId: string, name: string, description: string) => Promise<void>;
+  onUpdateSpace?: (spaceId: string, name: string, description: string, theme?: string) => Promise<void>;
 }
 
 const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
@@ -42,18 +43,26 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [editName, setEditName] = useState(space.name);
   const [editDescription, setEditDescription] = useState(space.description || '');
+  const [editTheme, setEditTheme] = useState(space.theme || '');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Theme support
+  const themeIndex = (space.theme && !isNaN(parseInt(space.theme)))
+    ? parseInt(space.theme) % cardAccents.length
+    : 0;
+  const accent = cardAccents[themeIndex];
 
   React.useEffect(() => {
     setEditName(space.name);
     setEditDescription(space.description || '');
+    setEditTheme(space.theme || '');
   }, [space]);
 
   const handleSaveInfo = async () => {
-    if (!editName.trim() || !editDescription.trim() || !onUpdateSpace) return;
+    if (!editName.trim() || !onUpdateSpace) return;
     setIsSaving(true);
     try {
-      await onUpdateSpace(space.id, editName, editDescription);
+      await onUpdateSpace(space.id, editName, editDescription, editTheme);
       setIsEditingInfo(false);
     } finally {
       setIsSaving(false);
@@ -112,8 +121,8 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
     <div className="h-full flex flex-col bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-none rounded-[32px] overflow-hidden animate-fade-in">
       {/* Header */}
       <div className="p-8 border-b border-black/5 dark:border-white/5 flex items-center gap-4">
-        <div className="p-3 bg-slate-900 dark:bg-white rounded-2xl shadow-lg">
-          <Cog6ToothIcon className="w-6 h-6 text-white dark:text-slate-900" />
+        <div className={`p-3 bg-gradient-to-br ${accent?.from || 'from-slate-900'} ${accent?.to || 'to-slate-800'} dark:${accent?.from || 'from-white'} dark:${accent?.to || 'to-slate-200'} rounded-2xl shadow-lg`}>
+          <Cog6ToothIcon className={`w-6 h-6 ${accent ? 'text-white dark:text-slate-900' : 'text-white dark:text-slate-900'}`} />
         </div>
         <div>
           <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-1">Workspace Settings</h2>
@@ -127,7 +136,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
         {/* Workspace Info */}
         <div className="bg-white/50 dark:bg-white/5 rounded-[24px] p-6 border border-white/40 dark:border-white/5 shadow-sm">
           <div className="flex justify-between items-start mb-6">
-            <h3 className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Workspace Information</h3>
+            <h3 className={`text-xs font-bold ${accent?.text || 'text-slate-500'} ${accent?.darkText || 'dark:text-white/40'} uppercase tracking-widest`}>Workspace Information</h3>
             {(isAdmin || isSuperAdmin || isOwner) && !isEditingInfo && (
               <button
                 onClick={() => setIsEditingInfo(true)}
@@ -146,7 +155,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                   type="text"
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
-                  className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none"
+                  className={`w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 ${accent ? `focus:ring-${accent.from.split('-')[1]}-500/50` : 'focus:ring-lime-500'} outline-none`}
                   placeholder="Enter workspace name"
                 />
               </div>
@@ -155,15 +164,33 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                 <textarea
                   value={editDescription}
                   onChange={e => setEditDescription(e.target.value)}
-                  className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none min-h-[100px] resize-none"
+                  className={`w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 ${accent ? `focus:ring-${accent.from.split('-')[1]}-500/50` : 'focus:ring-lime-500'} outline-none min-h-[100px] resize-none`}
                   placeholder="Add a description..."
                 />
               </div>
-              <div className="flex gap-3 pt-2">
+              <div>
+                <label className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest block mb-4">Workspace Color Theme</label>
+                <div className="flex flex-wrap gap-4">
+                  {cardAccents.map((accent, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setEditTheme(index.toString())}
+                      className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${accent.from} ${accent.to} transition-all duration-200 relative ${editTheme === index.toString() ? `ring-4 ${accent.text.replace('text-', 'ring-')} ring-offset-4 ring-offset-white dark:ring-offset-slate-900 scale-110` : 'opacity-60 hover:opacity-100'}`}
+                    >
+                      {editTheme === index.toString() && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-white shadow-sm" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-3 pt-4">
                 <button
                   onClick={handleSaveInfo}
-                  disabled={isSaving || !editName.trim() || !editDescription.trim()}
-                  className="px-6 py-2.5 bg-lime-500 hover:bg-lime-400 text-black font-bold rounded-xl transition-colors disabled:opacity-50"
+                  disabled={isSaving || !editName.trim()}
+                  className={`px-6 py-2.5 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} text-black font-black uppercase tracking-wider rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -172,6 +199,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                     setIsEditingInfo(false);
                     setEditName(space.name);
                     setEditDescription(space.description || '');
+                    setEditTheme(space.theme || '');
                   }}
                   className="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white font-bold rounded-xl transition-colors"
                 >
@@ -190,14 +218,13 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                 <p className="text-sm font-medium text-slate-600 dark:text-white/70 mt-1">{space.description || 'No description provided.'}</p>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Created</label>
-                <p className="text-sm font-medium text-slate-600 dark:text-white/70 mt-1">
-                  {new Date(space.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Workspace Color</label>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${accent?.from || 'from-slate-200'} ${accent?.to || 'to-slate-300'} shadow-sm`} />
+                  <p className="text-sm font-semibold text-slate-600 dark:text-white/70">
+                    {accent ? `Theme ${themeIndex + 1}` : 'Default Theme'}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -301,7 +328,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   {/* Role Tags */}
-                  {member.role === 'admin' && <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A] rounded">Workspace Admin</span>}
+                  {member.role === 'admin' && <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${accent ? `bg-gradient-to-br ${accent.from} ${accent.to} bg-opacity-10 ${accent.text} ${accent.darkText}` : 'bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A]'} rounded`}>Workspace Admin</span>}
                   {member.role === 'assistant' && <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded">Assistant</span>}
 
                   {member.id === space.ownerId ? (

@@ -15,6 +15,7 @@ import { SearchIcon } from './icons/SearchIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { QuestionMarkIcon } from './icons/QuestionMarkIcon';
 import MemberDetailsModal from './MemberDetailsModal';
+import { cardAccents } from './WorkspaceHomePage';
 
 interface HomeViewProps {
   tasks: Task[];
@@ -49,6 +50,12 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
 
   // Success State
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Theme support
+  const themeIndex = (currentSpace?.theme && !isNaN(parseInt(currentSpace.theme)))
+    ? parseInt(currentSpace.theme) % cardAccents.length
+    : 0;
+  const accent = cardAccents[themeIndex];
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
@@ -230,12 +237,12 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
         {/* 1. Hero / Profile Card (Span 2) */}
         <BentoCard className="col-span-1 md:col-span-2 relative p-8 flex flex-col justify-between min-h-[300px] group">
           <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity">
-            <div className="w-32 h-32 rounded-full bg-lime-400 dark:bg-[#CEFD4A] blur-[80px]"></div>
+            <div className={`w-32 h-32 rounded-full bg-gradient-to-br ${accent.from} ${accent.to} blur-[80px]`}></div>
           </div>
 
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-5">
-              <span className="px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-[10px] uppercase tracking-widest font-bold text-lime-600 dark:text-[#CEFD4A]">
+              <span className={`px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-[10px] uppercase tracking-widest font-bold ${accent.text} ${accent.darkText}`}>
                 Overview
               </span>
               <span className="text-xs font-bold text-slate-400 dark:text-white/40 font-mono tabular-nums pl-2 border-l border-black/10 dark:border-white/10">
@@ -246,7 +253,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
               {getGreeting()}
             </p>
             <h1 className="text-5xl md:text-6xl font-black leading-none tracking-tight mb-2">
-              <span className="bg-gradient-to-r from-lime-500 via-emerald-400 to-teal-500 bg-clip-text text-transparent drop-shadow-[0_2px_20px_rgba(132,204,22,0.3)]">
+              <span className={`${accent.text} ${accent.darkText}`}>
                 {user.fullName || user.username}
               </span>
             </h1>
@@ -263,7 +270,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
               <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Total Active</p>
             </div>
             <div>
-              <p className="text-3xl font-black text-lime-600 dark:text-[#CEFD4A]">{completedTasks}</p>
+              <p className={`text-3xl font-black ${accent.text} ${accent.darkText}`}>{completedTasks}</p>
               <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Completed</p>
             </div>
             <div>
@@ -289,7 +296,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             <div className="flex-1 flex flex-col items-center justify-center text-center">
               <button
                 onClick={() => onAddTask({})}
-                className="w-16 h-16 rounded-2xl bg-lime-500/10 dark:bg-[#CEFD4A]/10 flex items-center justify-center text-lime-600 dark:text-[#CEFD4A] mb-4 hover:scale-110 active:scale-95 hover:bg-lime-500/20 dark:hover:bg-[#CEFD4A]/20 transition-all duration-300 cursor-pointer"
+                className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${accent.from} ${accent.to} opacity-10 flex items-center justify-center ${accent.text} ${accent.darkText} mb-4 hover:scale-110 active:scale-95 hover:opacity-20 transition-all duration-300 cursor-pointer`}
               >
                 <PlusIcon className="w-8 h-8" />
               </button>
@@ -317,7 +324,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             </div>
             <button
               onClick={() => setIsExpandedTasksOpen(true)}
-              className="text-xs font-bold text-slate-400 dark:text-white/40 hover:text-lime-600 dark:hover:text-[#CEFD4A] transition-colors uppercase tracking-wider"
+              className={`text-xs font-bold text-slate-400 dark:text-white/40 hover:${accent.text} ${accent.darkText} transition-colors uppercase tracking-wider`}
             >
               View All
             </button>
@@ -350,7 +357,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                     <p className="font-bold text-sm uppercase tracking-widest text-center">No tasks found for "{globalSearchTerm}"</p>
                     <button
                       onClick={() => onSearchChange('')}
-                      className="mt-4 text-xs font-black text-lime-600 dark:text-[#CEFD4A] hover:underline uppercase tracking-widest"
+                      className={`mt-4 text-xs font-black ${accent.text} ${accent.darkText} hover:underline uppercase tracking-widest`}
                     >
                       Clear Search
                     </button>
@@ -440,7 +447,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                     </div>
                   </div>
 
-                  <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-black/20 flex items-center justify-center text-slate-400 dark:text-white/20 group-hover:text-lime-600 dark:group-hover:text-[#CEFD4A] group-hover:bg-lime-500/10 dark:group-hover:bg-[#CEFD4A]/10 transition-all">
+                  <div className={`w-8 h-8 rounded-full bg-black/5 dark:bg-black/20 flex items-center justify-center text-slate-400 dark:text-white/20 group-hover:${accent.text} group-hover:${accent.darkText} group-hover:bg-gradient-to-br ${accent.from} ${accent.to} group-hover:bg-opacity-10 transition-all`}>
                     <span className="text-lg leading-none">&rarr;</span>
                   </div>
                 </div>
@@ -639,7 +646,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                         setStatusFilter('All');
                         setPriorityFilter('All');
                       }}
-                      className="mt-4 text-sm font-bold text-lime-600 dark:text-[#CEFD4A] hover:underline uppercase tracking-wider"
+                      className={`mt-4 text-sm font-bold ${accent.text} ${accent.darkText} hover:underline uppercase tracking-wider`}
                     >
                       Clear all filters
                     </button>
@@ -739,7 +746,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                           </div>
                         </div>
 
-                        <div className="w-10 h-10 rounded-2xl bg-black/5 dark:bg-black/20 flex items-center justify-center text-slate-400 dark:text-white/20 group-hover:text-lime-600 dark:group-hover:text-[#CEFD4A] group-hover:bg-lime-500/10 dark:group-hover:bg-[#CEFD4A]/10 transition-all shadow-sm">
+                        <div className={`w-10 h-10 rounded-2xl bg-black/5 dark:bg-black/20 flex items-center justify-center text-slate-400 dark:text-white/20 group-hover:${accent.text} group-hover:${accent.darkText} group-hover:bg-gradient-to-br ${accent.from} ${accent.to} group-hover:bg-opacity-10 transition-all shadow-sm`}>
                           <span className="text-xl leading-none font-black">&rarr;</span>
                         </div>
                       </div>
@@ -754,7 +761,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
       {deadlinePromptTask && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-[#1A1A1A] border border-black/10 dark:border-white/10 rounded-[32px] p-8 shadow-2xl max-w-sm w-full animate-scale-in">
-            <div className="w-16 h-16 rounded-2xl bg-lime-500/10 dark:bg-[#CEFD4A]/10 flex items-center justify-center text-lime-600 dark:text-[#CEFD4A] mb-6 mx-auto">
+            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${accent.from} ${accent.to} opacity-10 flex items-center justify-center ${accent.text} ${accent.darkText} mb-6 mx-auto`}>
               <ClockIcon className="w-8 h-8" />
             </div>
 
@@ -853,6 +860,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
             setIsMemberDetailsOpen(false);
             if (onViewTask) onViewTask(task);
           }}
+          currentSpace={currentSpace}
         />
       )}
 

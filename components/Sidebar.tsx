@@ -13,6 +13,7 @@ import { ViewColumnsIcon } from './icons/ViewColumnsIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
+import { cardAccents } from './WorkspaceHomePage';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -71,6 +72,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
   const isInsideWorkspace = !!activeSpaceId;
   const currentSpace = spaces.find(s => s.id === activeSpaceId);
+
+  // Use stored theme index if valid, otherwise cycle
+  const themeIndex = (currentSpace?.theme && !isNaN(parseInt(currentSpace.theme)))
+    ? parseInt(currentSpace.theme) % cardAccents.length
+    : spaces.indexOf(currentSpace!) % cardAccents.length;
+  const accent = cardAccents[themeIndex >= 0 ? themeIndex : 0];
 
   // ── Workspace-specific navigation items ──────────────────────────────────
   const workspaceViews: { id: string; label: string; icon: React.FC<{ className?: string }> }[] = [
@@ -278,7 +285,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             {isOpen && currentSpace && (
               <div className="px-4 py-3 mb-2 rounded-2xl bg-white/5 dark:bg-white/5 border border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center text-white text-sm font-black shadow-lg shadow-orange-500/30 flex-shrink-0">
+                  <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${accent.from} ${accent.to} flex items-center justify-center text-white text-sm font-black shadow-lg ${accent.shadow} flex-shrink-0`}>
                     {currentSpace.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">

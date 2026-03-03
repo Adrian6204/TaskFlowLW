@@ -12,15 +12,13 @@ interface WorkspaceHomePageProps {
     memberships: { space_id: string; user_id: string; role: string }[];
 }
 
-const cardAccents = [
-    { from: 'from-violet-500', to: 'to-primary-600', shadow: 'shadow-violet-500/20', glow: 'group-hover:shadow-violet-500/30' },
-    { from: 'from-sky-500', to: 'to-primary-600', shadow: 'shadow-sky-500/20', glow: 'group-hover:shadow-sky-500/30' },
-    { from: 'from-emerald-500', to: 'to-teal-600', shadow: 'shadow-emerald-500/20', glow: 'group-hover:shadow-emerald-500/30' },
-    { from: 'from-rose-500', to: 'to-pink-600', shadow: 'shadow-rose-500/20', glow: 'group-hover:shadow-rose-500/30' },
-    { from: 'from-amber-500', to: 'to-orange-600', shadow: 'shadow-amber-500/20', glow: 'group-hover:shadow-amber-500/30' },
-    { from: 'from-primary-500', to: 'to-primary-700', shadow: 'shadow-primary-500/20', glow: 'group-hover:shadow-primary-500/30' },
-    { from: 'from-lime-500', to: 'to-green-600', shadow: 'shadow-lime-500/20', glow: 'group-hover:shadow-lime-500/30' },
-    { from: 'from-fuchsia-500', to: 'to-pink-700', shadow: 'shadow-fuchsia-500/20', glow: 'group-hover:shadow-fuchsia-500/30' },
+export const cardAccents = [
+    { from: 'from-lifewood-castleton', to: 'to-lifewood-darkSerpent', shadow: 'shadow-lifewood-castleton/20', glow: 'group-hover:shadow-lifewood-castleton/30', text: 'text-lifewood-castleton', darkText: 'dark:text-[#CEFD4A]' },
+    { from: 'from-lifewood-darkSerpent', to: 'to-lifewood-castleton', shadow: 'shadow-lifewood-darkSerpent/20', glow: 'group-hover:shadow-lifewood-darkSerpent/30', text: 'text-lifewood-darkSerpent', darkText: 'dark:text-lime-400' },
+    { from: 'from-lifewood-saffaron', to: 'to-orange-600', shadow: 'shadow-lifewood-saffaron/20', glow: 'group-hover:shadow-lifewood-saffaron/30', text: 'text-orange-600', darkText: 'dark:text-lifewood-saffaron' },
+    { from: 'from-lifewood-earthYellow', to: 'to-lifewood-saffaron', shadow: 'shadow-lifewood-earthYellow/20', glow: 'group-hover:shadow-lifewood-earthYellow/30', text: 'text-lifewood-earthYellow', darkText: 'dark:text-amber-300' },
+    { from: 'from-emerald-600', to: 'to-lifewood-castleton', shadow: 'shadow-emerald-600/20', glow: 'group-hover:shadow-emerald-600/30', text: 'text-emerald-600', darkText: 'dark:text-emerald-400' },
+    { from: 'from-amber-600', to: 'to-lifewood-earthYellow', shadow: 'shadow-amber-600/20', glow: 'group-hover:shadow-amber-600/30', text: 'text-amber-600', darkText: 'dark:text-amber-400' },
 ];
 
 const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
@@ -81,7 +79,7 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
                         </p>
                     </div>
                     <h1 className="text-6xl font-black leading-none tracking-tight mb-3">
-                        <span className="bg-gradient-to-r from-lime-500 via-emerald-400 to-teal-500 bg-clip-text text-transparent [text-shadow:none] drop-shadow-[0_2px_20px_rgba(132,204,22,0.25)]">
+                        <span className="text-lifewood-castleton dark:text-lifewood-paper">
                             {fullName}
                         </span>
                     </h1>
@@ -118,7 +116,11 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                     {spaces.map((space, idx) => {
                         const role = getUserRoleInSpace(space.id);
-                        const accent = cardAccents[idx % cardAccents.length];
+                        // Use stored theme index if valid, otherwise cycle
+                        const themeIndex = (space.theme && !isNaN(parseInt(space.theme)))
+                            ? parseInt(space.theme) % cardAccents.length
+                            : idx % cardAccents.length;
+                        const accent = cardAccents[themeIndex];
                         const isOwner = space.ownerId === user.employeeId || isSuperAdmin;
 
                         return (

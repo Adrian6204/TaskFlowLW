@@ -388,6 +388,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         onTimelineViewModeChange={setTimelineViewMode}
                         onToggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
                         hideBrandOnDesktop={false}
+                        currentSpace={currentSpace}
                     />
 
                     <div className="flex-1 flex overflow-hidden">
@@ -543,9 +544,9 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                                 loadData();
                                             } catch (e) { console.error(e); }
                                         }}
-                                        onUpdateSpace={async (spaceId, name, description) => {
+                                        onUpdateSpace={async (spaceId, name, description, theme) => {
                                             try {
-                                                await dataService.updateSpace(spaceId, { name, description });
+                                                await dataService.updateSpace(spaceId, { name, description, theme });
                                                 loadData();
                                             } catch (e) { console.error(e); }
                                         }}

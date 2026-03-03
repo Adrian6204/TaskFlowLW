@@ -528,9 +528,11 @@ export const deleteSpace = async (spaceId: string) => {
 
 export const updateSpace = async (spaceId: string, updates: Partial<Space>) => {
   const payload: any = {};
-  if (updates.name) payload.name = updates.name;
-  if (updates.description) payload.description = updates.description;
-  if (updates.theme) payload.theme = updates.theme;
+  if (updates.name !== undefined) payload.name = updates.name;
+  // Allow empty string for description (user cleared it intentionally)
+  if (updates.description !== undefined) payload.description = updates.description;
+  // Allow "0" and other falsy-but-valid theme indices
+  if (updates.theme !== undefined) payload.theme = updates.theme;
 
   const { data, error } = await supabase
     .from('spaces')

@@ -9,6 +9,8 @@ import { SunIcon } from './icons/SunIcon';
 import { useTheme } from '../context/ThemeContext';
 import { useAppNotifications } from '../context/AppNotificationContext';
 import NotificationPanel from './NotificationPanel';
+import { Space } from '../types';
+import { cardAccents } from './WorkspaceHomePage';
 
 interface TopNavProps {
     activeSpaceName: string;
@@ -23,6 +25,7 @@ interface TopNavProps {
     onTimelineViewModeChange?: (mode: 'calendar' | 'gantt') => void;
     onToggleSidebar?: () => void;
     hideBrandOnDesktop?: boolean;
+    currentSpace?: Space;
 }
 
 const TopNav: React.FC<TopNavProps> = ({
@@ -37,11 +40,18 @@ const TopNav: React.FC<TopNavProps> = ({
     timelineViewMode,
     onTimelineViewModeChange,
     onToggleSidebar,
-    hideBrandOnDesktop
+    hideBrandOnDesktop,
+    currentSpace
 }) => {
     const { theme, toggleTheme } = useTheme();
     const { unreadCount } = useAppNotifications();
     const [isNotificationPanelOpen, setNotificationPanelOpen] = React.useState(false);
+
+    // Theme support
+    const themeIndex = (currentSpace?.theme && !isNaN(parseInt(currentSpace.theme)))
+        ? parseInt(currentSpace.theme) % cardAccents.length
+        : (currentSpace ? 0 : -1);
+    const accent = themeIndex >= 0 ? cardAccents[themeIndex] : null;
 
     return (
         <header className="w-full h-20 md:h-24 px-4 md:px-8 flex-none z-40 flex items-center justify-between pointer-events-none bg-transparent">
@@ -62,7 +72,7 @@ const TopNav: React.FC<TopNavProps> = ({
 
                 <div className="flex flex-col hidden sm:flex">
                     <div className="flex items-center gap-2">
-                        <span className="text-[9px] md:text-[10px] font-bold text-lime-600 dark:text-[#CEFD4A] uppercase tracking-widest mb-0.5">Workspace</span>
+                        <span className={`text-[9px] md:text-[10px] font-bold ${accent ? `${accent.text} ${accent.darkText}` : 'text-lime-600 dark:text-[#CEFD4A]'} uppercase tracking-widest mb-0.5`}>Workspace</span>
                         {user.isAdmin && (
                             <span className="px-1.5 py-0.5 rounded-[4px] bg-primary-500/10 border border-primary-500/20 text-primary-600 dark:text-primary-400 text-[8px] font-black uppercase tracking-wider leading-none">
                                 Admin Mode
@@ -86,7 +96,7 @@ const TopNav: React.FC<TopNavProps> = ({
                         placeholder="Search tasks..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 text-slate-900 dark:text-white text-sm font-medium rounded-full py-2.5 pl-11 pr-10 placeholder:text-slate-500 dark:placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-lime-500/50 dark:focus:ring-[#CEFD4A]/50 focus:border-lime-500/50 dark:focus:border-[#CEFD4A]/50 transition-all w-64 hover:bg-white/80 dark:hover:bg-black/50"
+                        className={`bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 text-slate-900 dark:text-white text-sm font-medium rounded-full py-2.5 pl-11 pr-10 placeholder:text-slate-500 dark:placeholder:text-white/20 focus:outline-none focus:ring-2 ${accent ? `focus:ring-${accent.from.split('-')[1]}-500/50 dark:focus:ring-${accent.darkText.split('-')[1].replace('#', '')}/50` : 'focus:ring-lime-500/50 dark:focus:ring-[#CEFD4A]/50'} focus:border-opacity-50 transition-all w-64 hover:bg-white/80 dark:hover:bg-black/50`}
                     />
                     {searchTerm && (
                         <button
@@ -103,7 +113,7 @@ const TopNav: React.FC<TopNavProps> = ({
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}
-                    className="p-3 bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-full text-slate-500 dark:text-white/60 hover:text-lime-600 dark:hover:text-[#CEFD4A] hover:bg-white dark:hover:bg-black/60 transition-all"
+                    className={`p-3 bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-full text-slate-500 dark:text-white/60 hover:${accent ? accent.text : 'text-lime-600'} dark:hover:${accent ? accent.darkText : 'text-[#CEFD4A]'} hover:bg-white dark:hover:bg-black/60 transition-all`}
                 >
                     {theme === 'light' ? <MoonIcon className="w-5 h-5" /> : <SunIcon className="w-5 h-5" />}
                 </button>
@@ -111,11 +121,11 @@ const TopNav: React.FC<TopNavProps> = ({
                 {/* Notifications */}
                 <button
                     onClick={() => setNotificationPanelOpen(true)}
-                    className="relative p-3 bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-full text-slate-500 dark:text-white/60 hover:text-lime-600 dark:hover:text-[#CEFD4A] hover:bg-white dark:hover:bg-black/60 transition-all"
+                    className={`relative p-3 bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-full text-slate-500 dark:text-white/60 hover:${accent ? accent.text : 'text-lime-600'} dark:hover:${accent ? accent.darkText : 'text-[#CEFD4A]'} hover:bg-white dark:hover:bg-black/60 transition-all`}
                 >
                     <BellIcon className="w-5 h-5" />
                     {unreadCount > 0 && (
-                        <span className="absolute top-0 right-0 w-4 h-4 bg-lime-500 dark:bg-[#CEFD4A] text-black text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-black animate-in zoom-in">
+                        <span className={`absolute top-0 right-0 w-4 h-4 ${accent ? `bg-gradient-to-br ${accent.from} ${accent.to}` : 'bg-lime-500 dark:bg-[#CEFD4A]'} text-black text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-black animate-in zoom-in`}>
                             {unreadCount}
                         </span>
                     )}
@@ -130,7 +140,7 @@ const TopNav: React.FC<TopNavProps> = ({
                         <img
                             src={currentUserEmployee?.avatarUrl || user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`}
                             alt=""
-                            className={`w-9 h-9 rounded-full object-cover border-2 transition-all ${user.isAdmin ? 'border-primary-500 dark:border-primary-400' : 'border-transparent group-hover:border-[#CEFD4A]'}`}
+                            className={`w-9 h-9 rounded-full object-cover border-2 transition-all ${user.isAdmin ? 'border-primary-500 dark:border-primary-400' : `border-transparent group-hover:${accent ? accent.text : 'text-[#CEFD4A]'}`}`}
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`;
@@ -139,10 +149,10 @@ const TopNav: React.FC<TopNavProps> = ({
                                 }
                             }}
                         />
-                        <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 border-2 border-white dark:border-black rounded-full ${user.isAdmin ? 'bg-primary-500 dark:bg-primary-400' : 'bg-lime-400 dark:bg-[#CEFD4A]'}`}></div>
+                        <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 border-2 border-white dark:border-black rounded-full ${user.isAdmin ? 'bg-primary-500 dark:bg-primary-400' : (accent ? `bg-gradient-to-br ${accent.from} ${accent.to}` : 'bg-lime-400 dark:bg-[#CEFD4A]')}`}></div>
                     </div>
                     <div className="flex flex-col items-start">
-                        <span className="text-xs font-bold text-slate-900 dark:text-white leading-none group-hover:text-lime-600 dark:group-hover:text-[#CEFD4A] transition-colors">
+                        <span className={`text-xs font-bold text-slate-900 dark:text-white leading-none group-hover:${accent ? accent.text : 'text-lime-600'} dark:group-hover:${accent ? accent.darkText : 'text-[#CEFD4A]'} transition-colors`}>
                             {user.fullName || user.username}
                         </span>
                         <span className={`text-[9px] font-bold uppercase tracking-wider ${user.isAdmin ? 'text-primary-600 dark:text-primary-400' : 'text-slate-400 dark:text-white/40'}`}>

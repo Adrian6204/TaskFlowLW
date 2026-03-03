@@ -1,7 +1,8 @@
 
 import React, { useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Employee, Task, TaskStatus, Priority } from '../types';
+import { Employee, Task, TaskStatus, Priority, Space } from '../types';
+import { cardAccents } from './WorkspaceHomePage';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
@@ -12,6 +13,7 @@ interface MemberDetailsModalProps {
     member: Employee;
     tasks: Task[];
     onViewTask: (task: Task) => void;
+    currentSpace?: Space;
 }
 
 const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
@@ -20,7 +22,13 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
     member,
     tasks,
     onViewTask,
+    currentSpace,
 }) => {
+    // Theme support
+    const themeIndex = (currentSpace?.theme && !isNaN(parseInt(currentSpace.theme)))
+        ? parseInt(currentSpace.theme) % cardAccents.length
+        : (currentSpace ? 0 : -1);
+    const accent = themeIndex >= 0 ? cardAccents[themeIndex] : null;
     // Filter tasks for this member
     const memberTasks = useMemo(() => {
         return tasks.filter(t => t.assigneeId === member.id);
@@ -76,9 +84,8 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                     <div className="text-center md:text-left flex-1 min-w-0">
                         <h2 className="text-3xl font-black text-slate-900 dark:text-white truncate">{member.name}</h2>
                         <div className="flex flex-col md:flex-row items-center gap-2 mt-1 flex-wrap justify-center md:justify-start">
-                            <span className="px-2 py-0.5 rounded-md bg-lime-500/10 dark:bg-[#CEFD4A]/10 text-lime-600 dark:text-[#CEFD4A] text-[10px] font-black uppercase tracking-wider whitespace-nowrap">
+                            <span className={`px-2 py-0.5 rounded-md ${accent ? `bg-gradient-to-br ${accent.from} ${accent.to} bg-opacity-10 ${accent.text} ${accent.darkText}` : 'bg-lime-500/10 dark:bg-[#CEFD4A]/10 text-lime-600 dark:text-[#CEFD4A]'} text-[10px] font-black uppercase tracking-wider whitespace-nowrap`}>
                                 {member.id === 'emp-1' ? 'Owner' : 'Member'}
-                                {/* Fallback role logic or pass plain role if available in Employee */}
                             </span>
                         </div>
                     </div>
@@ -89,7 +96,7 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                             <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Total</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-2xl font-black text-lime-600 dark:text-[#CEFD4A]">{stats.completed}</p>
+                            <p className={`text-2xl font-black ${accent ? `${accent.text} ${accent.darkText}` : 'text-lime-600 dark:text-[#CEFD4A]'}`}>{stats.completed}</p>
                             <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Done</p>
                         </div>
                         <div className="text-center">
@@ -115,10 +122,10 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                                     <div
                                         key={task.id}
                                         onClick={() => onViewTask(task)}
-                                        className="group flex items-center gap-4 p-4 bg-white dark:bg-black/20 border border-slate-100 dark:border-white/5 hover:border-lime-500/30 dark:hover:border-[#CEFD4A]/30 rounded-[20px] transition-all cursor-pointer shadow-sm hover:shadow-md"
+                                        className={`group flex items-center gap-4 p-4 bg-white dark:bg-black/20 border border-slate-100 dark:border-white/5 hover:border-${accent ? accent.from.split('-')[1] : 'lime'}-500/30 dark:hover:border-${accent ? accent.darkText.split('-')[1].replace('#', '') : '[#CEFD4A]'}/30 rounded-[20px] transition-all cursor-pointer shadow-sm hover:shadow-md`}
                                     >
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${task.status === TaskStatus.DONE
-                                            ? 'bg-lime-500/10 border-lime-500/20 text-lime-600 dark:text-[#CEFD4A]'
+                                            ? `${accent ? `bg-gradient-to-br ${accent.from} ${accent.to} bg-opacity-10 border-${accent.from.split('-')[1]}-500/20 ${accent.text} ${accent.darkText}` : 'bg-lime-500/10 border-lime-500/20 text-lime-600 dark:text-[#CEFD4A]'}`
                                             : task.status === TaskStatus.IN_PROGRESS
                                                 ? 'border-primary-500 text-primary-500'
                                                 : 'border-slate-200 dark:border-white/10 text-transparent'
