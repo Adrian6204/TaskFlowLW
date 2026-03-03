@@ -88,6 +88,7 @@ export interface Task {
   isUnplanned?: boolean;
   updated_at?: string;
   dueTime?: string; // HH:mm
+  recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
 }
 
 export interface Space {

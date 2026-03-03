@@ -174,9 +174,18 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onViewTask }) => {
                     >
                       <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getPriorityColor(task.priority)}`}></div>
                       <span className="truncate flex-1">{task.title}</span>
-                      {task.dueDate && preferences.timeFormat && (
-                        <span className="opacity-0 group-hover/task:opacity-50 text-[9px]">
-                          {preferences.timeFormat === '24h' ? '23:59' : '11pm'}
+                      {task.dueTime && preferences.timeFormat && (
+                        <span className="opacity-0 group-hover/task:opacity-100 text-[9px]">
+                          {preferences.timeFormat === '24h'
+                            ? task.dueTime
+                            : (() => {
+                              const [h, m] = task.dueTime.split(':');
+                              const hours = parseInt(h, 10);
+                              const suffix = hours >= 12 ? 'pm' : 'am';
+                              const hour12 = hours % 12 || 12;
+                              return `${hour12}:${m}${suffix}`;
+                            })()
+                          }
                         </span>
                       )}
                     </button>

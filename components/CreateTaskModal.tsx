@@ -9,6 +9,7 @@ import { ListBulletIcon } from './icons/ListBulletIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { PhotoIcon } from './icons/PhotoIcon';
+import { ClockIcon } from './icons/ClockIcon';
 
 interface CreateTaskModalProps {
     isOpen: boolean;
@@ -44,6 +45,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const [assigneeId, setAssigneeId] = useState<string>(currentUserId);
     const [dueDate, setDueDate] = useState<string>('');
     const [dueTime, setDueTime] = useState<string>('');
+    const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
     const [tags, setTags] = useState<string[]>([]);
     const [subtasks, setSubtasks] = useState<Subtask[]>([]);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
@@ -68,6 +70,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setAssigneeId(taskToEdit.assigneeId || currentUserId);
                 setDueDate(taskToEdit.dueDate || '');
                 setDueTime(taskToEdit.dueTime || '');
+                setRecurrence(taskToEdit.recurrence || 'none');
                 setTags(taskToEdit.tags || []);
                 setSubtasks(taskToEdit.subtasks || []);
             } else {
@@ -81,6 +84,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setAssigneeId(currentUserId);
                 setDueDate('');
                 setDueTime('');
+                setRecurrence('none');
                 setTags([]);
                 setSubtasks([]);
             }
@@ -104,6 +108,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
             assigneeId,
             dueDate,
             dueTime,
+            recurrence,
             tags,
             subtasks,
         };
@@ -275,20 +280,54 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                         </div>
 
                         {/* Due Date */}
-                        <div
-                            className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer relative group"
-                            onClick={() => dateInputRef.current?.showPicker()}
-                        >
-                            <CalendarIcon className="w-4 h-4" />
-                            <input
-                                ref={dateInputRef}
-                                type="date"
-                                value={dueDate}
-                                onChange={(e) => setDueDate(e.target.value)}
-                                className="absolute inset-0 opacity-0 cursor-pointer w-[1px] h-[1px]"
-                                style={{ pointerEvents: 'none' }}
-                            />
-                            <span className="text-sm font-medium">{dueDate || 'Set Date'}</span>
+                        <div className="flex items-center gap-2">
+                            <div
+                                className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer relative group"
+                                onClick={() => dateInputRef.current?.showPicker()}
+                            >
+                                <CalendarIcon className="w-4 h-4" />
+                                <input
+                                    ref={dateInputRef}
+                                    type="date"
+                                    value={dueDate}
+                                    onChange={(e) => {
+                                        setDueDate(e.target.value);
+                                        if (!e.target.value) setDueTime(''); // Clear time if date is cleared
+                                    }}
+                                    className="absolute inset-0 opacity-0 cursor-pointer w-[1px] h-[1px]"
+                                    style={{ pointerEvents: 'none' }}
+                                />
+                                <span className="text-sm font-medium">{dueDate || 'Set Date'}</span>
+                            </div>
+
+                            {/* Due Time (Only visible if Date is set) */}
+                            {dueDate && (
+                                <div
+                                    className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer relative group"
+                                >
+                                    <ClockIcon className="w-4 h-4" />
+                                    <input
+                                        type="time"
+                                        value={dueTime}
+                                        onChange={(e) => setDueTime(e.target.value)}
+                                        className="bg-transparent border-none text-sm font-medium focus:ring-0 p-0 text-slate-700 dark:text-slate-300 cursor-pointer"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Recurrence Selector */}
+                            <div className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors relative">
+                                <select
+                                    value={recurrence}
+                                    onChange={(e) => setRecurrence(e.target.value as 'none' | 'daily' | 'weekly' | 'monthly')}
+                                    className="bg-transparent border-none text-sm font-medium focus:ring-0 p-0 text-neutral-500 cursor-pointer outline-none w-auto pr-6"
+                                >
+                                    <option value="none">Non-Recurring</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
                         </div>
 
                     </div>

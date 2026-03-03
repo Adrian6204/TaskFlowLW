@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Task, Employee, Priority, TaskStatus } from '../types';
 import { useAuth } from '../auth/AuthContext';
 import { XMarkIcon } from './icons/XMarkIcon';
+import { ClockIcon } from './icons/ClockIcon';
 import { FlagIcon } from './icons/FlagIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
 import { TrashIcon } from './icons/TrashIcon';
-
-import { ClockIcon } from './icons/ClockIcon';
+import { ArrowPathIcon } from './icons/ArrowPathIcon';
+import { PlusIcon } from './icons/PlusIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import TagPill from './TagPill';
 import * as dataService from '../services/supabaseService';
@@ -39,8 +40,18 @@ const formatDuration = (ms: number) => {
   return `${hours}h ${minutes}m ${seconds}s`;
 };
 
+const formatTime = (time24?: string) => {
+  if (!time24) return '';
+  const [h, m] = time24.split(':');
+  const hours = parseInt(h, 10);
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+  return `${hour12}:${m} ${suffix}`;
+};
+
 const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, currentUserId, isAdmin }) => {
   const [newComment, setNewComment] = useState('');
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [dummyState, setDummyState] = useState(false); // Used to force re-render for optimistic updates
   const { user } = useAuth();
   const assignee = employees.find(e => e.id === task.assigneeId);
@@ -114,9 +125,30 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
     }
   };
 
+  const handleAddSubtask = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newSubtaskTitle.trim() || !user) return;
+    const title = newSubtaskTitle.trim();
+    setNewSubtaskTitle('');
 
+    const newSubtask = { id: Date.now().toString(), title, isCompleted: false };
+    const currentSubtasks = task.subtasks || [];
+    const updatedSubtasks = [...currentSubtasks, newSubtask];
 
+    task.subtasks = updatedSubtasks; // Optimistic update
+    setDummyState(prev => !prev);    // Force re-render
 
+    try {
+      await dataService.upsertTask({
+        ...task,
+        subtasks: updatedSubtasks
+      });
+    } catch (error) {
+      console.error("Failed to add subtask", error);
+      task.subtasks = currentSubtasks; // Revert locally
+      setDummyState(prev => !prev);
+    }
+  };
 
   const getRelativeTime = (timestamp: string) => {
     const now = new Date();
@@ -240,7 +272,12 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-rose-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-rose-500/5 shadow-sm">
                 <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Deadline</span>
                 <p className="text-sm font-bold text-slate-800 dark:text-white/90">
-                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline'}
+                  {task.dueDate ? (
+                    <>
+                      {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {task.dueTime && <span className="text-slate-500 dark:text-white/50 ml-1.5 font-medium">{formatTime(task.dueTime)}</span>}
+                    </>
+                  ) : 'No deadline'}
                 </p>
               </div>
 
@@ -250,6 +287,16 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                   {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                 </p>
               </div>
+
+              {task.recurrence && task.recurrence !== 'none' && (
+                <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-primary-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-primary-500/5 shadow-sm">
+                  <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Recurrence</span>
+                  <p className="text-sm font-bold text-primary-600 dark:text-primary-400 flex items-center gap-2">
+                    <ArrowPathIcon className="w-4 h-4 stroke-[2px]" />
+                    <span className="uppercase tracking-wide">{task.recurrence}</span>
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Body Sections Grid */}
@@ -266,18 +313,20 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                 </div>
 
                 {/* Subtasks */}
-                {totalSubtasks > 0 && (
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-end ml-2">
-                      <h3 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em]">Subtasks</h3>
-                      <span className="text-[10px] font-bold text-slate-500 font-mono bg-white/50 dark:bg-white/10 px-2 py-0.5 rounded-md border border-white/50 dark:border-white/5">{completedSubtasks}/{totalSubtasks}</span>
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-end ml-2">
+                    <h3 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em]">Subtasks</h3>
+                    <span className="text-[10px] font-bold text-slate-500 font-mono bg-white/50 dark:bg-white/10 px-2 py-0.5 rounded-md border border-white/50 dark:border-white/5">{completedSubtasks}/{totalSubtasks}</span>
+                  </div>
 
+                  {totalSubtasks > 0 && (
                     <div className="w-full bg-white/50 dark:bg-black/20 rounded-full h-1.5 border border-white/40 dark:border-white/5 overflow-hidden">
                       <div className="bg-gradient-to-r from-primary-500 to-primary-500 h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(59,130,246,0.3)]" style={{ width: `${progressPercentage}%` }}></div>
                     </div>
+                  )}
 
-                    <div className="bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 rounded-[28px] p-4 shadow-sm max-h-[160px] overflow-y-auto scrollbar-none">
+                  <div className="bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 rounded-[28px] p-4 shadow-sm max-h-[160px] overflow-y-auto scrollbar-none flex flex-col gap-3">
+                    {totalSubtasks > 0 ? (
                       <ul className="space-y-2">
                         {(task.subtasks || []).map((subtask, index) => (
                           <li key={subtask.id} className="flex items-center bg-white/60 dark:bg-[#1A1A1A] p-3 rounded-[16px] border border-white/60 dark:border-white/5 shadow-sm group">
@@ -315,9 +364,37 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                           </li>
                         ))}
                       </ul>
+                    ) : (
+                      <div className="py-2 flex justify-center opacity-50">
+                        <p className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-[0.2em] italic">No subtasks found</p>
+                      </div>
+                    )}
+
+                    {/* Add Subtask Input */}
+                    <div className="flex items-center gap-2 mt-1 pt-3 border-t border-slate-200 dark:border-white/5 text-slate-500 focus-within:text-slate-900 dark:focus-within:text-white transition-colors">
+                      <button
+                        onClick={() => handleAddSubtask()}
+                        disabled={!newSubtaskTitle.trim()}
+                        className="p-1 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <PlusIcon className="w-4 h-4" />
+                      </button>
+                      <input
+                        type="text"
+                        value={newSubtaskTitle}
+                        onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                        placeholder="Add a new subtask..."
+                        className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full p-0 placeholder:text-slate-400 dark:placeholder:text-white/30 text-slate-800 dark:text-white"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddSubtask();
+                          }
+                        }}
+                      />
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
 

@@ -14,6 +14,8 @@ interface DbTask {
   priority: string;
   tags: string[];
   timer_start_time: string | null;
+  due_time: string | null;
+  recurrence: string | null;
   blocked_by_id: number | null;
   completed_at: string | null;
   list_id?: number | null;
@@ -55,6 +57,8 @@ const mapDbTaskToApp = (dbTask: any): Task => ({
   status: dbTask.status as TaskStatus,
   priority: dbTask.priority as Priority,
   tags: dbTask.tags || [],
+  dueTime: dbTask.due_time,
+  recurrence: dbTask.recurrence || 'none',
   timerStartTime: dbTask.timer_start_time,
   createdAt: dbTask.created_at,
   completedAt: dbTask.completed_at,
@@ -292,6 +296,8 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
     if (task.description !== undefined) payload.description = task.description;
     if (task.assigneeId !== undefined) payload.assignee_id = task.assigneeId;
     if (task.dueDate !== undefined) payload.due_date = task.dueDate;
+    if (task.dueTime !== undefined) payload.due_time = task.dueTime || null;
+    if (task.recurrence !== undefined) payload.recurrence = task.recurrence;
     if (task.status !== undefined) payload.status = task.status;
     if (task.priority !== undefined) payload.priority = task.priority;
     if (task.tags !== undefined) payload.tags = task.tags;
@@ -314,6 +320,45 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
       .single();
 
     if (error) throw error;
+
+    // Handle recurring tasks spawning when marked DONE
+    if (
+      task.status === TaskStatus.DONE &&
+      data.recurrence &&
+      data.recurrence !== 'none'
+    ) {
+      // Check if we already spanned a recurring task for this date to avoid duplicates
+      // (simplification: we just create a new one for the next interval)
+      const currentDueDate = new Date(data.due_date);
+      const nextDueDate = new Date(currentDueDate);
+
+      if (data.recurrence === 'daily') {
+        nextDueDate.setDate(nextDueDate.getDate() + 1);
+      } else if (data.recurrence === 'weekly') {
+        nextDueDate.setDate(nextDueDate.getDate() + 7);
+      } else if (data.recurrence === 'monthly') {
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+      }
+
+      const newTaskPayload: DbTask = {
+        space_id: data.space_id,
+        title: data.title,
+        description: data.description || '',
+        assignee_id: data.assignee_id || '',
+        due_date: nextDueDate.toISOString(),
+        due_time: data.due_time || null,
+        status: TaskStatus.TODO,
+        priority: data.priority,
+        tags: data.tags || [],
+        timer_start_time: null,
+        recurrence: data.recurrence,
+        blocked_by_id: data.blocked_by_id || null,
+        completed_at: null,
+        list_id: data.list_id || null,
+      };
+
+      await supabase.from('tasks').insert(newTaskPayload);
+    }
 
     // Handle Subtasks for Update
     if (task.subtasks) {
@@ -343,6 +388,8 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
       description: task.description || '',
       assignee_id: task.assigneeId || '',
       due_date: task.dueDate || new Date().toISOString(),
+      due_time: task.dueTime || null,
+      recurrence: task.recurrence || 'none',
       status: task.status || 'To Do',
       priority: task.priority || 'Medium',
       tags: task.tags || [],

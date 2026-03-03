@@ -7,6 +7,7 @@ import { ChatBubbleIcon } from './icons/ChatBubbleIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
 import { ListBulletIcon } from './icons/ListBulletIcon';
 import { ClockIcon } from './icons/ClockIcon';
+import { ArrowPathIcon } from './icons/ArrowPathIcon';
 
 import TagPill from './TagPill';
 
@@ -27,6 +28,15 @@ const priorityConfig = {
   [Priority.HIGH]: { glow: 'bg-orange-500 shadow-orange-500/50', border: 'border-orange-500/20' },
   [Priority.MEDIUM]: { glow: 'bg-primary-500 shadow-primary-500/50', border: 'border-primary-500/20' },
   [Priority.LOW]: { glow: 'bg-slate-200 dark:bg-white/20 shadow-white/10', border: 'border-black/5 dark:border-white/5' },
+};
+
+const formatTime = (time24?: string) => {
+  if (!time24) return '';
+  const [h, m] = time24.split(':');
+  const hours = parseInt(h, 10);
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+  return `${hour12}:${m} ${suffix}`;
 };
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, currentUserId, isAdmin }) => {
@@ -113,6 +123,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
           <div className="flex items-center gap-2">
             <span className={`text-[10px] font-black font-mono tracking-tight uppercase ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-white/30'}`}>
               {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              {task.dueTime && ` • ${formatTime(task.dueTime)}`}
             </span>
             {isOverdue && (
               <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">
@@ -125,8 +136,15 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
         <div className="flex items-center gap-4">
           <div className={`w-1.5 h-1.5 rounded-full ${priorityConfig[task.priority].glow} shadow-[0_0_8px]`}></div>
 
-          {(totalSubtasks > 0 || task.comments.length > 0) && (
+          {(totalSubtasks > 0 || task.comments.length > 0 || (task.recurrence && task.recurrence !== 'none')) && (
             <div className="h-4 w-px bg-white/5"></div>
+          )}
+
+          {task.recurrence && task.recurrence !== 'none' && (
+            <div className="flex items-center gap-1 bg-primary-500/10 text-primary-500 px-1.5 py-0.5 rounded" title={`Repeats ${task.recurrence}`}>
+              <ArrowPathIcon className="w-3 h-3 stroke-[2px]" />
+              <span className="text-[9px] font-bold uppercase tracking-wider">{task.recurrence}</span>
+            </div>
           )}
 
           {totalSubtasks > 0 && (
