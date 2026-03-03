@@ -72,6 +72,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const [allUserTasks, setAllUserTasks] = useState<Task[]>([]); // tasks across all user's spaces
     const [memberships, setMemberships] = useState<{ space_id: string; user_id: string; role: string }[]>([]);
     const [lists, setLists] = useState<List[]>([]);
+    const [isDataLoaded, setIsDataLoaded] = useState(false);
 
     // ─── Active Space ─────────────────────────────────────────────────────
     // Derived from the URL: /app/workspace/:spaceSlug/view
@@ -132,6 +133,8 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
 
     // ─── Initial Redirect & Access Control ──────────────────────────────────
     useEffect(() => {
+        if (!isDataLoaded) return;
+
         const path = location.pathname;
 
         // Root redirects
@@ -156,7 +159,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
         if (!activeSpaceId && path.split('/').length > 2 && path !== '/app/home' && path !== '/app/user-management') {
             navigate('/app/home', { replace: true });
         }
-    }, [location.pathname, navigate, isSuperAdmin, spaces, activeSpaceId, currentView, memberships, user.employeeId]);
+    }, [location.pathname, navigate, isSuperAdmin, spaces, activeSpaceId, currentView, memberships, user.employeeId, isDataLoaded]);
 
     // ─── Data Loading ─────────────────────────────────────────────────────
     useEffect(() => {
@@ -191,8 +194,10 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                 // Fetch all tasks for all user's spaces
                 await refreshAllUserTasks(spcs);
             }
+            setIsDataLoaded(true);
         } catch (err) {
             console.error('Failed to load data', err);
+            setIsDataLoaded(true);
         }
     };
 
