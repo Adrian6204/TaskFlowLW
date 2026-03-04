@@ -5,7 +5,6 @@ import { User, Employee, Position } from '../types';
 import { UserIcon } from './icons/UserIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
-import { BellIcon } from './icons/BellIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 import { SunIcon } from './icons/SunIcon';
@@ -119,10 +118,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
     const [theme, toggleTheme, colorScheme, setColorScheme] = useTheme();
     const [preferences, setPreferences] = usePreferences();
 
-    // Notifications State
-    const [emailNotifs, setEmailNotifs] = useState(true);
-    const [pushNotifs, setPushNotifs] = useState(true);
-    const [mentionNotifs, setMentionNotifs] = useState(true);
+    // Notifications State - REMOVED
     const [isUploading, setIsUploading] = useState(false);
 
     // Password State
@@ -302,7 +298,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
         { id: 'security', label: 'Security', icon: LockClosedIcon },
         { id: 'preferences', label: 'Preferences', icon: Cog6ToothIcon },
         { id: 'workflow', label: 'Workflow', icon: SunIcon }, // Using SunIcon as placeholder for workflow/preferences
-        { id: 'notifications', label: 'Notifications', icon: BellIcon },
     ];
 
     const colorSchemes: ColorScheme[] = ['indigo', 'emerald', 'rose', 'amber', 'violet', 'sky'];
@@ -780,56 +775,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                             </div>
                         )}
 
-                        {activeTab === 'notifications' && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-500/20 rounded-2xl p-4 flex gap-3">
-                                    <BellIcon className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-                                    <p className="text-sm font-medium text-primary-900 dark:text-primary-200">
-                                        Notification settings are currently simulated. Changes will be saved to your local session instantly.
-                                    </p>
-                                </div>
-
-                                <section>
-                                    <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Email Alerts</h4>
-                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                                        <div className="flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Daily Digest</p>
-                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">A summary of your tasks at 9:00 AM.</p>
-                                            </div>
-                                            <ToggleSwitch enabled={emailNotifs} onChange={setEmailNotifs} />
-                                        </div>
-                                        <div className="flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Task Assignments</p>
-                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">When someone assigns a new task to you.</p>
-                                            </div>
-                                            <ToggleSwitch enabled={true} onChange={() => { }} />
-                                        </div>
-                                    </div>
-                                </section>
-
-                                <section>
-                                    <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Push Notifications</h4>
-                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                                        <div className="flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Due Date Reminders</p>
-                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">1 hour before a task is due.</p>
-                                            </div>
-                                            <ToggleSwitch enabled={pushNotifs} onChange={setPushNotifs} />
-                                        </div>
-                                        <div className="flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Mentions & Comments</p>
-                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">When someone mentions you in a task.</p>
-                                            </div>
-                                            <ToggleSwitch enabled={mentionNotifs} onChange={setMentionNotifs} />
-                                        </div>
-                                    </div>
-                                </section>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

@@ -730,27 +730,7 @@ export const syncScratchpad = async (userId: string, content: string) => {
   if (error) throw error;
 };
 
-// --- Notifications ---
-
-export const getNotifications = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('notifications')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data;
-};
-
-export const markNotificationAsRead = async (id: string) => {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('id', id);
-
-  if (error) throw error;
-};
+// --- Notifications - REMOVED
 
 // --- List Services ---
 

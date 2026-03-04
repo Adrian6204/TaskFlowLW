@@ -3,12 +3,9 @@ import { Link } from 'react-router-dom';
 import { User, Employee } from '../types';
 import { Logo } from './Logo';
 import { SearchIcon } from './icons/SearchIcon';
-import { BellIcon } from './icons/BellIcon'; // Assuming we might want this, otherwise omit
 import { MoonIcon } from './icons/MoonIcon';
 import { SunIcon } from './icons/SunIcon';
 import { useTheme } from '../context/ThemeContext';
-import { useAppNotifications } from '../context/AppNotificationContext';
-import NotificationPanel from './NotificationPanel';
 import { Space } from '../types';
 import { cardAccents } from './WorkspaceHomePage';
 
@@ -44,8 +41,6 @@ const TopNav: React.FC<TopNavProps> = ({
     currentSpace
 }) => {
     const { theme, toggleTheme } = useTheme();
-    const { unreadCount } = useAppNotifications();
-    const [isNotificationPanelOpen, setNotificationPanelOpen] = React.useState(false);
 
     // Theme support
     const themeIndex = (currentSpace?.theme && !isNaN(parseInt(currentSpace.theme)))
@@ -118,18 +113,6 @@ const TopNav: React.FC<TopNavProps> = ({
                     {theme === 'light' ? <MoonIcon className="w-5 h-5" /> : <SunIcon className="w-5 h-5" />}
                 </button>
 
-                {/* Notifications */}
-                <button
-                    onClick={() => setNotificationPanelOpen(true)}
-                    className={`relative p-3 bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-full text-slate-500 dark:text-white/60 hover:${accent ? accent.text : 'text-lime-600'} dark:hover:${accent ? accent.darkText : 'text-[#CEFD4A]'} hover:bg-white dark:hover:bg-black/60 transition-all`}
-                >
-                    <BellIcon className="w-5 h-5" />
-                    {unreadCount > 0 && (
-                        <span className={`absolute top-0 right-0 w-4 h-4 ${accent ? `bg-gradient-to-br ${accent.from} ${accent.to}` : 'bg-lime-500 dark:bg-[#CEFD4A]'} text-black text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-black animate-in zoom-in`}>
-                            {unreadCount}
-                        </span>
-                    )}
-                </button>
 
                 {/* Profile */}
                 <button
@@ -161,10 +144,6 @@ const TopNav: React.FC<TopNavProps> = ({
                     </div>
                 </button>
 
-                <NotificationPanel
-                    isOpen={isNotificationPanelOpen}
-                    onClose={() => setNotificationPanelOpen(false)}
-                />
             </div >
         </header >
     );

@@ -13,21 +13,30 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'sans-serif'],
+            sans: ['Poppins', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'sans-serif'],
           },
           colors: {
+            lifewood: {
+              paper: '#f5eedb',
+              white: '#ffffff',
+              seasalt: '#F9F7F7',
+              darkSerpent: '#133020',
+              castleton: '#046241',
+              saffaron: '#FFB347',
+              earthYellow: '#FFC370',
+            },
             primary: {
-              50: '#fafafa',
-              100: '#f5f5f5',
-              200: '#e5e5e5',
-              300: '#d4d4d4',
-              400: '#a3a3a3',
-              500: '#737373',
-              600: '#525252',
-              700: '#404040',
-              800: '#262626',
-              900: '#171717',
-              950: '#0a0a0a',
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#046241', // Castleton Green
+              600: '#133020', // Dark Serpent
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              950: '#052e16',
             }
           },
           animation: {
@@ -97,51 +106,73 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
     rel="stylesheet">
   <style>
     :root {
-      --primary-orange: #F97316;
-      --primary-pink: #EC4899;
-      --primary-blue: #3B82F6;
-      --primary-purple: #8B5CF6;
+      --primary-orange: #FFB347;
+      /* Saffaron */
+      --primary-pink: #FFC370;
+      /* Earth Yellow */
+      --primary-blue: #046241;
+      /* Castleton Green */
+      --primary-purple: #133020;
+      /* Dark Serpent */
 
-      /* Light Theme (Default) */
-      --bg-app: #f8fafc;
-      --surface-glass: rgba(255, 255, 255, 0.4);
-      --border-glass: rgba(0, 0, 0, 0.05);
-      --text-primary: #0f172a;
-      --text-secondary: #64748b;
+      /* Light Theme (Lifewood Paper base) */
+      --bg-app: #f5eedb;
+      --surface-glass: rgba(255, 255, 255, 0.5);
+      --border-glass: rgba(19, 48, 32, 0.06);
+      --text-primary: #133020;
+      --text-secondary: rgba(19, 48, 32, 0.6);
 
-      /* Mesh Colors Light */
-      --mesh-1: hsla(210, 100%, 95%, 1);
-      --mesh-2: hsla(220, 100%, 90%, 1);
-      --mesh-3: hsla(330, 100%, 95%, 1);
-      --mesh-4: hsla(25, 100%, 90%, 1);
-      --mesh-5: hsla(200, 100%, 95%, 1);
-      --mesh-6: hsla(180, 100%, 90%, 1);
+      /* Mesh Colors Light - Lifewood warm + earthy nature hues */
+      --mesh-1: rgba(255, 255, 255, 1);
+      --mesh-2: rgba(255, 179, 71, 0.3);
+      /* Saffaron */
+      --mesh-3: rgba(4, 98, 65, 0.15);
+      /* Castleton Green */
+      --mesh-4: rgba(249, 247, 247, 1);
+      /* Sea Salt */
+      --mesh-5: rgba(255, 195, 112, 0.25);
+      /* Earth Yellow */
+      --mesh-6: rgba(245, 238, 219, 1);
+      /* Paper */
     }
 
     .dark {
-      --bg-app: #000000;
-      --surface-glass: rgba(255, 255, 255, 0.05);
-      --border-glass: rgba(255, 255, 255, 0.1);
-      --text-primary: #FFFFFF;
-      --text-secondary: rgba(255, 255, 255, 0.5);
+      --bg-app: #133020;
+      /* Dark Serpent */
+      --surface-glass: rgba(255, 255, 255, 0.04);
+      --border-glass: rgba(255, 255, 255, 0.06);
+      --text-primary: #f5eedb;
+      /* Paper */
+      --text-secondary: rgba(245, 238, 219, 0.6);
 
-      /* Mesh Colors Dark */
-      --mesh-1: hsla(253, 16%, 7%, 1);
-      --mesh-2: hsla(225, 39%, 30%, 1);
-      --mesh-3: hsla(339, 49%, 30%, 1);
-      --mesh-4: hsla(27, 96%, 20%, 1);
-      --mesh-5: hsla(222, 47%, 11%, 1);
-      --mesh-6: hsla(220, 13%, 10%, 1);
+      /* Mesh Colors Dark — Deep greens and warm glows */
+      --mesh-1: rgba(19, 48, 32, 1);
+      /* Dark Serpent */
+      --mesh-2: rgba(4, 98, 65, 0.6);
+      /* Castleton */
+      --mesh-3: rgba(255, 179, 71, 0.1);
+      /* Saffaron accent */
+      --mesh-4: rgba(15, 38, 26, 1);
+      /* Darker Serpent */
+      --mesh-5: rgba(4, 98, 65, 0.4);
+      /* Castleton */
+      --mesh-6: rgba(19, 48, 32, 1);
+    }
+
+    html,
+    body,
+    #root {
+      height: 100%;
     }
 
     body {
       background-color: var(--bg-app);
       color: var(--text-primary);
-      font-family: 'Inter', sans-serif;
+      font-family: 'Poppins', sans-serif;
       margin: 0;
       overflow-x: hidden;
       transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
@@ -395,6 +426,56 @@
       }
     }
 
+    /* ── Semantic Theme Utilities ──────────────────────────────────────
+       Use these classes anywhere instead of writing both light + dark:
+         .bg-surface     → card/panel background
+         .bg-surface-2   → slightly elevated surface
+         .text-primary   → main body text
+         .text-muted     → secondary / label text
+         .border-subtle  → hairline dividers
+    ──────────────────────────────────────────────────────────────────── */
+
+    .bg-surface {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+    }
+
+    .dark .bg-surface {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .bg-surface-2 {
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .dark .bg-surface-2 {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .text-primary {
+      color: #0f172a;
+    }
+
+    .dark .text-primary {
+      color: #ffffff;
+    }
+
+    .text-muted {
+      color: #64748b;
+    }
+
+    .dark .text-muted {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .border-subtle {
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .dark .border-subtle {
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
     /* Radial vignette utility */
     .bg-radial-vignette {
       background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.4) 100%);
@@ -431,7 +512,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-DHlRpmea.js"></script>
+  <script type="module" crossorigin src="/assets/index-BMV34W5P.js"></script>
 </head>
 
 <body class="bg-slate-50 dark:bg-black text-slate-900 dark:text-white antialiased transition-colors duration-500">
