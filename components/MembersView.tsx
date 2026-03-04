@@ -32,7 +32,7 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
   console.log('Is Admin:', isAdmin);
 
   const getTaskStats = (employeeId: string) => {
-    const employeeTasks = tasks.filter(t => t.assigneeId === employeeId);
+    const employeeTasks = tasks.filter(t => t.assigneeIds?.includes(employeeId) || t.assigneeId === employeeId);
     return {
       total: employeeTasks.length,
       completed: employeeTasks.filter(t => t.status === TaskStatus.DONE).length,

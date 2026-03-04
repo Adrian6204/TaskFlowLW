@@ -72,7 +72,8 @@ export interface Task {
   spaceId: string; // Link to specific space
   title: string;
   description: string;
-  assigneeId: string;
+  assigneeId: string; // Maintain for backward compatibility
+  assigneeIds?: string[]; // New array for multiple assignees
   dueDate: string; // YYYY-MM-DD
   status: TaskStatus;
   priority: Priority;

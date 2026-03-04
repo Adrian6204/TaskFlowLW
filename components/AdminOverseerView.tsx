@@ -84,7 +84,7 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
 
             const membersWithTasks: MemberWithTasks[] = spaceMembers.map(employee => ({
                 employee,
-                tasks: spaceTasks.filter(t => t.assigneeId === employee.id),
+                tasks: spaceTasks.filter(t => t.assigneeIds?.includes(employee.id) || t.assigneeId === employee.id),
             }));
 
             // Only return space if it has tasks or if member names match search

@@ -22,6 +22,7 @@ interface CreateTaskModalProps {
     lists: List[];
     currentUserId: string;
     isAdmin?: boolean;
+    isSuperAdmin?: boolean;
 }
 
 const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
@@ -34,6 +35,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     spaces,
     lists,
     currentUserId,
+    isSuperAdmin,
 }) => {
     const [show, setShow] = useState(false);
     const [title, setTitle] = useState('');
@@ -42,7 +44,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const [listId, setListId] = useState<number | null>(null);
     const [status, setStatus] = useState<TaskStatus>(TaskStatus.TODO);
     const [priority, setPriority] = useState<Priority>(Priority.MEDIUM);
-    const [assigneeId, setAssigneeId] = useState<string>(currentUserId);
+    const [assigneeIds, setAssigneeIds] = useState<string[]>([currentUserId]);
     const [dueDate, setDueDate] = useState<string>('');
     const [dueTime, setDueTime] = useState<string>('');
     const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
@@ -67,7 +69,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setListId(taskToEdit.listId || null);
                 setStatus(taskToEdit.status || TaskStatus.TODO);
                 setPriority(taskToEdit.priority || Priority.MEDIUM);
-                setAssigneeId(taskToEdit.assigneeId || currentUserId);
+                setAssigneeIds(taskToEdit.assigneeIds || (taskToEdit.assigneeId ? [taskToEdit.assigneeId] : [currentUserId]));
                 setDueDate(taskToEdit.dueDate || '');
                 setDueTime(taskToEdit.dueTime || '');
                 setRecurrence(taskToEdit.recurrence || 'none');
@@ -81,7 +83,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setListId(null);
                 setStatus(TaskStatus.TODO);
                 setPriority(Priority.MEDIUM);
-                setAssigneeId(currentUserId);
+                setAssigneeIds([currentUserId]);
                 setDueDate('');
                 setDueTime('');
                 setRecurrence('none');
@@ -105,7 +107,8 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
             description,
             status,
             priority,
-            assigneeId,
+            assigneeId: assigneeIds[0] || '',
+            assigneeIds,
             dueDate,
             dueTime,
             recurrence,
@@ -127,7 +130,23 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const currentSpace = spaces.find((s) => s.id === spaceId);
     const spaceLists = lists.filter((l) => l.spaceId === spaceId);
     const currentList = lists.find((l) => l.id === listId);
-    const assignee = employees.find((e) => e.id === assigneeId);
+
+    // UI Helpers for multiple assignees
+    const selectedAssignees = employees.filter((e) => assigneeIds.includes(e.id));
+
+    const handleAssigneeToggle = (id: string) => {
+        if (!isSuperAdmin) {
+            setAssigneeIds([id]);
+            setAssigneeSelectorOpen(false);
+            return;
+        }
+
+        if (assigneeIds.includes(id)) {
+            setAssigneeIds(prev => prev.filter(aId => aId !== id));
+        } else {
+            setAssigneeIds(prev => [...prev, id]);
+        }
+    };
 
     return (
         <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 transition-all duration-300 ${show ? 'visible' : 'invisible'}`}>
@@ -232,21 +251,29 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                                 className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors"
                             >
                                 <UserIcon className="w-4 h-4 text-neutral-400" />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{assignee?.name || 'Unassigned'}</span>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    {selectedAssignees.length === 0 ? 'Unassigned' : selectedAssignees.length === 1 ? selectedAssignees[0].name : `${selectedAssignees.length} Assignees`}
+                                </span>
                             </button>
                             {/* Simplified Assignee Dropdown */}
                             {isAssigneeSelectorOpen && (
                                 <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-[#2A2A2D] border border-neutral-200 dark:border-white/10 rounded-xl shadow-xl z-50 py-1 max-h-48 overflow-y-auto">
-                                    {employees.map(e => (
-                                        <button
-                                            key={e.id}
-                                            onClick={() => { setAssigneeId(e.id); setAssigneeSelectorOpen(false); }}
-                                            className="w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-white/5 text-sm text-slate-700 dark:text-slate-200 flex items-center gap-2"
-                                        >
-                                            <img src={e.avatarUrl} className="w-5 h-5 rounded-full" />
-                                            {e.name}
-                                        </button>
-                                    ))}
+                                    {employees.map(e => {
+                                        const isSelected = assigneeIds.includes(e.id);
+                                        return (
+                                            <button
+                                                key={e.id}
+                                                onClick={() => handleAssigneeToggle(e.id)}
+                                                className={`w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-white/5 text-sm flex items-center justify-between gap-2 ${isSelected ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10' : 'text-slate-700 dark:text-slate-200'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <img src={e.avatarUrl} className="w-5 h-5 rounded-full" />
+                                                    {e.name}
+                                                </div>
+                                                {isSelected && <span className="text-xs">✓</span>}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

@@ -125,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           const todayStr = now.toISOString().split('T')[0];
           const weekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-          const myTasks = allUserTasks.filter(t => t.assigneeId === user.employeeId && t.status !== TaskStatus.DONE);
+          const myTasks = allUserTasks.filter(t => (t.assigneeIds?.includes(user.employeeId) || t.assigneeId === user.employeeId) && t.status !== TaskStatus.DONE);
           const overdue = myTasks.filter(t => t.dueDate && t.dueDate < todayStr);
           const dueToday = myTasks.filter(t => t.dueDate === todayStr);
           const inProg = myTasks.filter(t => t.status === TaskStatus.IN_PROGRESS);

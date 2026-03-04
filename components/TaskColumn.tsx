@@ -82,7 +82,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({ status, tasks, allTasks, employ
             key={task.id}
             task={task}
             allTasks={allTasks}
-            employee={employees.find(e => e.id === task.assigneeId)}
+            assignees={employees.filter(e => task.assigneeIds?.includes(e.id) || task.assigneeId === e.id)}
             onEditTask={onEditTask}
             onDeleteTask={onDeleteTask}
             onUpdateTaskStatus={onUpdateTaskStatus}

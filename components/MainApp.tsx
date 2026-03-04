@@ -465,7 +465,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                 {/* Task Board */}
                                 {isOnWorkspace && currentView === 'board' && (
                                     <TaskBoard
-                                        tasks={filteredTasks.filter((t: Task) => t.assigneeId === user.employeeId)}
+                                        tasks={filteredTasks.filter((t: Task) => t.assigneeIds?.includes(user.employeeId) || t.assigneeId === user.employeeId)}
                                         allTasks={tasks}
                                         employees={spaceMembers}
                                         onUpdateTaskStatus={handleUpdateTaskStatus}
@@ -624,6 +624,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         lists={lists}
                         currentUserId={user.employeeId}
                         isAdmin={user.isAdmin}
+                        isSuperAdmin={isSuperAdmin}
                     />
                 )}
 

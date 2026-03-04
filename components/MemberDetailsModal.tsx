@@ -31,7 +31,7 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
     const accent = themeIndex >= 0 ? cardAccents[themeIndex] : null;
     // Filter tasks for this member
     const memberTasks = useMemo(() => {
-        return tasks.filter(t => t.assigneeId === member.id);
+        return tasks.filter(t => t.assigneeIds?.includes(member.id) || t.assigneeId === member.id);
     }, [tasks, member.id]);
 
     // Calculate stats

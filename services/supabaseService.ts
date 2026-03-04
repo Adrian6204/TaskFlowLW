@@ -8,7 +8,8 @@ interface DbTask {
   space_id: string;
   title: string;
   description: string;
-  assignee_id: string;
+  assignee_id: string; // keep for backward compatibility
+  assignee_ids?: string[];
   due_date: string;
   status: string;
   priority: string;
@@ -53,6 +54,7 @@ const mapDbTaskToApp = (dbTask: any): Task => ({
   title: dbTask.title,
   description: dbTask.description || '',
   assigneeId: dbTask.assignee_id,
+  assigneeIds: dbTask.assignee_ids || (dbTask.assignee_id ? [dbTask.assignee_id] : []),
   dueDate: dbTask.due_date,
   status: dbTask.status as TaskStatus,
   priority: dbTask.priority as Priority,
@@ -295,6 +297,7 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
     if (task.title !== undefined) payload.title = task.title;
     if (task.description !== undefined) payload.description = task.description;
     if (task.assigneeId !== undefined) payload.assignee_id = task.assigneeId;
+    if (task.assigneeIds !== undefined) payload.assignee_ids = task.assigneeIds;
     if (task.dueDate !== undefined) payload.due_date = task.dueDate;
     if (task.dueTime !== undefined) payload.due_time = task.dueTime || null;
     if (task.recurrence !== undefined) payload.recurrence = task.recurrence;
@@ -345,6 +348,7 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
         title: data.title,
         description: data.description || '',
         assignee_id: data.assignee_id || '',
+        assignee_ids: data.assignee_ids || (data.assignee_id ? [data.assignee_id] : []),
         due_date: nextDueDate.toISOString(),
         due_time: data.due_time || null,
         status: TaskStatus.TODO,
@@ -386,7 +390,8 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
       space_id: task.spaceId,
       title: task.title,
       description: task.description || '',
-      assignee_id: task.assigneeId || '',
+      assignee_id: task.assigneeId || (task.assigneeIds?.[0] || ''),
+      assignee_ids: task.assigneeIds || (task.assigneeId ? [task.assigneeId] : []),
       due_date: task.dueDate || new Date().toISOString(),
       due_time: task.dueTime || null,
       recurrence: task.recurrence || 'none',

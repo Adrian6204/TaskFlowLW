@@ -17,7 +17,7 @@ import TagPill from './TagPill';
 interface TaskCardProps {
   task: Task;
   allTasks: Task[];
-  employee?: Employee;
+  assignees?: Employee[];
   onEditTask: (task: Task) => void;
   onDeleteTask?: (taskId: number) => void;
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
@@ -42,7 +42,7 @@ const formatTime = (time24?: string) => {
   return `${hour12}:${m} ${suffix}`;
 };
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, currentUserId, isAdmin }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, currentUserId, isAdmin }) => {
   // Use the new centralized helper for overdue check
   const isOverdue = isTaskOverdue(task);
   const [isDragging, setIsDragging] = useState(false);
@@ -50,8 +50,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Permission Logic
-  const canEdit = isAdmin || (currentUserId && task.assigneeId === currentUserId);
-  const canDelete = isAdmin || (currentUserId && task.assigneeId === currentUserId);
+  const canEdit = isAdmin || (currentUserId && (task.assigneeIds?.includes(currentUserId) || task.assigneeId === currentUserId));
+  const canDelete = isAdmin || (currentUserId && (task.assigneeIds?.includes(currentUserId) || task.assigneeId === currentUserId));
 
   const isBlocked = !!task.blockedById;
   const completedSubtasks = (task.subtasks || []).filter(st => st.isCompleted).length;
@@ -127,10 +127,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, employee, onEditTas
 
       <div className="flex items-center justify-between pt-4 border-t border-black/5 dark:border-white/5">
         <div className="flex items-center gap-3">
-          {employee ? (
-            <div className="relative">
-              <img src={employee.avatarUrl} alt={employee.name} className="w-7 h-7 rounded-lg object-cover border border-white/10" title={employee.name} />
-              <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full border-2 border-[#1E1E1E]"></div>
+          {assignees.length > 0 ? (
+            <div className="flex -space-x-2 overflow-hidden items-center">
+              {assignees.map((emp, idx) => (
+                <div key={emp.id} className="relative inline-block" style={{ zIndex: assignees.length - idx }}>
+                  <img src={emp.avatarUrl} alt={emp.name} className="w-7 h-7 rounded-lg object-cover border-2 border-white dark:border-[#1E1E1E]" title={emp.name} />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full border border-white dark:border-[#1E1E1E]"></div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="w-7 h-7 rounded-lg border border-dashed border-white/20 bg-white/5"></div>

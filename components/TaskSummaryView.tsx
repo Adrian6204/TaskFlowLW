@@ -9,7 +9,7 @@ interface TaskSummaryViewProps {
 const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees }) => {
     // Group tasks by assigneeId, excluding completed tasks
     const tasksByUser = employees.map(emp => {
-        const activeTasks = tasks.filter(t => t.assigneeId === emp.id && t.status !== TaskStatus.DONE);
+        const activeTasks = tasks.filter(t => (t.assigneeIds?.includes(emp.id) || t.assigneeId === emp.id) && t.status !== TaskStatus.DONE);
         return {
             employee: emp,
             userTasks: activeTasks

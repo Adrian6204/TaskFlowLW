@@ -55,10 +55,10 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [dummyState, setDummyState] = useState(false); // Used to force re-render for optimistic updates
   const { user } = useAuth();
-  const assignee = employees.find(e => e.id === task.assigneeId);
+  const assignees = employees.filter(e => task.assigneeIds?.includes(e.id) || task.assigneeId === e.id);
   const currentUser = employees.find(e => e.id === user?.employeeId);
   const blockingTask = task.blockedById ? allTasks.find(t => t.id === task.blockedById) : null;
-  const canDelete = isAdmin || (currentUserId && task.assigneeId === currentUserId);
+  const canDelete = isAdmin || (currentUserId && (task.assigneeIds?.includes(currentUserId) || task.assigneeId === currentUserId));
 
   const [show, setShow] = useState(false);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
@@ -255,17 +255,25 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
             {/* Grid Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-primary-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-primary-500/5 shadow-sm">
-                <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Assignee</span>
+                <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">
+                  {assignees.length > 1 ? 'Assignees' : 'Assignee'}
+                </span>
                 <div className="flex items-center gap-3">
-                  {assignee ? (
-                    <img src={assignee.avatarUrl} alt={assignee.name} className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm" />
+                  {assignees.length > 0 ? (
+                    <div className="flex -space-x-3 overflow-hidden items-center">
+                      {assignees.map((emp, idx) => (
+                        <div key={emp.id} className="relative inline-block" style={{ zIndex: assignees.length - idx }}>
+                          <img src={emp.avatarUrl} alt={emp.name} className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-[#0A0A0A] shadow-sm" title={emp.name} />
+                        </div>
+                      ))}
+                    </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10 border-2 border-white shadow-sm flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10 border-2 border-white dark:border-[#0A0A0A] shadow-sm flex items-center justify-center relative z-10">
                       <span className="text-[10px] font-bold text-slate-400">-</span>
                     </div>
                   )}
                   <span className="text-sm font-bold text-slate-800 dark:text-white/90 truncate">
-                    {assignee?.name || 'Unassigned'}
+                    {assignees.length === 0 ? 'Unassigned' : assignees.length === 1 ? assignees[0].name : `${assignees.length} Assignees`}
                   </span>
                 </div>
               </div>
