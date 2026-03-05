@@ -104,8 +104,11 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
     }
   };
 
-  // Get user's tasks (Team tasks)
-  const myTasks = tasks.filter(t => t.assigneeIds?.includes(user.employeeId) || t.assigneeId === user.employeeId);
+  // Get user's tasks (Team tasks) for the current workspace only
+  const myTasks = tasks.filter(t =>
+    (t.assigneeIds?.includes(user.employeeId) || t.assigneeId === user.employeeId) &&
+    t.spaceId === currentSpace?.id
+  );
   const todayTasks = myTasks.filter(t => {
     // Show if not done, OR if done today (to see progress)
     const isIncomplete = t.status !== TaskStatus.DONE;
