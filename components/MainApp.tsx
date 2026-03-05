@@ -14,6 +14,7 @@ import AdminDashboard from './AdminDashboard';
 import AdminOverseerView from './AdminOverseerView';
 import MembersView from './MembersView';
 import UserManagementView from './UserManagementView';
+import OverdueTasksModal from './OverdueTasksModal';
 
 // Modals
 import TaskDetailsModal from './TaskDetailsModal';
@@ -104,6 +105,8 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const [isTaskDetailsModalOpen, setTaskDetailsModalOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [taskToEdit, setTaskToEdit] = useState<Task | Partial<Task> | null>(null);
+    const [isOverdueModalOpen, setIsOverdueModalOpen] = useState(false);
+    const [returnToOverdueModal, setReturnToOverdueModal] = useState(false);
 
     // Custom Hooks
     const { tasks: dailyTasks } = useDailyTasks();
@@ -506,6 +509,15 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                         employees={spaceMembers}
                                         activityLogs={[]}
                                         isAdmin={isSuperAdmin}
+                                        onViewTask={(t) => { setSelectedTask(t); setTaskDetailsModalOpen(true); }}
+                                        onViewOverdueTask={(t) => {
+                                            setSelectedTask(t);
+                                            setTaskDetailsModalOpen(true);
+                                            setIsOverdueModalOpen(false);
+                                            setReturnToOverdueModal(true);
+                                        }}
+                                        isOverdueModalOpen={isOverdueModalOpen}
+                                        setIsOverdueModalOpen={setIsOverdueModalOpen}
                                     />
                                 )}
 
@@ -601,7 +613,13 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                 {isTaskDetailsModalOpen && selectedTask && (
                     <TaskDetailsModal
                         isOpen={isTaskDetailsModalOpen}
-                        onClose={() => setTaskDetailsModalOpen(false)}
+                        onClose={() => {
+                            setTaskDetailsModalOpen(false);
+                            if (returnToOverdueModal) {
+                                setIsOverdueModalOpen(true);
+                                setReturnToOverdueModal(false);
+                            }
+                        }}
                         task={selectedTask}
                         employees={employees}
                         allTasks={tasks}

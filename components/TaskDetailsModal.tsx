@@ -11,6 +11,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import TagPill from './TagPill';
 import * as dataService from '../services/supabaseService';
+import { isTaskOverdue } from '../utils/taskUtils';
 
 
 interface TaskDetailsModalProps {
@@ -59,6 +60,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
   const currentUser = employees.find(e => e.id === user?.employeeId);
   const blockingTask = task.blockedById ? allTasks.find(t => t.id === task.blockedById) : null;
   const canDelete = isAdmin || (currentUserId && (task.assigneeIds?.includes(currentUserId) || task.assigneeId === currentUserId));
+  const isOverdue = isTaskOverdue(task);
 
   const [show, setShow] = useState(false);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
@@ -202,6 +204,11 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-2.5 h-2.5 rounded-full ${task.status === TaskStatus.DONE ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]' : 'bg-primary-500 shadow-[0_0_12px_rgba(59,130,246,0.5)]'}`}></div>
                 <p className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-[0.3em]">{task.status === TaskStatus.DONE ? 'Completed' : 'Task Details'}</p>
+                {isOverdue && (
+                  <span className="px-2 py-0.5 rounded-md bg-red-500/10 text-red-600 dark:text-red-400 text-[9px] font-black uppercase tracking-widest border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                    Overdue
+                  </span>
+                )}
               </div>
               <h2
                 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-tight"
@@ -290,9 +297,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                 </div>
               </div>
 
-              <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-rose-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-rose-500/5 shadow-sm">
+              <div className={`p-5 bg-white/50 dark:bg-white/5 border ${isOverdue ? 'border-red-500/30 shadow-red-500/5' : 'border-white/60 dark:border-white/5'} rounded-[24px] hover:border-rose-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-rose-500/5 shadow-sm`}>
                 <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Deadline</span>
-                <p className="text-sm font-bold text-slate-800 dark:text-white/90">
+                <p className={`text-sm font-bold ${isOverdue ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white/90'}`}>
                   {task.dueDate ? (
                     <>
                       {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}

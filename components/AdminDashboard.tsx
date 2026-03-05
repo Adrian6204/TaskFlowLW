@@ -12,12 +12,17 @@ import BentoCard from './BentoCard';
 import { BoltIcon } from './icons/BoltIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { isTaskOverdue } from '../utils/taskUtils';
+import OverdueTasksModal from './OverdueTasksModal';
 
 interface AdminDashboardProps {
     tasks: Task[];
     employees: Employee[];
     activityLogs: ActivityLog[];
     isAdmin?: boolean;
+    onViewTask?: (task: Task) => void;
+    onViewOverdueTask?: (task: Task) => void;
+    isOverdueModalOpen?: boolean;
+    setIsOverdueModalOpen?: (isOpen: boolean) => void;
 }
 
 const getRelativeTime = (timestamp: string) => {
@@ -32,13 +37,26 @@ const getRelativeTime = (timestamp: string) => {
     return `${Math.floor(diffInHours / 24)}d ago`;
 };
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ tasks, employees, activityLogs, isAdmin = true }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({
+    tasks,
+    employees,
+    activityLogs,
+    isAdmin = true,
+    onViewTask,
+    onViewOverdueTask,
+    isOverdueModalOpen: externalIsOverdueModalOpen,
+    setIsOverdueModalOpen: externalSetIsOverdueModalOpen
+}) => {
     // Calculations
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((t: Task) => t.status === TaskStatus.DONE);
     const completionRate = totalTasks ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
     const overdueTasks = tasks.filter((t: Task) => isTaskOverdue(t));
     const criticalTasks = tasks.filter((t: Task) => t.priority === Priority.URGENT && t.status !== TaskStatus.DONE);
+    const [internalIsOverdueModalOpen, setInternalIsOverdueModalOpen] = useState(false);
+
+    const isOverdueModalOpen = externalIsOverdueModalOpen !== undefined ? externalIsOverdueModalOpen : internalIsOverdueModalOpen;
+    const setIsOverdueModalOpen = externalSetIsOverdueModalOpen !== undefined ? externalSetIsOverdueModalOpen : setInternalIsOverdueModalOpen;
 
     // New metrics calculations
     const today = new Date().toISOString().split('T')[0];
@@ -142,18 +160,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ tasks, employees, activ
                 {/* 2. Critical Attention List (Span 1) */}
                 <BentoCard className="col-span-1 p-0 flex flex-col h-full min-h-[320px]">
                     <div className="p-6 border-b border-white/5 bg-red-500/5 flex justify-between items-center">
-                        <h3 className="text-sm font-bold text-red-400 uppercase tracking-wider flex items-center gap-2">
-                            <BoltIcon className="w-4 h-4" />
-                            Critical Attention
-                        </h3>
-                        <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-500 text-[10px] font-bold">
-                            {criticalTasks.length + overdueTasks.length} Issues
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-sm font-bold text-red-400 uppercase tracking-wider flex items-center gap-2">
+                                <BoltIcon className="w-4 h-4" />
+                                Critical Attention
+                            </h3>
+                            <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-500 text-[10px] font-bold">
+                                {criticalTasks.length + overdueTasks.length} Issues
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => setIsOverdueModalOpen(true)}
+                            className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg transition-colors flex shrink-0"
+                        >
+                            View All
+                        </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-none">
                         {[...criticalTasks, ...overdueTasks].slice(0, 5).map(task => (
-                            <div key={task.id} className="group p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-transparent hover:border-white/10 transition-all cursor-pointer">
+                            <div
+                                key={task.id}
+                                onClick={() => onViewTask && onViewTask(task)}
+                                className="group p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-transparent hover:border-white/10 transition-all cursor-pointer"
+                            >
                                 <div className="flex justify-between items-start mb-1">
                                     <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider">{task.spaceId}</span>
                                     {isTaskOverdue(task) && (
@@ -194,6 +224,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ tasks, employees, activ
                     </div>
                 </BentoCard>
             </div>
+
+            <OverdueTasksModal
+                isOpen={isOverdueModalOpen}
+                onClose={() => setIsOverdueModalOpen(false)}
+                tasks={tasks}
+                employees={employees}
+                onViewTask={(task) => {
+                    if (onViewOverdueTask) {
+                        onViewOverdueTask(task);
+                    } else if (onViewTask) {
+                        onViewTask(task);
+                    }
+                }}
+            />
         </div>
     );
 };
