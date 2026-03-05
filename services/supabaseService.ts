@@ -232,7 +232,33 @@ export const createSpace = async (name: string, userId: string, description?: st
 
   if (memberError) throw memberError;
 
-  return { ...mapDbSpaceToApp(spaceData), members: [userId] };
+  // Add all superadmins to the new space as admins
+  const { data: superAdmins } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('is_admin', true);
+
+  if (superAdmins && superAdmins.length > 0) {
+    const superAdminIds = superAdmins.map(sa => sa.id).filter(id => id !== userId);
+    if (superAdminIds.length > 0) {
+      const inserts = superAdminIds.map(saId => ({
+        space_id: spaceData.id,
+        user_id: saId,
+        role: 'admin'
+      }));
+      await supabase.from('space_members').insert(inserts);
+    }
+  }
+
+  // Fetch final list of members for the return object
+  const { data: finalMembers } = await supabase
+    .from('space_members')
+    .select('user_id')
+    .eq('space_id', spaceData.id);
+
+  const memberIds = finalMembers ? finalMembers.map(m => m.user_id) : [userId];
+
+  return { ...mapDbSpaceToApp(spaceData), members: memberIds };
 };
 
 export const joinSpace = async (code: string, userId: string) => {
@@ -665,6 +691,30 @@ export const updateSuperAdminStatus = async (userId: string, isSuperAdmin: boole
     .eq('id', userId);
 
   if (error) throw error;
+
+  // If promoted to super admin, add them to all existing workspaces globally
+  if (isSuperAdmin) {
+    const { data: allSpaces } = await supabase.from('spaces').select('id');
+    if (allSpaces && allSpaces.length > 0) {
+      // First, get spaces they are already in
+      const { data: existingMemberships } = await supabase
+        .from('space_members')
+        .select('space_id')
+        .eq('user_id', userId);
+
+      const existingSpaceIds = existingMemberships ? existingMemberships.map(m => m.space_id) : [];
+      const spacesToAdd = allSpaces.filter(space => !existingSpaceIds.includes(space.id));
+
+      if (spacesToAdd.length > 0) {
+        const inserts = spacesToAdd.map(space => ({
+          space_id: space.id,
+          user_id: userId,
+          role: 'admin'
+        }));
+        await supabase.from('space_members').insert(inserts);
+      }
+    }
+  }
 };
 
 // --- Daily Tasks Sync ---
