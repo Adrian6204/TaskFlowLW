@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Employee, Position } from '../types';
 import { UserIcon } from './icons/UserIcon';
@@ -111,8 +111,21 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
     const [fullName, setFullName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [phone, setPhone] = useState('');
-    const [position, setPosition] = useState('');
+    const [position, setPosition] = useState<string[]>([]);
     const [email, setEmail] = useState('');
+
+    const [positionDropdownOpen, setPositionDropdownOpen] = useState(false);
+    const positionDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (positionDropdownRef.current && !positionDropdownRef.current.contains(event.target as Node)) {
+                setPositionDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Preferences State
     const [theme, toggleTheme, colorScheme, setColorScheme] = useTheme();
@@ -138,7 +151,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
             setFullName(data.fullName || (data as Employee).name || (data as User).username || '');
             setAvatarUrl(data.avatarUrl || '');
             setPhone(data.phone || '');
-            setPosition((data.position as string) || '');
+            const posData = (data.position as string) || '';
+            const rawParts = posData.split(/[,\/]/).map(p => p.trim()).filter(Boolean);
+            const normalizedPositions = rawParts.map(part => {
+                const canonical = Object.values(Position).find(p => p.toLowerCase() === part.toLowerCase());
+                return canonical || part;
+            });
+            setPosition(Array.from(new Set(normalizedPositions)));
             setEmail(data.email || '');
 
             const timer = setTimeout(() => setShow(true), 10);
@@ -189,7 +208,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                 name: fullName.trim(),
                 avatarUrl,
                 phone,
-                position,
+                position: position.join(', '),
                 email
             });
         }
@@ -484,25 +503,49 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                         />
                                     </div>
 
-                                    <div>
+                                    <div className="relative" ref={positionDropdownRef}>
                                         <label className="block text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Position</label>
-                                        <div className="relative">
-                                            <select
-                                                value={position}
-                                                onChange={(e) => setPosition(e.target.value)}
-                                                className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white appearance-none cursor-pointer transition-all font-medium text-sm"
-                                            >
-                                                <option value="" disabled>Select your position</option>
-                                                {Object.values(Position).map((pos) => (
-                                                    <option key={pos} value={pos} className="bg-white dark:bg-slate-800">{pos}</option>
-                                                ))}
-                                            </select>
-                                            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-500 dark:text-white/40">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div
+                                            onClick={() => setPositionDropdownOpen(!positionDropdownOpen)}
+                                            className="w-full px-4 py-3 bg-slate-100 dark:bg-black/20 border-none rounded-xl focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white cursor-pointer transition-all font-medium text-sm min-h-[44px] flex items-center justify-between"
+                                        >
+                                            <span className={position.length ? "truncate max-w-[90%]" : "text-slate-400 dark:text-white/20"}>
+                                                {position.length ? position.join(', ') : "Select your position"}
+                                            </span>
+                                            <div className="text-slate-500 dark:text-white/40 ml-2 shrink-0">
+                                                <svg className={`w-4 h-4 transition-transform ${positionDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                                 </svg>
                                             </div>
                                         </div>
+
+                                        {positionDropdownOpen && (
+                                            <div className="absolute z-50 w-full mt-2 bg-white dark:bg-[#1E1E20] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+                                                {Array.from(new Set([...Object.values(Position), ...position])).map((pos) => {
+                                                    const isSelected = position.includes(pos);
+                                                    return (
+                                                        <label key={pos} className="flex items-center px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-colors border-b border-slate-100 dark:border-white/5 last:border-0">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="hidden"
+                                                                checked={isSelected}
+                                                                onChange={() => {
+                                                                    if (isSelected) {
+                                                                        setPosition(position.filter(p => p !== pos));
+                                                                    } else {
+                                                                        setPosition([...position, pos]);
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <div className={`w-5 h-5 rounded border flex items-center justify-center mr-3 shrink-0 transition-colors ${isSelected ? 'bg-primary-500 border-primary-500' : 'border-slate-300 dark:border-white/20'}`}>
+                                                                {isSelected && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                                                            </div>
+                                                            <span className="text-sm font-medium text-slate-700 dark:text-white/90">{pos}</span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
