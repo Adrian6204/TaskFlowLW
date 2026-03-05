@@ -7,7 +7,7 @@ This documentation provides instructions for external developers on how to inter
 The API is served via a designated Supabase Edge Function. It requires users to authenticate via their TaskFlow credentials and pass a valid Bearer token (JWT) to access their specific tasks. Any tasks returned are automatically filtered by TaskFlow's Row Level Security (RLS) to ensure users only see their permitted data.
 
 ### Base Endpoint
-`[POST/GET] https://gyyvteospydbykbwdrjg.supabase.co/functions/v1/external-tasks-api`
+`[POST/GET] YOUR_SUPABASE_URL/functions/v1/external-tasks-api`
 
 *Note: You can use GET or POST methods. Parameters are not currently required since data is fetched based strictly on the user's Auth token.*
 
@@ -24,15 +24,15 @@ Authorization: Bearer YOUR_SUPABASE_JWT
 To get a token, the external application must log the user in via the Supabase Auth API using the TaskFlow instance credentials.
 
 **Connection Details:**
-- **Supabase URL:** `https://gyyvteospydbykbwdrjg.supabase.co`
-- **Supabase Anon Key:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5eXZ0ZW9zcHlkYnlrYndkcmpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NzExODAsImV4cCI6MjA4NzA0NzE4MH0.zibIWC7hoGWC-yfi5Wf-dJjY-uV-RPUGtto7zFjQS7E`
+- **Supabase URL:** `YOUR_SUPABASE_URL`
+- **Supabase Anon Key:** `YOUR_SUPABASE_ANON_KEY`
 
 **Using JavaScript/Supabase SDK:**
 ```javascript
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://gyyvteospydbykbwdrjg.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5eXZ0ZW9zcHlkYnlrYndkcmpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NzExODAsImV4cCI6MjA4NzA0NzE4MH0.zibIWC7hoGWC-yfi5Wf-dJjY-uV-RPUGtto7zFjQS7E'
+const supabaseUrl = 'YOUR_SUPABASE_URL'
+const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY'
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -52,7 +52,7 @@ Once you have the `access_token`, you can fetch the tasks by hitting the Edge Fu
 
 ### Request Format
 ```bash
-curl -X GET 'https://gyyvteospydbykbwdrjg.supabase.co/functions/v1/external-tasks-api' \
+curl -X GET 'YOUR_SUPABASE_URL/functions/v1/external-tasks-api' \
   -H 'Authorization: Bearer YOUR_SUPABASE_JWT' \
   -H 'Content-Type: application/json'
 ```
