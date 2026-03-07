@@ -55,9 +55,9 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
   };
 
   const statusColors = {
-    [TaskStatus.DONE]: 'bg-lime-500 shadow-lime-500/30 text-black',
-    [TaskStatus.IN_PROGRESS]: 'bg-primary-500 shadow-primary-500/30 text-white',
-    [TaskStatus.TODO]: 'bg-slate-200 dark:bg-white/10 border border-slate-300 dark:border-white/5 text-slate-600 dark:text-white/60 shadow-sm dark:shadow-white/5',
+    [TaskStatus.DONE]: 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30',
+    [TaskStatus.IN_PROGRESS]: 'bg-primary-500/10 dark:bg-primary-500/20 text-primary-700 dark:text-primary-400 border-primary-200 dark:border-primary-500/30',
+    [TaskStatus.TODO]: 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10',
   };
 
   const navigateWeek = (direction: number) => {
@@ -82,38 +82,40 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
   }, [tasks]);
 
   return (
-    <div className="bg-white/60 dark:bg-[#1E1E1E]/40 backdrop-blur-[40px] rounded-[40px] border border-slate-200 dark:border-white/10 overflow-hidden animate-in fade-in duration-1000 shadow-xl shadow-black/5 dark:shadow-black/40">
+    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xl">
       {/* Header */}
-      <div className="p-10 border-b border-slate-200 dark:border-white/10 bg-white/5">
-        <div className="flex items-center justify-between">
+      <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Timeline Analytics</h2>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
-              <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em]">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Timeline Analytics</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary-500"></div>
+              <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 {days[0]?.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} Timeline
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4 bg-white/40 dark:bg-black/20 p-2 rounded-2xl border border-white/40 dark:border-white/5">
-            <button
-              onClick={() => navigateWeek(-1)}
-              className="p-3 hover:bg-white/5 rounded-xl transition-all duration-300 text-white/40 hover:text-white"
-            >
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setCurrentDate(new Date())}
-              className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-lime-600 dark:text-[#CEFD4A] bg-lime-500/10 hover:bg-lime-500/20 rounded-xl transition-all duration-300 border border-lime-500/20"
-            >
-              Sync Today
-            </button>
-            <button
-              onClick={() => navigateWeek(1)}
-              className="p-3 hover:bg-white/5 rounded-xl transition-all duration-300 text-white/40 hover:text-white"
-            >
-              <ChevronRightIcon className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => navigateWeek(-1)}
+                className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm"
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentDate(new Date())}
+                className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              >
+                Sync Today
+              </button>
+              <button
+                onClick={() => navigateWeek(1)}
+                className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm"
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -122,18 +124,18 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
       <div className="overflow-x-auto scrollbar-none">
         <div className="min-w-[1200px]">
           {/* Days Header */}
-          <div className="flex border-b border-slate-200 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]">
-            <div className="w-64 flex-shrink-0 p-6 border-r border-slate-200 dark:border-white/10">
-              <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">Assignee</span>
+          <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="w-52 flex-shrink-0 p-4 border-r border-slate-200 dark:border-slate-800">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Assignee</span>
             </div>
             <div className="flex-1 flex">
               {days.map((day, idx) => (
                 <div
                   key={idx}
-                  className={`flex-1 p-6 text-center border-r border-slate-200 dark:border-white/10 last:border-r-0 ${isToday(day) ? 'bg-white/20 dark:bg-white/10' : ''
+                  className={`flex-1 p-4 text-center border-r border-slate-200 dark:border-slate-800 last:border-r-0 ${isToday(day) ? 'bg-primary-50/30 dark:bg-primary-500/5' : ''
                     }`}
                 >
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${isToday(day) ? 'text-primary-600 dark:text-primary-400' : 'text-slate-400 dark:text-white/30'}`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${isToday(day) ? 'text-primary-600 dark:text-primary-400' : 'text-slate-400 dark:text-slate-500'}`}>
                     {formatDate(day)}
                   </span>
                 </div>
@@ -142,69 +144,70 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
           </div>
 
           {/* Tasks Rows */}
-          <div className="divide-y divide-slate-200 dark:divide-white/10">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {Object.entries(tasksByAssignee).map(([assigneeId, assigneeTasks]) => (
-              <div key={assigneeId} className="flex group hover:bg-white/[0.01] transition-all duration-300">
+              <div key={assigneeId} className="flex group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 {/* Assignee Identity */}
-                <div className="w-64 flex-shrink-0 p-6 border-r border-slate-200 dark:border-white/10 flex items-center bg-white/[0.01]">
-                  <div className="flex items-center gap-4">
+                <div className="w-52 flex-shrink-0 p-4 border-r border-slate-200 dark:border-slate-800 flex items-center bg-slate-50/30 dark:bg-slate-900/30">
+                  <div className="flex items-center gap-3">
                     {getEmployee(assigneeId) ? (
                       <div className="relative">
-                        <img src={getEmployee(assigneeId)?.avatarUrl} className="w-10 h-10 rounded-xl object-cover border border-white/10 shadow-lg" alt="" />
-                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#1E1E1E]"></div>
+                        <img src={getEmployee(assigneeId)?.avatarUrl} className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm" alt="" />
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm"></div>
                       </div>
                     ) : (
-                      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-[10px] font-black text-white/20">??</div>
+                      <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-400 dark:text-slate-500">??</div>
                     )}
                     <div className="min-w-0">
-                      <span className="block text-sm font-bold text-slate-700 dark:text-white/80 truncate">
-                        {getEmployee(assigneeId)?.name || 'Unassigned Context'}
+                      <span className="block text-xs font-semibold text-slate-900 dark:text-slate-200 truncate">
+                        {getEmployee(assigneeId)?.name || 'Unassigned'}
                       </span>
-                      <span className="text-[8px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest block mt-1">
-                        {assigneeTasks.length} Operations
+                      <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
+                        {assigneeTasks.length} tasks
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Timeline Data */}
-                <div className="flex-1 relative min-h-[100px]">
-                  {/* Grid markers */}
-                  <div className="absolute inset-0 flex pointer-events-none">
+                <div className="flex-1 relative">
+                  {/* Grid markers background */}
+                  <div className="absolute inset-0 flex pointer-events-none z-0">
                     {days.map((day, idx) => (
                       <div
                         key={idx}
-                        className={`flex-1 border-r border-slate-200 dark:border-white/10 last:border-r-0 ${isToday(day) ? 'bg-white/[0.02]' : ''
+                        className={`flex-1 border-r border-slate-200 dark:border-slate-800 last:border-r-0 ${isToday(day) ? 'bg-primary-50/10 dark:bg-primary-500/5' : ''
                           }`}
                       />
                     ))}
                   </div>
 
-                  {/* Task bars */}
-                  <div className="relative p-6 space-y-3">
-                    {assigneeTasks.map((task) => {
+                  {/* Task bars container */}
+                  <div className="relative p-4 min-h-[80px] flex flex-col justify-center gap-2 z-10 w-full overflow-hidden">
+                    {assigneeTasks.map((task, index) => {
                       const position = getTaskPosition(task);
                       if (!position) return null;
 
+                      // Exact percentage calculations
                       const widthPercent = (position.span / days.length) * 100;
+                      // Subtly inset the start so bars don't ride exactly on the grid line
                       const leftPercent = (position.start / days.length) * 100;
 
                       return (
-                        <div
-                          key={task.id}
-                          onClick={() => onViewTask(task)}
-                          className={`h-10 rounded-2xl ${statusColors[task.status]} cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center px-4 shadow-xl border border-white/10 group/bar`}
-                          style={{
-                            left: `${leftPercent}%`,
-                            width: `${widthPercent}%`,
-                            minWidth: '100px',
-                            position: 'relative' // Using relative within the grid for stacking
-                          }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent pointer-events-none rounded-2xl"></div>
-                          <span className={`text-[10px] font-black uppercase tracking-widest truncate relative z-10 ${task.status === TaskStatus.DONE ? 'text-black dark:text-white/40' : 'text-white'}`}>
-                            {task.title}
-                          </span>
+                        <div key={task.id} className="w-full relative h-8 shrink-0">
+                          <div
+                            onClick={() => onViewTask(task)}
+                            className={`absolute inset-y-0 rounded-lg ${statusColors[task.status]} cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all flex items-center px-3 border shadow-sm group/bar z-10 hover:z-20`}
+                            style={{
+                              left: `${leftPercent}%`,
+                              width: `${widthPercent}%`,
+                              margin: '0 2px'
+                            }}
+                          >
+                            <span className="text-[10px] font-bold truncate">
+                              {task.title}
+                            </span>
+                          </div>
                         </div>
                       );
                     })}
@@ -216,31 +219,31 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
 
           {tasks.length === 0 && (
             <div className="p-32 text-center">
-              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ChevronRightIcon className="w-10 h-10 text-white/5" />
+              <div className="w-20 h-20 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ChevronRightIcon className="w-10 h-10 text-slate-300 dark:text-white/5" />
               </div>
-              <h4 className="text-lg font-black text-white/20 uppercase tracking-[0.3em]">No Tasks</h4>
-              <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest mt-2">Zero active tasks detected in this timeline.</p>
+              <h4 className="text-lg font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">No Tasks</h4>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-white/10 uppercase tracking-widest mt-2">Zero active tasks detected in this timeline.</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Legend */}
-      <div className="p-8 border-t border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] flex items-center gap-10">
-        <span className="text-[8px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">Status Legend</span>
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-white/20 shadow-[0_0_8px_rgba(255,255,255,0.2)]"></div>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">In Queue</span>
+      <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/30 flex flex-wrap items-center gap-x-8 gap-y-4">
+        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Legend</span>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10"></div>
+            <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">To Do</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(59,130,246,0.3)]"></div>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Active</span>
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded bg-primary-500/20 border border-primary-200 dark:border-primary-500/30"></div>
+            <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">In Progress</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-lime-500 shadow-[0_0_8px_rgba(206,253,74,0.3)]"></div>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Processed</span>
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30"></div>
+            <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">Done</span>
           </div>
         </div>
       </div>

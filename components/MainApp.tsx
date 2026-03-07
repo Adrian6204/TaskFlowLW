@@ -497,7 +497,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
 
                                 {/* Gantt Chart */}
                                 {isOnWorkspace && currentView === 'gantt' && (
-                                    <div className="h-[calc(100vh-200px)]">
+                                    <div className="min-h-[calc(100vh-200px)]">
                                         <GanttChart tasks={filteredTasks} employees={spaceMembers} onViewTask={(t) => { setSelectedTask(t); setTaskDetailsModalOpen(true); }} />
                                     </div>
                                 )}
