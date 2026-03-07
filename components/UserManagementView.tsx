@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { EmployeeWithRole, Space, Employee } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { EmployeeWithRole, Space, Employee, Position } from '../types';
 import * as dataService from '../services/supabaseService';
 import BentoCard from './BentoCard';
 import { KeyIcon } from './icons/KeyIcon';
@@ -27,7 +27,30 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
 
     // Inline Editing State
     const [editingPositionUserId, setEditingPositionUserId] = useState<string | null>(null);
-    const [editingPositionValue, setEditingPositionValue] = useState<string>('');
+    const [editingPositionValue, setEditingPositionValue] = useState<string[]>([]);
+    const [positionDropdownOpen, setPositionDropdownOpen] = useState(false);
+    const positionDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (positionDropdownRef.current && !positionDropdownRef.current.contains(event.target as Node)) {
+                setPositionDropdownOpen(false);
+                if (editingPositionUserId) {
+                    const user = users.find(u => u.id === editingPositionUserId);
+                    if (user) {
+                        const newValue = editingPositionValue.join(', ');
+                        if (newValue !== user.position) {
+                            handlePositionSave(user, newValue);
+                        } else {
+                            setEditingPositionUserId(null);
+                        }
+                    }
+                }
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [editingPositionUserId, editingPositionValue, users]);
 
     // Confirmation State
     const [confirmModal, setConfirmModal] = useState<{
@@ -134,18 +157,18 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
         });
     };
 
-    const handlePositionSave = async (user: EmployeeWithRole) => {
-        if (!editingPositionValue.trim()) {
+    const handlePositionSave = async (user: EmployeeWithRole, finalValue: string) => {
+        if (!finalValue.trim()) {
             setEditingPositionUserId(null);
             return;
         }
 
         try {
             // Optimistic update
-            setUsers(users.map(u => u.id === user.id ? { ...u, position: editingPositionValue } : u));
+            setUsers(users.map(u => u.id === user.id ? { ...u, position: finalValue } : u));
             setEditingPositionUserId(null);
 
-            await dataService.updateProfile(user.id, { position: editingPositionValue });
+            await dataService.updateProfile(user.id, { position: finalValue });
         } catch (error) {
             console.error("Failed to update position", error);
             alert("Failed to update position. Please try again.");
@@ -357,20 +380,55 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-bold text-slate-900 dark:text-white text-xl leading-tight mb-1 truncate" title={user.name}>{user.name}</h3>
                                     {editingPositionUserId === user.id ? (
-                                        <input
-                                            autoFocus
-                                            type="text"
-                                            value={editingPositionValue}
-                                            onChange={(e) => setEditingPositionValue(e.target.value)}
-                                            onBlur={() => handlePositionSave(user)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handlePositionSave(user)}
-                                            className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded px-2 py-0.5 text-[10px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-rose-500"
-                                        />
+                                        <div className="relative" ref={positionDropdownRef}>
+                                            <div
+                                                onClick={() => setPositionDropdownOpen(!positionDropdownOpen)}
+                                                className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded px-2 py-1 flex items-center justify-between cursor-pointer min-w-[140px]"
+                                            >
+                                                <span className="text-[10px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-widest truncate max-w-[100px]">
+                                                    {editingPositionValue.length ? editingPositionValue.join(', ') : "Select Position"}
+                                                </span>
+                                                <svg className={`w-3 h-3 text-rose-500 transition-transform ${positionDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+
+                                            {positionDropdownOpen && (
+                                                <div className="absolute z-[100] w-64 mt-2 bg-white dark:bg-[#1E1E20] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto left-0 animate-in fade-in zoom-in-95 duration-200">
+                                                    {Array.from(new Set([...Object.values(Position), ...editingPositionValue])).map((pos) => {
+                                                        const isSelected = editingPositionValue.includes(pos);
+                                                        return (
+                                                            <label key={pos} className="flex items-center px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-colors border-b border-slate-100 dark:border-white/5 last:border-0">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="hidden"
+                                                                    checked={isSelected}
+                                                                    onChange={() => {
+                                                                        if (isSelected) {
+                                                                            setEditingPositionValue(editingPositionValue.filter(p => p !== pos));
+                                                                        } else {
+                                                                            setEditingPositionValue([...editingPositionValue, pos]);
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center mr-3 shrink-0 transition-colors ${isSelected ? 'bg-rose-500 border-rose-500' : 'border-slate-300 dark:border-white/20'}`}>
+                                                                    {isSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" /></svg>}
+                                                                </div>
+                                                                <span className="text-[11px] font-bold text-slate-700 dark:text-white/90 uppercase tracking-wider">{pos}</span>
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
                                     ) : (
                                         <button
                                             onClick={() => {
                                                 setEditingPositionUserId(user.id);
-                                                setEditingPositionValue(user.position || '');
+                                                const posData = user.position || '';
+                                                const initialPositions = posData.split(/[,\/]/).map(p => p.trim()).filter(Boolean);
+                                                setEditingPositionValue(initialPositions);
+                                                setPositionDropdownOpen(true);
                                             }}
                                             className="group/pos flex items-center gap-1.5 text-[10px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-widest hover:text-rose-600 dark:hover:text-rose-300 transition-colors"
                                         >
