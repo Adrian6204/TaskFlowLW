@@ -6,9 +6,49 @@ interface TaskPriorityBarChartProps {
   tasks: Task[];
 }
 
+const priorityConfig = [
+  {
+    key: Priority.URGENT,
+    label: 'Urgent',
+    bar: 'bg-red-500',
+    bg: 'bg-white/40 dark:bg-white/5 border border-red-500/10',
+    badge: 'text-red-600 dark:text-red-400 font-black',
+    track: 'bg-black/5 dark:bg-white/5',
+    dot: 'bg-red-500',
+  },
+  {
+    key: Priority.HIGH,
+    label: 'High',
+    bar: 'bg-orange-500',
+    bg: 'bg-white/40 dark:bg-white/5 border border-orange-500/10',
+    badge: 'text-orange-600 dark:text-orange-400 font-black',
+    track: 'bg-black/5 dark:bg-white/5',
+    dot: 'bg-orange-500',
+  },
+  {
+    key: Priority.MEDIUM,
+    label: 'Medium',
+    bar: 'bg-indigo-500',
+    bg: 'bg-white/40 dark:bg-white/5 border border-indigo-500/10',
+    badge: 'text-indigo-600 dark:text-indigo-400 font-black',
+    track: 'bg-black/5 dark:bg-white/5',
+    dot: 'bg-indigo-500',
+  },
+  {
+    key: Priority.LOW,
+    label: 'Low',
+    bar: 'bg-slate-400',
+    bg: 'bg-white/40 dark:bg-white/5 border border-slate-500/10',
+    badge: 'text-slate-600 dark:text-slate-400 font-black',
+    track: 'bg-black/5 dark:bg-white/5',
+    dot: 'bg-slate-400',
+  },
+];
+
 const TaskPriorityBarChart: React.FC<TaskPriorityBarChartProps> = ({ tasks }) => {
   const activeTasks = tasks.filter(t => t.status !== TaskStatus.DONE);
-  
+  const total = activeTasks.length;
+
   const counts = {
     [Priority.URGENT]: activeTasks.filter(t => t.priority === Priority.URGENT).length,
     [Priority.HIGH]: activeTasks.filter(t => t.priority === Priority.HIGH).length,
@@ -18,32 +58,47 @@ const TaskPriorityBarChart: React.FC<TaskPriorityBarChartProps> = ({ tasks }) =>
 
   const maxCount = Math.max(...Object.values(counts), 1);
 
-  const configs = [
-    { label: Priority.URGENT, color: 'bg-red-500', count: counts[Priority.URGENT] },
-    { label: Priority.HIGH, color: 'bg-orange-500', count: counts[Priority.HIGH] },
-    { label: Priority.MEDIUM, color: 'bg-primary-500', count: counts[Priority.MEDIUM] },
-    { label: Priority.LOW, color: 'bg-slate-500', count: counts[Priority.LOW] },
-  ];
+  if (total === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-slate-400 text-xs gap-2">
+        <span className="font-bold uppercase tracking-wider">No active tasks</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {configs.map((config) => (
-        <div key={config.label}>
-          <div className="flex justify-between text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">
-            <span>{config.label}</span>
-            <span>{config.count}</span>
+    <div className="flex flex-col justify-center gap-3 h-full">
+      {priorityConfig.map(({ key, label, bar, bg, badge, track, dot }) => {
+        const count = counts[key];
+        const barWidth = (count / maxCount) * 100;
+        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+
+        return (
+          <div key={key} className={`rounded-xl p-3 ${bg} transition-all`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${dot} shrink-0`} />
+                <span className="text-xs font-bold text-slate-700 dark:text-white/80 uppercase tracking-wider">
+                  {label}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-400 dark:text-white/40 font-medium">{pct}%</span>
+                <span className={`text-sm ${badge}`}>
+                  {count}
+                </span>
+              </div>
+            </div>
+            {/* Bar */}
+            <div className={`w-full h-2 rounded-full ${track} overflow-hidden`}>
+              <div
+                className={`h-full rounded-full ${bar} transition-all duration-700`}
+                style={{ width: `${barWidth}%` }}
+              />
+            </div>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-            <div 
-                className={`h-full rounded-full ${config.color} transition-all duration-500`} 
-                style={{ width: `${(config.count / maxCount) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-      ))}
-      {activeTasks.length === 0 && (
-          <p className="text-center text-xs text-slate-500 mt-4">No active tasks to analyze.</p>
-      )}
+        );
+      })}
     </div>
   );
 };
