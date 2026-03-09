@@ -372,6 +372,11 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
         nextDueDate.setMonth(nextDueDate.getMonth() + 1);
       }
 
+      // Skip Sunday (0) - only Monday-Saturday are work days
+      if (nextDueDate.getDay() === 0) {
+        nextDueDate.setDate(nextDueDate.getDate() + 1);
+      }
+
       const newTaskPayload: DbTask = {
         space_id: data.space_id,
         title: data.title,
