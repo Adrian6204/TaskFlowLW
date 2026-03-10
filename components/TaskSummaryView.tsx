@@ -90,7 +90,7 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                             <div>
                                 <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight mb-0.5">{employee.name}</h3>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-md">
+                                    <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-md">
                                         {userTasks.length} {userTasks.length === 1 ? 'ACTIVE' : 'ACTIVE'}
                                     </span>
                                     {userTasks.some(t => isTaskOverdue(t)) && (
@@ -122,10 +122,10 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                                     </span>
                                                 )}
                                                 <span className={`text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider shrink-0 ${task.status === TaskStatus.DONE
-                                                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
                                                     : task.status === TaskStatus.IN_PROGRESS
-                                                        ? 'bg-indigo-50 text-indigo-600 border border-indigo-100'
-                                                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                                        ? 'bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
+                                                        : 'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-white/5 dark:text-white/40 dark:border-white/10'
                                                     }`}>
                                                     {task.status === TaskStatus.DONE ? 'Completed' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'To Do'}
                                                 </span>

@@ -422,43 +422,22 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       </div>
 
-      {/* ── User Footer ────────────────────────────────────────────── */}
-      <div className={`p-4 mx-2 mb-2 border-t border-slate-200/50 dark:border-white/5 flex items-center gap-2 ${!isOpen && 'justify-center'}`}>
+      {/* ── Logout Button ─────────────────────────────────────────── */}
+      <div className="px-4 mb-6">
         <button
-          onClick={onOpenProfile}
-          className={`flex items-center gap-3 flex-1 p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-300 ${!isOpen && 'justify-center flex-none'}`}
+          onClick={onLogout}
+          className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-[20px] text-sm font-bold transition-all duration-300 group relative text-slate-500 dark:text-white/50 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 ${!isOpen && 'justify-center px-0'}`}
         >
-          <img
-            src={currentUserEmployee?.avatarUrl || user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`}
-            alt=""
-            className="w-9 h-9 rounded-2xl object-cover border border-white/10 flex-shrink-0"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`;
-              if (target.src !== fallbackUrl) {
-                target.src = fallbackUrl;
-              }
-            }}
-          />
-          {isOpen && (
-            <div className="flex-1 min-w-0 text-left">
-              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.fullName || user.username}</p>
-              <p className="text-xs text-slate-400 dark:text-white/30 capitalize truncate">
-                {isSuperAdmin ? 'Super Admin' : currentSpaceRole === 'admin' ? 'Admin' : 'Member'}
-              </p>
+          <LogoutIcon className="w-5 h-5 flex-shrink-0" />
+          {isOpen && <span>Logout</span>}
+          {!isOpen && (
+            <div className="absolute left-full ml-4 px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+              Logout
             </div>
           )}
         </button>
-        {isOpen && (
-          <button
-            onClick={onLogout}
-            className="p-2 rounded-xl text-slate-400 dark:text-white/30 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200 flex-shrink-0"
-            title="Logout"
-          >
-            <LogoutIcon className="w-5 h-5" />
-          </button>
-        )}
       </div>
+
     </aside>
   );
 };

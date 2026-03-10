@@ -76,7 +76,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({ status, tasks, allTasks, employ
       </div>
 
       {/* Cards Area */}
-      <div className="flex-1 space-y-4 min-h-[400px] px-1 scrollbar-none overflow-y-auto">
+      <div className="flex-1 space-y-4 min-h-[400px] p-1 pt-4 pb-12 scrollbar-none overflow-y-auto">
         {tasks.map(task => (
           <TaskCard
             key={task.id}
