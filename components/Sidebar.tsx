@@ -14,6 +14,7 @@ import { CalendarIcon } from './icons/CalendarIcon';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
 import { cardAccents } from './WorkspaceHomePage';
+import { usePreferences } from './hooks/usePreferences';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -70,6 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   allUserTasks = [],
 }) => {
   const navigate = useNavigate();
+  const [preferences] = usePreferences();
   const isInsideWorkspace = !!activeSpaceId;
   const currentSpace = spaces.find(s => s.id === activeSpaceId);
 
@@ -95,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`${isOpen ? 'w-72' : 'w-24'} h-[calc(100%-2rem)] m-4 rounded-[32px] bg-white/10 dark:bg-black/40 backdrop-blur-[40px] border border-white/20 dark:border-white/5 flex flex-col transition-all duration-500 ease-out relative z-30 shadow-2xl shadow-black/10 dark:shadow-black/50`}
+      className={`${isOpen ? 'w-72' : 'w-24'} h-[calc(100%-2rem)] m-4 rounded-[32px] ${preferences.performanceMode ? 'bg-white/80 dark:bg-black/70 backdrop-blur-none border-white/40 dark:border-white/10' : 'bg-white/10 dark:bg-black/40 backdrop-blur-[40px] border-white/20 dark:border-white/5'} border flex flex-col transition-all duration-500 ease-out relative z-30 shadow-2xl shadow-black/10 dark:shadow-black/50`}
     >
       <div className="mt-4" />
 

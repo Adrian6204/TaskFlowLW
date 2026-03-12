@@ -9,7 +9,7 @@ const priorityConfig = [
     { key: Priority.URGENT, label: 'Urgent', bar: 'bg-red-500', text: 'text-red-500' },
     { key: Priority.HIGH, label: 'High', bar: 'bg-orange-500', text: 'text-orange-500' },
     { key: Priority.MEDIUM, label: 'Medium', bar: 'bg-yellow-500', text: 'text-yellow-500' },
-    { key: Priority.LOW, label: 'Low', bar: 'bg-slate-400', text: 'text-slate-400' },
+    { key: Priority.LOW, label: 'Low', bar: 'bg-zinc-400', text: 'text-zinc-400' },
 ];
 
 export default function TaskPriorityHorizontalBar({ tasks }: Props) {
@@ -32,9 +32,9 @@ export default function TaskPriorityHorizontalBar({ tasks }: Props) {
                 return (
                     <div key={cfg.key} className="flex items-center gap-4">
                         <div className="w-16 shrink-0 text-right">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cfg.label}</span>
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{cfg.label}</span>
                         </div>
-                        <div className="flex-1 h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex items-center">
+                        <div className="flex-1 h-2 bg-zinc-100 dark:bg-white/5 rounded-full overflow-hidden flex items-center">
                             <div
                                 className={`h-full rounded-full ${cfg.bar} transition-all duration-1000 ease-out`}
                                 style={{ width: `${Math.max(percentage, 2)}%` }} // min width so it's always visible

@@ -13,7 +13,7 @@ const Background: React.FC<BackgroundProps> = React.memo(({ videoSrc, className,
 
     return (
         <div
-            className={`bg-app-container ${className || 'fixed inset-0'} z-[-10] overflow-hidden bg-[#F0F2F5] dark:bg-black transition-colors duration-1000`}
+            className={`bg-app-container ${className || 'fixed inset-0'} z-[-10] overflow-hidden bg-[#F0F2F5] dark:bg-[#0A0F0C] ${preferences.performanceMode ? 'dark:bg-simple-dark' : ''} transition-all duration-1000`}
             style={{
                 transform: 'translateZ(0)',
                 backfaceVisibility: 'hidden',
@@ -58,7 +58,7 @@ const Background: React.FC<BackgroundProps> = React.memo(({ videoSrc, className,
                     <div className="bg-noise absolute inset-0 opacity-[0.03] pointer-events-none" />
 
                     {/* Solid Dark Overlay for Premium Vibe (Dark Mode Only) */}
-                    <div className="absolute inset-0 hidden dark:block bg-[#0A0A0A]/60 pointer-events-none transition-opacity duration-1000" />
+                    <div className="absolute inset-0 hidden dark:block bg-[#0A0A0A]/40 pointer-events-none transition-opacity duration-1000" />
 
                     {/* Protective contrast layer */}
                     <div className="absolute inset-0 bg-black/[0.03] dark:bg-transparent pointer-events-none transition-opacity duration-1000" />

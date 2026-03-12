@@ -113,15 +113,15 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Team Members</h2>
-          <p className="text-slate-500 dark:text-white/40 mt-1 font-bold">
+          <h2 className="text-2xl font-black text-zinc-900 dark:text-white">Team Members</h2>
+          <p className="text-zinc-500 dark:text-white/40 mt-1 font-bold">
             {employees.length} members in this space
           </p>
         </div>
         {isAdmin && (
           <button
             onClick={() => setIsAddMemberModalOpen(true)}
-            className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2"
+            className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2"
           >
             <PlusIcon className="w-4 h-4" />
             Add Member
@@ -163,10 +163,10 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-neutral-900 rounded-full"></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight mb-1">
+                  <h3 className="text-lg font-black text-zinc-900 dark:text-white leading-tight mb-1">
                     {employee.name}
                   </h3>
-                  <p className="text-sm font-bold text-slate-500 dark:text-white/40 leading-snug">
+                  <p className="text-sm font-bold text-zinc-500 dark:text-white/40 leading-snug">
                     {employee.position || 'Member'}
                   </p>
                 </div>
@@ -191,15 +191,15 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
               <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <XMarkIcon className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Remove Member</h3>
-              <p className="text-slate-500 dark:text-white/60 mb-8">
+              <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-2">Remove Member</h3>
+              <p className="text-zinc-500 dark:text-white/60 mb-8">
                 Are you sure you want to remove this member from the workspace?
               </p>
 
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setMemberToRemove(null)}
-                  className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white rounded-2xl font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+                  className="flex-1 py-4 bg-zinc-100 dark:bg-white/5 text-zinc-900 dark:text-white rounded-2xl font-bold hover:bg-zinc-200 dark:hover:bg-white/10 transition-colors"
                 >
                   Cancel
                 </button>
@@ -220,36 +220,36 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setIsAddMemberModalOpen(false)}>
           <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-scale-in border border-white/10" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white">Add Member</h3>
+              <h3 className="text-2xl font-black text-zinc-900 dark:text-white">Add Member</h3>
               <button onClick={() => setIsAddMemberModalOpen(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors">
-                <XMarkIcon className="w-6 h-6 text-slate-500" />
+                <XMarkIcon className="w-6 h-6 text-zinc-500" />
               </button>
             </div>
 
             <div className="relative mb-6">
-              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
               <input
                 type="text"
                 placeholder="Search by name, username or email..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-slate-100 dark:bg-black/20 rounded-2xl border-none focus:ring-2 focus:ring-lime-500 outline-none text-slate-900 dark:text-white font-medium"
+                className="w-full pl-12 pr-4 py-4 bg-zinc-100 dark:bg-black/20 rounded-2xl border-none focus:ring-2 focus:ring-lime-500 outline-none text-zinc-900 dark:text-white font-medium"
                 autoFocus
               />
             </div>
 
             <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
-              {isSearching && <p className="text-center text-slate-400 text-sm">Searching...</p>}
+              {isSearching && <p className="text-center text-zinc-400 text-sm">Searching...</p>}
               {!isSearching && searchResults.length === 0 && searchQuery.length >= 2 && (
-                <p className="text-center text-slate-400 text-sm">No users found.</p>
+                <p className="text-center text-zinc-400 text-sm">No users found.</p>
               )}
               {searchResults.map(user => (
-                <div key={user.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                <div key={user.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors">
                   <div className="flex items-center gap-3">
                     <img src={user.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
                     <div>
-                      <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
-                      <p className="text-xs text-slate-500 dark:text-white/40">{user.email}</p>
+                      <p className="font-bold text-zinc-900 dark:text-white">{user.name}</p>
+                      <p className="text-xs text-zinc-500 dark:text-white/40">{user.email}</p>
                     </div>
                   </div>
                   <button
