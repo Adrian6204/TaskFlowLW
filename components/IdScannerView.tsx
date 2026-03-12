@@ -2,14 +2,15 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VideoCameraIcon } from './icons/VideoCameraIcon';
-import { extractNameFromImage } from '../services/openRouterService';
+import { performOcr, OcrResult, ValidUser } from '../services/ocrService';
 
 interface IdScannerViewProps {
     onScan: (name: string) => void;
     onCancel?: () => void;
+    validUsers?: ValidUser[];
 }
 
-export const IdScannerView: React.FC<IdScannerViewProps> = ({ onScan, onCancel }) => {
+export const IdScannerView: React.FC<IdScannerViewProps> = ({ onScan, onCancel, validUsers = [] }) => {
     const webcamRef = useRef<Webcam>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [status, setStatus] = useState<string>('Align your ID card');
@@ -67,18 +68,21 @@ export const IdScannerView: React.FC<IdScannerViewProps> = ({ onScan, onCancel }
         setScanProgress(30);
 
         try {
-            const extractedName = await extractNameFromImage(imageSrc);
+            const result: OcrResult = await performOcr(imageSrc, validUsers);
             setScanProgress(100);
-            if (extractedName && extractedName !== "Unknown") {
+            
+            if (result.name && result.name !== "Unknown") {
                 playSuccessBeep();
-                setStatus(`Verified: ${extractedName}`);
-                setTimeout(() => onScan(extractedName), 1500);
+                const methodLabel = result.method === 'tesseract' ? ' (Local Scan)' : '';
+                setStatus(`Verified: ${result.name}${methodLabel}`);
+                setTimeout(() => onScan(result.name), 1500);
             } else {
                 setStatus('Could not find name');
                 setIsProcessing(false);
                 setScanProgress(0);
             }
         } catch (error) {
+            console.error("Scan Process Error:", error);
             setStatus('Scan failed');
             setIsProcessing(false);
             setScanProgress(0);

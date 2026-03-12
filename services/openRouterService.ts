@@ -6,13 +6,13 @@
 
 export async function extractNameFromImage(imageBase64: string): Promise<string> {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY ||
-        import.meta.env.OPENROUTER_API_KEY ||
         process.env.VITE_OPENROUTER_API_KEY ||
+        import.meta.env.OPENROUTER_API_KEY ||
         process.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
-        console.error("VITE_OPENROUTER_API_KEY is not set.");
-        throw new Error("OCR Service not configured. Please add VITE_OPENROUTER_API_KEY to your .env file.");
+        console.warn("VITE_OPENROUTER_API_KEY is not set. OpenRouter OCR will be skipped.");
+        throw new Error("OPENROUTER_NOT_CONFIGURED");
     }
 
     const prompt = `

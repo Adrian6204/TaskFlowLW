@@ -1,17 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { UserIcon } from './icons/UserIcon';
-import { LockClosedIcon } from './icons/LockClosedIcon';
 import { Logo } from './Logo';
 import { EyeIcon } from './icons/EyeIcon';
 import { EyeSlashIcon } from './icons/EyeSlashIcon';
-import { ClockIcon } from './icons/ClockIcon';
-import { CheckCircleIcon } from './icons/CheckCircleIcon';
-import { ViewColumnsIcon } from './icons/ViewColumnsIcon';
-import { VideoCameraIcon } from './icons/VideoCameraIcon';
-import { IdScannerView } from './IdScannerView';
 import Background from './Background';
 import InteractiveParticles from './InteractiveParticles';
 
@@ -25,8 +17,6 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
   const [rememberMe, setRememberMe] = useState(localStorage.getItem('rememberMe') === 'true');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 
@@ -51,7 +41,7 @@ const LoginPage: React.FC = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
-  const { user, loading, login, logout } = useAuth(); // Ensure logout is destructured
+  const { user, loading, login } = useAuth();
 
   // Always redirect to home after login — MainApp handles routing from there
   if (!loading && user) {
@@ -81,26 +71,6 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleScan = async (name: string) => {
-    const usernameFromScan = name.toLowerCase().replace(/\s+/g, '');
-    setUsername(usernameFromScan);
-    setPassword('PHCBIT@12345');
-    setIsAutoLoggingIn(true);
-
-    setTimeout(async () => {
-      setError(null);
-      setIsLoading(true);
-      try {
-        await login(usernameFromScan, 'PHCBIT@12345');
-      } catch (err) {
-        let message = err instanceof Error ? err.message : 'Login failed';
-        setError(`${message} (Attempted login for ${name})`);
-        setIsAutoLoggingIn(false);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 1500);
-  };
 
 
 
@@ -130,11 +100,7 @@ const LoginPage: React.FC = () => {
         <div className="hidden lg:block relative h-full w-full group animate-fade-in">
           <div className="relative h-full w-full rounded-[40px] overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.1)] dark:shadow-[0_0_80px_rgba(255,255,255,0.05)] border border-white/5">
             {/* Moving Background Effect as the content (Vivid Mode) */}
-            {!isScannerOpen ? (
-              <Background videoSrc="/background.mp4" className="absolute inset-0" noOverlays={true} />
-            ) : (
-              <IdScannerView onScan={handleScan} onCancel={() => setIsScannerOpen(false)} />
-            )}
+            <Background videoSrc="/background.mp4" className="absolute inset-0" noOverlays={true} />
 
             {/* Logo overlay */}
             <div className="absolute top-10 left-10 flex items-center gap-3">
@@ -176,29 +142,6 @@ const LoginPage: React.FC = () => {
               </h1>
             </div>
 
-            {/* Primary Entry: ID Scanner */}
-            <div className="space-y-4">
-              <button
-                type="button"
-                onClick={() => setIsScannerOpen(true)}
-                className="group relative w-full py-4 px-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-[2rem] transition-all duration-500 flex items-center justify-center gap-4 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] hover:-translate-y-1 active:scale-[0.98] overflow-hidden"
-              >
-                <div className="p-2 bg-white/10 dark:bg-black/5 rounded-xl">
-                  <VideoCameraIcon className="w-6 h-6" />
-                </div>
-                <span className="text-xl tracking-tight">Scan Identity Card</span>
-                <div className="absolute right-8 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 dark:bg-black/5 rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
-                  <span className="text-xl">→</span>
-                </div>
-              </button>
-
-              {/* Decorative Separator */}
-              <div className="relative flex items-center gap-4 py-2">
-                <div className="flex-1 h-[1px] bg-slate-200 dark:bg-white/10" />
-                <span className="text-[10px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">or sign in with</span>
-                <div className="flex-1 h-[1px] bg-slate-200 dark:bg-white/10" />
-              </div>
-            </div>
 
             {/* Form Section (Secondary) */}
             <form id="login-form" onSubmit={handleSubmit} className="space-y-4">
@@ -265,8 +208,8 @@ const LoginPage: React.FC = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={isLoading || isAutoLoggingIn}
                   className="w-full py-3 px-6 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white font-bold rounded-2xl border border-black/5 dark:border-white/5 transition-all duration-300 flex items-center justify-center"
+                  disabled={isLoading}
                 >
                   {isLoading ? "Processing..." : "Sign In"}
                 </button>

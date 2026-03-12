@@ -879,4 +879,13 @@ export const resetUserPassword = async (userId: string) => {
   return data;
 };
 
-
+export const getValidUsernames = async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('username, full_name');
+  if (error) throw error;
+  return data.map(p => ({
+    username: p.username || '',
+    fullName: p.full_name || ''
+  }));
+};
