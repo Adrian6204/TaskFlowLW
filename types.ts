@@ -18,7 +18,7 @@ export enum Position {
   ADMIN = 'Admin',
   HR_ASSISTANT = 'HR Assistant',
   PRODUCTION_SUPPORT = 'Production Support',
-  ADMIN_AND_RESEARCH_ASSISTANT = 'Admin and Research Assistant',
+  RESEARCH_ASSISTANT = 'Research Assistant',
   AI_EXECUTIVE = 'AI Executive',
   AIE_ASSISTANT = 'AIE Assistant',
   PROJECT_COORDINATOR = 'Project Coordinator',
