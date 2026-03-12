@@ -1,4 +1,4 @@
-# TaskFlow by Lifewood
+# TaskFlow
 
 Welcome to **TaskFlow**, a premier workspace management and productivity platform designed to streamline how teams organize, collaborate, and execute their daily objectives. Built with a focus on intuitive design and powerful functionality, TaskFlow empowers organizations to take control of their workflows and drive consistent results.
 
