@@ -63,8 +63,10 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
     [Priority.URGENT]: 'bg-red-500/10 dark:bg-red-500/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30',
     [Priority.HIGH]: 'bg-orange-500/10 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-500/30',
     [Priority.MEDIUM]: 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/30',
-    [Priority.LOW]: 'bg-slate-400/10 dark:bg-slate-400/20 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-400/30',
+    [Priority.LOW]: 'bg-zinc-400/10 dark:bg-zinc-400/20 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-400/30',
   };
+
+  const completedStyle = 'bg-emerald-500/20 dark:bg-emerald-500/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/40 shadow-sm shadow-emerald-500/10';
 
   const navigateWeek = (direction: number) => {
     const newDate = new Date(currentDate);
@@ -146,6 +148,11 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
             <div className="w-2.5 h-2.5 rounded bg-zinc-400 shadow-sm shadow-zinc-400/20"></div>
             <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400">Low</span>
           </div>
+          <div className="w-px h-3 bg-zinc-200 dark:bg-white/10 mx-1"></div>
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded bg-emerald-500 shadow-sm shadow-emerald-500/20"></div>
+            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Completed</span>
+          </div>
         </div>
       </div>
 
@@ -226,16 +233,23 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
                         <div key={task.id} className="w-full relative h-8 shrink-0">
                           <div
                             onClick={() => onViewTask(task)}
-                            className={`absolute inset-y-0 rounded-lg ${priorityColors[task.priority]} cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all flex items-center px-3 border shadow-sm group/bar z-10 hover:z-20`}
+                            className={`absolute inset-y-0 rounded-lg ${task.status === TaskStatus.DONE ? completedStyle : priorityColors[task.priority]} cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all flex items-center px-1.5 sm:px-2.5 border shadow-sm group/bar z-10 hover:z-20`}
                             style={{
                               left: `${leftPercent}%`,
                               width: `${widthPercent}%`,
                               margin: '0 2px'
                             }}
                           >
-                            <span className="text-[10px] font-bold truncate">
-                              {task.title}
-                            </span>
+                            <div className="flex items-center gap-1 w-full min-w-0">
+                              {task.status === TaskStatus.DONE && (
+                                <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                              <span className="text-[10px] font-bold truncate flex-1 leading-none">
+                                {task.title}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
