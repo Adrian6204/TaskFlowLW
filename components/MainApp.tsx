@@ -408,7 +408,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         currentSpace={currentSpace}
                     />
 
-                    <div className="flex-1 flex overflow-hidden">
+                    <div className="flex-1 flex overflow-hidden pt-20 md:pt-24">
                         <Sidebar
                             isOpen={isSidebarOpen}
                             onToggle={() => setSidebarOpen(!isSidebarOpen)}
