@@ -1,5 +1,0 @@
-﻿components/MembersView.tsx(51,41): error TS2339: Property 'searchUsers' does not exist on type 'typeof import("C:/Users/Adrian/Documents/GitHub/Taskflow/services/supabaseService")'.
-components/MembersView.tsx(53,39): error TS7006: Parameter 'u' implicitly has an 'any' type.
-context/AppNotificationContext.tsx(35,44): error TS2339: Property 'getNotifications' does not exist on type 'typeof import("C:/Users/Adrian/Documents/GitHub/Taskflow/services/supabaseService")'.
-context/AppNotificationContext.tsx(76,31): error TS2339: Property 'markNotificationAsRead' does not exist on type 'typeof import("C:/Users/Adrian/Documents/GitHub/Taskflow/services/supabaseService")'.
-hooks/useDailyTasks.ts(134,35): error TS2551: Property 'deleteDailyTask' does not exist on type 'typeof import("C:/Users/Adrian/Documents/GitHub/Taskflow/services/supabaseService")'. Did you mean 'deleteTask'?

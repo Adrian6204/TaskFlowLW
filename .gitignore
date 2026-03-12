@@ -5,4 +5,5 @@ dist/
 *.env
 package-lock.json
 *.log
+*.txt
 .DS_Store
