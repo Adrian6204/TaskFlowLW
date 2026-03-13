@@ -835,6 +835,22 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                         </div>
                                     </div>
                                 </section>
+                                {/* Automation */}
+                                <section>
+                                    <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Automation</h4>
+                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 p-5">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Auto-Complete Recurring Tasks</p>
+                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5 max-w-[280px]">Automatically mark overdue recurring tasks as done to catch up on the schedule.</p>
+                                            </div>
+                                            <ToggleSwitch
+                                                enabled={preferences.autoCompleteRecurring}
+                                                onChange={(val) => setPreferences('autoCompleteRecurring', val)}
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
 
                             </div>
                         )}

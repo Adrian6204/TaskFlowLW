@@ -35,6 +35,7 @@ import { useDailyTasks } from '../hooks/useDailyTasks';
 import { useTheme } from './hooks/useTheme';
 import { usePreferences } from './hooks/usePreferences';
 import SpaceSettingsView from './SpaceSettingsView';
+import { isTaskOverdue } from '../utils/taskUtils';
 
 interface MainAppProps {
     user: User;
@@ -228,6 +229,26 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
             setLists(allListsResults.flat());
         }
     };
+    
+    // ─── Auto-Complete Overdue Recurring Tasks ──────────────────────────
+    useEffect(() => {
+        if (!preferences.autoCompleteRecurring || !isDataLoaded) return;
+
+        const overdueRecurringTasks = tasks.filter(t => 
+            t.recurrence && 
+            t.recurrence !== 'none' && 
+            isTaskOverdue(t)
+        );
+
+        if (overdueRecurringTasks.length > 0) {
+            const processTasks = async () => {
+                // Focus on one at a time to allow spawning logic to catch up
+                const task = overdueRecurringTasks[0];
+                await handleUpdateTaskStatus(task.id, TaskStatus.DONE);
+            };
+            processTasks();
+        }
+    }, [tasks, preferences.autoCompleteRecurring, isDataLoaded]);
 
     // ─── Computed Values ──────────────────────────────────────────────────
     const filteredTasks = useMemo(() => {

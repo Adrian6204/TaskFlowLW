@@ -11,6 +11,7 @@ export interface Preferences {
     timeFormat: TimeFormat;
     showCompletedTasks: TaskVisibility;
     performanceMode: boolean;
+    autoCompleteRecurring: boolean;
 }
 
 const DEFAULT_PREFERENCES: Preferences = {
@@ -19,6 +20,7 @@ const DEFAULT_PREFERENCES: Preferences = {
     timeFormat: '12h',
     showCompletedTasks: 'recent',
     performanceMode: false,
+    autoCompleteRecurring: false,
 };
 
 export const usePreferences = (): [Preferences, (key: keyof Preferences, value: any) => void] => {
