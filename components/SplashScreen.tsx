@@ -137,7 +137,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                         fontWeight: 600,
                         animation: phase === 'enter' ? 'splashTextIn 0.8s 0.3s cubic-bezier(0.16,1,0.3,1) both' : 'none',
                     }}>
-                        Project Management
+                        Elevating Your Workspace
                     </p>
                 </div>
 
