@@ -107,18 +107,51 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* ── New Task button ─────────────────────────────── */}
         {isInsideWorkspace && (
-          <button
-            onClick={onCreateTask}
-            className={`w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-2xl bg-gradient-to-r from-lime-500 to-emerald-500 text-black shadow-lg shadow-lime-500/20 hover:shadow-lime-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group ${!isOpen && 'justify-center px-0'}`}
-          >
-            <PlusIcon className="w-5 h-5 text-black" />
-            {isOpen && <span className="text-sm font-black uppercase tracking-wider">New Task</span>}
-            {!isOpen && (
-              <div className="absolute left-full ml-4 px-4 py-2 bg-lime-500 text-black text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-                New Task
-              </div>
+          <div className={`relative mb-2 ${!isOpen && 'flex justify-center'}`}>
+            {/* Pulsing glow ring */}
+            {isOpen && (
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-lime-400 to-emerald-400 blur-md opacity-50 animate-pulse pointer-events-none" />
             )}
-          </button>
+            <button
+              onClick={onCreateTask}
+              className={`relative w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl overflow-hidden
+                bg-gradient-to-r from-lime-400 via-emerald-400 to-lime-400
+                text-black font-black
+                shadow-lg shadow-lime-500/30
+                hover:shadow-xl hover:shadow-lime-500/50
+                hover:scale-[1.03] active:scale-[0.97]
+                transition-all duration-300 group
+                ${!isOpen && 'justify-center px-0 w-12 h-12 rounded-2xl'}`}
+              style={{ backgroundSize: '200% 100%', backgroundPosition: '0% 0%' }}
+            >
+              {/* Shimmer sweep */}
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 pointer-events-none" />
+
+              {/* Plus icon with spin on hover */}
+              <div className="relative flex-shrink-0 w-5 h-5 group-hover:rotate-90 transition-transform duration-300">
+                <PlusIcon className="w-5 h-5 text-black" />
+              </div>
+
+              {isOpen && (
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-sm font-black uppercase tracking-widest leading-none">New Task</span>
+                  <span className="text-[9px] font-bold opacity-60 tracking-wider leading-none mt-0.5">Click to add</span>
+                </div>
+              )}
+
+              {/* Sparkle badge */}
+              {isOpen && (
+                <div className="ml-auto flex-shrink-0 w-2 h-2 rounded-full bg-white/70 animate-ping" />
+              )}
+
+              {/* Tooltip when collapsed */}
+              {!isOpen && (
+                <div className="absolute left-full ml-4 px-4 py-2 bg-lime-500 text-black text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                  New Task
+                </div>
+              )}
+            </button>
+          </div>
         )}
 
         {/* ═══════════════════════════════════════════════════════════════
@@ -231,8 +264,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               )}
 
               {isOpen && myTasks.length === 0 && (
-                <div className="px-4 py-6 text-center">
-                  <p className="text-2xl mb-2">✓</p>
+                <div className="px-4 py-2 flex flex-col items-center gap-1">
+                  <svg className="w-4 h-4 text-slate-400 dark:text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
                   <p className="text-xs font-semibold text-slate-400 dark:text-white/30">All caught up!</p>
                 </div>
               )}
