@@ -35,7 +35,7 @@ import { useDailyTasks } from '../hooks/useDailyTasks';
 import { useTheme } from './hooks/useTheme';
 import { usePreferences } from './hooks/usePreferences';
 import SpaceSettingsView from './SpaceSettingsView';
-import { isTaskOverdue } from '../utils/taskUtils';
+import { isTaskOverdue, isTaskAvailable } from '../utils/taskUtils';
 
 interface MainAppProps {
     user: User;
@@ -234,6 +234,10 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     useEffect(() => {
         if (!preferences.autoCompleteRecurring || !isDataLoaded) return;
 
+        // Only auto-complete after 7PM (19:00)
+        const now = new Date();
+        if (now.getHours() < 19) return;
+
         const overdueRecurringTasks = tasks.filter(t => 
             t.recurrence && 
             t.recurrence !== 'none' && 
@@ -251,12 +255,15 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     }, [tasks, preferences.autoCompleteRecurring, isDataLoaded]);
 
     // ─── Computed Values ──────────────────────────────────────────────────
+    const availableTasks = useMemo(() => tasks.filter(isTaskAvailable), [tasks]);
+    const availableAllUserTasks = useMemo(() => allUserTasks.filter(isTaskAvailable), [allUserTasks]);
+
     const filteredTasks = useMemo(() => {
-        let t = tasks;
+        let t = availableTasks;
         if (activeListId) t = t.filter(task => task.listId === activeListId);
         if (searchTerm) t = t.filter(task => task.title.toLowerCase().includes(searchTerm.toLowerCase()));
         return t;
-    }, [tasks, searchTerm, activeListId]);
+    }, [availableTasks, searchTerm, activeListId]);
 
     const spaceMembers = useMemo(() => {
         if (!currentSpace) return [];
@@ -264,7 +271,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
             .filter(e => currentSpace.members.includes(e.id))
             .map(e => {
                 const membership = memberships.find(m => m.user_id === e.id && m.space_id === currentSpace.id);
-                return { ...e, role: (membership?.role || 'member') as 'admin' | 'assistant' | 'member' };
+                return { ...e, role: (membership?.role || 'member') as 'admin' | 'member' };
             });
     }, [currentSpace, employees, memberships]);
 
@@ -474,7 +481,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                 {/* Workspace Home / Daily Tasks */}
                                 {isOnWorkspace && currentView === 'home' && (
                                     <HomeView
-                                        tasks={allUserTasks}
+                                        tasks={availableAllUserTasks}
                                         employees={spaceMembers}
                                         currentSpace={currentSpace!}
                                         user={user}
@@ -490,7 +497,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                 {isOnWorkspace && currentView === 'board' && (
                                     <TaskBoard
                                         tasks={filteredTasks.filter((t: Task) => t.assigneeIds?.includes(user.employeeId) || t.assigneeId === user.employeeId)}
-                                        allTasks={tasks}
+                                        allTasks={availableTasks}
                                         employees={spaceMembers}
                                         onUpdateTaskStatus={handleUpdateTaskStatus}
                                         onEditTask={(t) => { setTaskToEdit(t); setCreateTaskModalOpen(true); }}
@@ -504,7 +511,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                 {/* Task Summary */}
                                 {isOnWorkspace && currentView === 'summary' && (
                                     <TaskSummaryView
-                                        tasks={allUserTasks.filter(t => t.spaceId === activeSpaceId)}
+                                        tasks={availableAllUserTasks.filter(t => t.spaceId === activeSpaceId)}
                                         employees={spaceMembers}
                                     />
                                 )}
@@ -526,7 +533,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                 {/* Overview / Analytics (admin + super_admin only) */}
                                 {isOnWorkspace && currentView === 'overview' && (currentSpaceRole === 'admin' || isSuperAdmin) && (
                                     <AdminDashboard
-                                        tasks={tasks}
+                                        tasks={availableTasks}
                                         employees={spaceMembers}
                                         activityLogs={[]}
                                         isAdmin={isSuperAdmin}
@@ -546,7 +553,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                 {isOnWorkspace && currentView === 'members' && (
                                     <MembersView
                                         employees={spaceMembers}
-                                        tasks={allUserTasks}
+                                        tasks={availableAllUserTasks}
                                         currentUser={user}
                                         currentSpace={currentSpace}
                                         onMemberUpdate={loadData}

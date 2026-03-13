@@ -23,7 +23,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
     const [selectedUserToEnroll, setSelectedUserToEnroll] = useState<string>('');
     const [selectedSpaceToEnroll, setSelectedSpaceToEnroll] = useState<string>(spaces[0]?.id || '');
-    const [selectedRoleToEnroll, setSelectedRoleToEnroll] = useState<'member' | 'admin' | 'assistant'>('member');
+    const [selectedRoleToEnroll, setSelectedRoleToEnroll] = useState<'member' | 'admin'>('member');
 
     // Inline Editing State
     const [editingPositionUserId, setEditingPositionUserId] = useState<string | null>(null);
@@ -570,11 +570,10 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                 <label className="block text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mb-2">Role in Workspace</label>
                                 <select
                                     value={selectedRoleToEnroll}
-                                    onChange={(e) => setSelectedRoleToEnroll(e.target.value as 'member' | 'admin' | 'assistant')}
+                                    onChange={(e) => setSelectedRoleToEnroll(e.target.value as 'member' | 'admin')}
                                     className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none appearance-none"
                                 >
                                     <option value="member">Member</option>
-                                    <option value="assistant">Assistant</option>
                                     <option value="admin">Workspace Admin</option>
                                 </select>
                             </div>

@@ -35,7 +35,7 @@ export interface Employee {
   avatarUrl: string;
   position?: Position | string; // Optional for backward compatibility
   phone?: string;
-  role?: 'admin' | 'assistant' | 'member';
+  role?: 'admin' | 'member';
   isSuperAdmin?: boolean;
   mustChangePassword?: boolean;
 }
@@ -43,7 +43,7 @@ export interface Employee {
 export interface EmployeeWithRole extends Employee {
   spaceId: string;
   spaceName: string;
-  role: 'admin' | 'assistant' | 'member';
+  role: 'admin' | 'member';
   isSuperAdmin: boolean;
 }
 

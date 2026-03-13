@@ -141,26 +141,25 @@
     }
 
     .dark {
-      --bg-app: #133020;
-      /* Dark Serpent */
+      --bg-app: #0A0F0C; /* Deeper, richer dark background */
       --surface-glass: rgba(255, 255, 255, 0.04);
-      --border-glass: rgba(255, 255, 255, 0.06);
+      --border-glass: rgba(255, 255, 255, 0.08); /* Slightly more visible borders for Simple Mode depth */
       --text-primary: #f5eedb;
       /* Paper */
       --text-secondary: rgba(245, 238, 219, 0.6);
 
       /* Mesh Colors Dark — Deep greens and warm glows */
-      --mesh-1: rgba(19, 48, 32, 1);
-      /* Dark Serpent */
-      --mesh-2: rgba(4, 98, 65, 0.6);
-      /* Castleton */
-      --mesh-3: rgba(255, 179, 71, 0.1);
-      /* Saffaron accent */
-      --mesh-4: rgba(15, 38, 26, 1);
-      /* Darker Serpent */
-      --mesh-5: rgba(4, 98, 65, 0.4);
-      /* Castleton */
-      --mesh-6: rgba(19, 48, 32, 1);
+      --mesh-1: #0A0F0C;
+      --mesh-2: rgba(4, 98, 65, 0.4);
+      --mesh-3: rgba(255, 179, 71, 0.05);
+      --mesh-4: #080D0A;
+      --mesh-5: rgba(4, 98, 65, 0.3);
+      --mesh-6: #0A0F0C;
+    }
+
+    /* Professional radial depth for performance mode */
+    .bg-simple-dark {
+      background: radial-gradient(circle at 50% -20%, rgba(4, 152, 98, 0.15) 0%, rgba(10, 15, 12, 1) 100%);
     }
 
     html,
@@ -512,7 +511,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-pzSlTjnF.js"></script>
+  <script type="module" crossorigin src="/assets/index-CDDRAQqL.js"></script>
 </head>
 
 <body class="bg-slate-50 dark:bg-black text-slate-900 dark:text-white antialiased transition-colors duration-500">

@@ -14,7 +14,7 @@ import { PhotoIcon } from './icons/PhotoIcon';
 
 interface SpaceSettingsViewProps {
   space: Space;
-  members: (Employee & { role?: 'admin' | 'assistant' | 'member' })[];
+  members: (Employee & { role?: 'admin' | 'member' })[];
   allEmployees: Employee[];
   currentUserId?: string;
   isAdmin?: boolean;
@@ -22,7 +22,7 @@ interface SpaceSettingsViewProps {
   onRemoveMember: (spaceId: string, memberId: string) => void;
   onAddMember: (spaceId: string, memberId: string) => void;
   onDeleteSpace: (spaceId: string) => void;
-  onUpdateRole?: (spaceId: string, memberId: string, role: 'admin' | 'assistant' | 'member') => void;
+  onUpdateRole?: (spaceId: string, memberId: string, role: 'admin' | 'member') => void;
   onUpdateSpace?: (spaceId: string, updates: { name: string; description: string; theme?: string; logoUrl?: string | null }) => Promise<void>;
 }
 

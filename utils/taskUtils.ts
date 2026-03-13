@@ -27,3 +27,21 @@ export const isTaskOverdue = (task: Task): boolean => {
 
     return now.getTime() > deadline.getTime();
 };
+
+/**
+ * Checks if a task is available to be seen/worked on.
+ * Recurring tasks spawned for a future date are only available after 7 AM (07:00) on that date.
+ */
+export const isTaskAvailable = (task: Task): boolean => {
+    // Only applies to recurring tasks
+    if (!task.recurrence || task.recurrence === 'none') return true;
+    
+    const now = new Date();
+    const dueDate = new Date(task.dueDate);
+    
+    // Threshold is 7 AM of the due date
+    const availabilityThreshold = new Date(dueDate);
+    availabilityThreshold.setHours(7, 0, 0, 0);
+    
+    return now.getTime() >= availabilityThreshold.getTime();
+};
