@@ -215,7 +215,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
         setConfirmModal({
             isOpen: true,
             title: `RESET PASSWORD?`,
-            message: `Are you sure you want to reset ${user.name}'s password to the default ("PHCBIT@12345")? They will be forced to change it on their next login.`,
+            message: `Are you sure you want to reset ${user.name}'s password to the default password? They will be forced to change it on their next login.`,
             type: 'warning',
             onConfirm: async () => {
                 try {

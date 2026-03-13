@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -27,38 +28,31 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     danger: {
       bg: 'bg-red-500',
       text: 'text-red-500',
-      border: 'border-red-500',
       hover: 'hover:bg-red-600',
-      lightBg: 'bg-red-500/10'
     },
     warning: {
       bg: 'bg-orange-500',
       text: 'text-orange-500',
-      border: 'border-orange-500',
       hover: 'hover:bg-orange-600',
-      lightBg: 'bg-orange-500/10'
     },
     info: {
       bg: 'bg-primary-500',
       text: 'text-primary-500',
-      border: 'border-primary-500',
       hover: 'hover:bg-primary-600',
-      lightBg: 'bg-primary-500/10'
     }
   };
 
   const color = colors[type];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
+  return ReactDOM.createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-6 border border-white/10 animate-in zoom-in-95 duration-200">
+        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-6 border border-white/10 animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-4">
           <h3 className={`text-xl font-black ${color.text} mb-2`}>{title}</h3>
           <p className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
@@ -78,13 +72,14 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               onConfirm();
               onClose();
             }}
-            className={`px-6 py-2 rounded-xl text-white font-bold shadow-lg shadow-${type}-500/20 transition-all transform active:scale-95 ${color.bg} ${color.hover}`}
+            className={`px-6 py-2 rounded-xl text-white font-bold shadow-lg transition-all transform active:scale-95 ${color.bg} ${color.hover}`}
           >
             {confirmText}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
