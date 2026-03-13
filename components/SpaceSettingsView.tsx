@@ -466,7 +466,6 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                 <div className="flex items-center gap-2">
                   {/* Role Tags */}
                   {member.role === 'admin' && <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${accent ? `bg-gradient-to-br ${accent.from} ${accent.to} bg-opacity-10 ${accent.text} ${accent.darkText}` : 'bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A]'} rounded`}>Workspace Admin</span>}
-                  {member.role === 'assistant' && <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded">Assistant</span>}
 
                   {member.id === space.ownerId ? (
                     <span className="px-3 py-1 text-xs font-bold uppercase bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg">
@@ -474,19 +473,6 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                     </span>
                   ) : (
                     <>
-                      {/* Role Management for Admins/SuperAdmins */}
-                      {(isAdmin || isSuperAdmin) && member.role !== 'admin' && (
-                        <button
-                          onClick={() => onUpdateRole?.(space.id, member.id, member.role === 'assistant' ? 'member' : 'assistant')}
-                          className={`flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg transition-all duration-200 ${member.role === 'assistant'
-                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white'
-                            : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 hover:bg-blue-500 hover:text-white'
-                            }`}
-                        >
-                          {member.role === 'assistant' ? 'Revoke Assistant' : 'Make Assistant'}
-                        </button>
-                      )}
-
                       {/* Remove Member for Owner/SuperAdmins */}
                       {(isOwner || isSuperAdmin) && (
                         <button
