@@ -40,7 +40,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onViewTask }) => {
 
   const tasksByDate: { [key: string]: Task[] } = {};
   tasks.forEach(task => {
-    if (task.status === TaskStatus.DONE && preferences.showCompletedTasks === 'never') return;
+    if (task.status === TaskStatus.DONE) {
+      if (preferences.showCompletedTasks === 'never') return;
+      if (preferences.showCompletedTasks === 'recent') {
+        const timestamp = task.completedAt || task.updated_at || task.createdAt;
+        const completedDt = timestamp ? new Date(timestamp) : new Date();
+        const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        if (completedDt <= cutoff) return;
+      }
+    }
 
     // Use dueDate as the key
     const dateKey = task.dueDate;

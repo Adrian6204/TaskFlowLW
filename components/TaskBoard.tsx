@@ -24,10 +24,13 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEdi
     if (task.status !== 'Done') return true;
     if (preferences.showCompletedTasks === 'always') return true;
     if (preferences.showCompletedTasks === 'never') return false;
+    
     // recent (24h)
-    const completedAt = task.updated_at ? new Date(task.updated_at) : new Date(); // fallback if no updated_at
+    // Use completedAt primarily, fallback to updated_at then createdAt
+    const timestamp = task.completedAt || task.updated_at || task.createdAt;
+    const completedDt = timestamp ? new Date(timestamp) : new Date();
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    return completedAt > cutoff;
+    return completedDt > cutoff;
   });
 
   if (filteredTasks.length === 0) {

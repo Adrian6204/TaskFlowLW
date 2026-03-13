@@ -587,22 +587,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                             </div>
                                         </div>
 
-                                        <div className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-200/50 dark:border-white/5">
-                                            <div className="mb-4">
-                                                <p className="font-bold text-slate-900 dark:text-white text-sm">Accent Color</p>
-                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">Choose a primary color for buttons and highlights.</p>
-                                            </div>
-                                            <div className="flex flex-wrap gap-3">
-                                                {colorSchemes.map(color => (
-                                                    <ColorOption
-                                                        key={color}
-                                                        color={color}
-                                                        selected={colorScheme === color}
-                                                        onSelect={() => setColorScheme(color)}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
+
                                     </div>
                                 </section>
 
