@@ -8,6 +8,9 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import { UserIcon } from './icons/UserIcon';
 import ConfirmationModal from './ConfirmationModal';
 import { cardAccents } from './WorkspaceHomePage';
+import { getFallbackAvatar, deleteWorkspaceLogo } from '../services/supabaseService';
+import { supabase } from '../lib/supabaseClient';
+import { PhotoIcon } from './icons/PhotoIcon';
 
 interface SpaceSettingsViewProps {
   space: Space;
@@ -20,7 +23,7 @@ interface SpaceSettingsViewProps {
   onAddMember: (spaceId: string, memberId: string) => void;
   onDeleteSpace: (spaceId: string) => void;
   onUpdateRole?: (spaceId: string, memberId: string, role: 'admin' | 'assistant' | 'member') => void;
-  onUpdateSpace?: (spaceId: string, name: string, description: string, theme?: string) => Promise<void>;
+  onUpdateSpace?: (spaceId: string, updates: { name: string; description: string; theme?: string; logoUrl?: string | null }) => Promise<void>;
 }
 
 const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
@@ -44,7 +47,9 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
   const [editName, setEditName] = useState(space.name);
   const [editDescription, setEditDescription] = useState(space.description || '');
   const [editTheme, setEditTheme] = useState(space.theme || '');
+  const [editLogoUrl, setEditLogoUrl] = useState(space.logoUrl || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Theme support
   const themeIndex = (space.theme && !isNaN(parseInt(space.theme)))
@@ -56,13 +61,80 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
     setEditName(space.name);
     setEditDescription(space.description || '');
     setEditTheme(space.theme || '');
+    setEditLogoUrl(space.logoUrl || '');
   }, [space]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Simple validation
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file');
+        return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        alert('File size exceeds 2MB limit');
+        return;
+    }
+
+    try {
+        setIsUploading(true);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${space.id}/${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('workspace-logos')
+            .upload(filePath, file, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('workspace-logos')
+            .getPublicUrl(filePath);
+
+        // Delete old logo if it exists in our storage
+        if (editLogoUrl && editLogoUrl.includes('/workspace-logos/')) {
+            const oldPath = editLogoUrl.split('/workspace-logos/')[1];
+            if (oldPath) {
+                await deleteWorkspaceLogo(oldPath);
+            }
+        }
+
+        setEditLogoUrl(publicUrl);
+    } catch (error: any) {
+        console.error('Error uploading logo:', error);
+        alert('Failed to upload logo: ' + error.message);
+    } finally {
+        setIsUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setEditLogoUrl('');
+  };
 
   const handleSaveInfo = async () => {
     if (!editName.trim() || !onUpdateSpace) return;
     setIsSaving(true);
     try {
-      await onUpdateSpace(space.id, editName, editDescription, editTheme);
+      // Cleanup old logo from storage if it changed
+      if (space.logoUrl && space.logoUrl !== editLogoUrl && space.logoUrl.includes('/workspace-logos/')) {
+        const oldPath = space.logoUrl.split('/workspace-logos/')[1];
+        if (oldPath) {
+          await deleteWorkspaceLogo(oldPath);
+        }
+      }
+
+      await onUpdateSpace(space.id, { 
+        name: editName, 
+        description: editDescription, 
+        theme: editTheme,
+        logoUrl: editLogoUrl || null 
+      });
       setIsEditingInfo(false);
     } finally {
       setIsSaving(false);
@@ -148,8 +220,59 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
           </div>
 
           {isEditingInfo ? (
-            <div className="space-y-4">
-              <div>
+            <div className="space-y-6">
+              {/* Logo Upload */}
+              <div className="flex flex-col items-center gap-4 p-6 rounded-2xl bg-slate-100/50 dark:bg-white/5 border border-dashed border-slate-300 dark:border-white/10">
+                <div className="relative group/logo">
+                  <div className={`absolute -inset-1 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} rounded-2xl opacity-0 group-hover/logo:opacity-50 blur transition-all duration-300 ${isUploading ? 'opacity-50 animate-pulse' : ''}`}></div>
+                  <div className="relative">
+                    <div className={`w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-white/10 bg-white dark:bg-black/20 flex items-center justify-center transition-all ${isUploading ? 'blur-sm grayscale' : ''}`}>
+                      {editLogoUrl ? (
+                        <img src={editLogoUrl} alt="Workspace Logo" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className={`text-3xl font-black ${accent?.text || 'text-slate-900'} ${accent?.darkText || 'dark:text-white'}`}>
+                          {editName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <label 
+                      htmlFor="logo-upload"
+                      className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 opacity-0 group-hover/logo:opacity-100 rounded-2xl cursor-pointer transition-all"
+                    >
+                      <PhotoIcon className="w-6 h-6 text-white mb-1" />
+                      <span className="text-[10px] font-bold text-white uppercase tracking-wider">Change</span>
+                    </label>
+                    <input 
+                      type="file" 
+                      id="logo-upload" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleFileChange}
+                      disabled={isUploading}
+                    />
+                  </div>
+                </div>
+                <div className="text-center flex flex-col items-center gap-2">
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest uppercase">Workspace Logo</p>
+                    <p className="text-[9px] text-slate-400 dark:text-white/20 mt-1">Square image, PNG or JPG (Max 2MB)</p>
+                  </div>
+                  
+                  {editLogoUrl && (
+                    <button
+                      onClick={handleRemoveLogo}
+                      disabled={isUploading}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50"
+                    >
+                      <TrashIcon className="w-3 h-3" />
+                      Remove Logo
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
                 <label className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest block mb-2">Workspace Name</label>
                 <input
                   type="text"
@@ -200,6 +323,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                     setEditName(space.name);
                     setEditDescription(space.description || '');
                     setEditTheme(space.theme || '');
+                    setEditLogoUrl(space.logoUrl || '');
                   }}
                   className="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white font-bold rounded-xl transition-colors"
                 >
@@ -208,22 +332,35 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Name</label>
-                <p className="text-lg font-bold text-slate-900 dark:text-white mt-1">{space.name}</p>
+            <div className="space-y-6">
+              <div className="flex items-center gap-6">
+                <div className={`w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-white/10 bg-gradient-to-br ${accent?.from || 'from-slate-200'} ${accent?.to || 'to-slate-300'} flex items-center justify-center shrink-0`}>
+                  {space.logoUrl ? (
+                    <img src={space.logoUrl} alt={space.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-4xl font-black text-white">{space.name.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Name</label>
+                  <p className="text-xl font-black text-slate-900 dark:text-white mt-1">{space.name}</p>
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest mt-2">{members.length} Members • Created {new Date(space.createdAt).toLocaleDateString()}</p>
+                </div>
               </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Description</label>
-                <p className="text-sm font-medium text-slate-600 dark:text-white/70 mt-1">{space.description || 'No description provided.'}</p>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Workspace Color</label>
-                <div className="flex items-center gap-3 mt-1.5">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${accent?.from || 'from-slate-200'} ${accent?.to || 'to-slate-300'} shadow-sm`} />
-                  <p className="text-sm font-semibold text-slate-600 dark:text-white/70">
-                    {accent ? `Theme ${themeIndex + 1}` : 'Default Theme'}
-                  </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-black/5 dark:border-white/5">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Description</label>
+                  <p className="text-sm font-medium text-slate-600 dark:text-white/70 mt-1">{space.description || 'No description provided.'}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Workspace Color</label>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${accent?.from || 'from-slate-200'} ${accent?.to || 'to-slate-300'} shadow-sm`} />
+                    <p className="text-sm font-semibold text-slate-600 dark:text-white/70">
+                      {accent ? `Theme ${themeIndex + 1}` : 'Default Theme'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

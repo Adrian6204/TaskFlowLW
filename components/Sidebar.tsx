@@ -289,8 +289,12 @@ const Sidebar: React.FC<SidebarProps> = ({
             {isOpen && currentSpace && (
               <div className="px-4 py-3 mb-2 rounded-2xl bg-white/5 dark:bg-white/5 border border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${accent.from} ${accent.to} flex items-center justify-center text-white text-sm font-black shadow-lg ${accent.shadow} flex-shrink-0`}>
-                    {currentSpace.name.charAt(0).toUpperCase()}
+                  <div className={`w-8 h-8 rounded-xl overflow-hidden bg-gradient-to-br ${accent.from} ${accent.to} flex items-center justify-center text-white text-sm font-black shadow-lg ${accent.shadow} flex-shrink-0 border border-white/10`}>
+                    {currentSpace.logoUrl ? (
+                      <img src={currentSpace.logoUrl} alt={currentSpace.name} className="w-full h-full object-cover" />
+                    ) : (
+                      currentSpace.name.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{currentSpace.name}</p>

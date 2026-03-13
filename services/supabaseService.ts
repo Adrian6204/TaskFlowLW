@@ -102,6 +102,7 @@ const mapDbSpaceToApp = (dbSpace: any): Space => ({
   members: [],
   description: dbSpace.description,
   theme: dbSpace.theme,
+  logoUrl: dbSpace.logo_url,
   createdAt: dbSpace.created_at,
 });
 
@@ -196,6 +197,13 @@ export const deleteAvatar = async (path: string) => {
   if (error) {
     console.error('Error deleting avatar:', error);
     // We don't throw here to avoid blocking the main flow if deletion fails
+  }
+};
+
+export const deleteWorkspaceLogo = async (path: string) => {
+  const { error } = await supabase.storage.from('workspace-logos').remove([path]);
+  if (error) {
+    console.error('Error deleting workspace logo:', error);
   }
 };
 
@@ -575,6 +583,7 @@ export const updateSpace = async (spaceId: string, updates: Partial<Space>) => {
   if (updates.description !== undefined) payload.description = updates.description;
   // Allow "0" and other falsy-but-valid theme indices
   if (updates.theme !== undefined) payload.theme = updates.theme;
+  if (updates.logoUrl !== undefined) payload.logo_url = updates.logoUrl;
 
   const { data, error } = await supabase
     .from('spaces')

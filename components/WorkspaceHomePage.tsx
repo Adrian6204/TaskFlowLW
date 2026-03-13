@@ -140,10 +140,14 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
 
                                 <div className="relative p-6">
                                     {/* Icon */}
-                                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${accent.from} ${accent.to} flex items-center justify-center mb-4 shadow-lg`}>
-                                        <span className="text-white text-xl font-black">
-                                            {space.name.charAt(0).toUpperCase()}
-                                        </span>
+                                    <div className={`w-12 h-12 rounded-2xl overflow-hidden bg-gradient-to-br ${accent.from} ${accent.to} flex items-center justify-center mb-4 shadow-lg border border-white/10`}>
+                                        {space.logoUrl ? (
+                                            <img src={space.logoUrl} alt={space.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-white text-xl font-black">
+                                                {space.name.charAt(0).toUpperCase()}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Name */}

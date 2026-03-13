@@ -101,6 +101,7 @@ export interface Space {
   members: string[]; // Array of employee IDs
   theme?: string; // Optional per-space theme override
   description?: string; // Used for "Today's Task"
+  logoUrl?: string | null; // Workspace logo
   createdAt: string;
 }
 
