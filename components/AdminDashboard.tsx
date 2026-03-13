@@ -178,7 +178,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-6">
                             <span className="px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-[10px] uppercase tracking-widest font-bold text-primary-400">
-                                Command Center
+                                Filter By
                             </span>
                             <span className="text-xs font-bold text-slate-400 dark:text-white/40 font-mono tracking-widest pl-2 border-l border-white/10">
                                 SYSTEM ONLINE
