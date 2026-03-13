@@ -286,7 +286,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               </div>
 
               <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-orange-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-orange-500/5 shadow-sm">
-                <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Priority</span>
+                <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Priority:</span>
                 <div className={`inline-flex items-center gap-2 ${priorityConfig[task.priority].text}`}>
                   <div className={`p-1.5 rounded-lg ${priorityConfig[task.priority].bg}`}>
                     <FlagIcon className="w-4 h-4" />

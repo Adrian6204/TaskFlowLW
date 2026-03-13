@@ -1,15 +1,18 @@
-
 import React, { useState, useEffect, useRef } from 'react';
+import { format } from 'date-fns';
 import { Task, Space, Employee, Priority, TaskStatus, List, Subtask } from '../types';
 import { UserIcon } from './icons/UserIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
-import { TagIcon } from './icons/TagIcon';
+import { TrashIcon } from './icons/TrashIcon';
+import CalendarPicker from './CalendarPicker';
 import { FlagIcon } from './icons/FlagIcon';
 import { ListBulletIcon } from './icons/ListBulletIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { PhotoIcon } from './icons/PhotoIcon';
 import { ClockIcon } from './icons/ClockIcon';
+import { ArrowPathIcon } from './icons/ArrowPathIcon';
+import { ChevronDownIcon } from './icons/ChevronDownIcon';
 
 interface CreateTaskModalProps {
     isOpen: boolean;
@@ -51,7 +54,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const [tags, setTags] = useState<string[]>([]);
     const [subtasks, setSubtasks] = useState<Subtask[]>([]);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-    const dateInputRef = useRef<HTMLInputElement>(null);
 
     // UI States
     const [isSpaceSelectorOpen, setSpaceSelectorOpen] = useState(false);
@@ -60,6 +62,18 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const [isPrioritySelectorOpen, setPrioritySelectorOpen] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
     const [pendingToggleId, setPendingToggleId] = useState<string | null>(null);
+    const [assigneeSearchTerm, setAssigneeSearchTerm] = useState('');
+    const [isCalendarOpen, setCalendarOpen] = useState(false);
+    const [isRecurrenceSelectorOpen, setRecurrenceSelectorOpen] = useState(false);
+
+    const closeAllDropdowns = () => {
+        setSpaceSelectorOpen(false);
+        setListSelectorOpen(false);
+        setAssigneeSelectorOpen(false);
+        setPrioritySelectorOpen(false);
+        setCalendarOpen(false);
+        setRecurrenceSelectorOpen(false);
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -175,16 +189,23 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 onClick={onClose}
             />
 
-            <div className={`bg-white dark:bg-[#1E1E1E] w-full max-w-4xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[90vh] transition-all duration-300 transform ${show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+            <div className={`bg-white dark:bg-[#1E1E1E] w-full max-w-5xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[95vh] transition-all duration-300 transform border border-neutral-200/80 dark:border-white/5 overflow-hidden ${show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                {/* Gradient accent strip */}
+                <div className="h-1 w-full bg-gradient-to-r from-lime-400 via-emerald-400 to-lime-400" />
+
                 {/* Header / Breadcrumb */}
-                <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+                <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between bg-neutral-50/50 dark:bg-white/[0.02]">
                     <div className="flex items-center gap-2 text-sm">
                         {/* Space Selector Trigger */}
                         <div className="relative">
                             <button
-                                onClick={() => setSpaceSelectorOpen(!isSpaceSelectorOpen)}
-                                className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
-                            >
+                            onClick={() => {
+                                const wasOpen = isSpaceSelectorOpen;
+                                closeAllDropdowns();
+                                setSpaceSelectorOpen(!wasOpen);
+                            }}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors text-slate-700 dark:text-slate-200"
+                        >
                                 <div className="w-2 h-2 rounded-full bg-neutral-400" />
                                 <span className="font-semibold text-slate-700 dark:text-slate-200">{currentSpace?.name || 'Select Space'}</span>
                             </button>
@@ -209,9 +230,13 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                         {/* List Selector Trigger */}
                         <div className="relative">
                             <button
-                                onClick={() => setListSelectorOpen(!isListSelectorOpen)}
-                                className={`flex items-center gap-2 px-2 py-1 rounded-md hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors ${!currentList ? 'text-neutral-400' : 'text-slate-700 dark:text-slate-200'}`}
-                            >
+                            onClick={() => {
+                                const wasOpen = isListSelectorOpen;
+                                closeAllDropdowns();
+                                setListSelectorOpen(!wasOpen);
+                            }}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors text-slate-700 dark:text-slate-200"
+                        >
                                 <div className={`w-2 h-2 rounded-full ${currentList?.color ? '' : 'bg-transparent'}`} style={{ backgroundColor: currentList?.color }} />
                                 <span className="font-semibold">{currentList?.name || 'Select List'}</span>
                             </button>
@@ -239,7 +264,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                         </div>
                     </div>
 
-                    <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
+                    <button onClick={onClose} className="p-1.5 rounded-xl text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-all">
                         <XMarkIcon className="w-5 h-5" />
                     </button>
                 </div>
@@ -247,147 +272,273 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-700">
                     {/* Title */}
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Task name"
-                        className="w-full bg-transparent text-3xl font-bold text-slate-900 dark:text-white placeholder:text-neutral-300 dark:placeholder:text-neutral-700 border-none focus:ring-0 p-0 mb-6"
-                        autoFocus
-                    />
+                    <div className="mb-6 group">
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Task name"
+                            className="w-full bg-transparent text-3xl font-bold text-slate-900 dark:text-white placeholder:text-neutral-300 dark:placeholder:text-neutral-600 border-none focus:ring-0 p-0 pb-2"
+                            autoFocus
+                        />
+                        <div className={`h-0.5 rounded-full transition-all duration-300 ${title ? 'bg-gradient-to-r from-lime-400 to-emerald-400 w-full' : 'bg-neutral-100 dark:bg-white/5 w-full group-focus-within:bg-gradient-to-r group-focus-within:from-lime-400 group-focus-within:to-emerald-400'}`} />
+                    </div>
 
                     {/* Attributes Bar */}
-                    <div className="flex flex-wrap items-center gap-4 mb-8">
-                        {/* Status (Read-only for now or simple badge) */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100 dark:bg-white/5 rounded-full text-xs font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">
-                            <div className={`w-2 h-2 rounded-full ${status === TaskStatus.TODO ? 'bg-slate-400' : status === TaskStatus.IN_PROGRESS ? 'bg-primary-500' : 'bg-green-500'}`} />
+                    <div className="flex flex-wrap items-center gap-3 mb-10 p-4 bg-neutral-50 dark:bg-white/[0.03] rounded-2xl border border-neutral-100 dark:border-white/5">
+                        {/* Status badge */}
+                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider h-9 w-fit
+                            ${status === TaskStatus.TODO ? 'bg-slate-100 dark:bg-slate-500/10 text-slate-500 dark:text-slate-400'
+                            : status === TaskStatus.IN_PROGRESS ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400'
+                            : 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400'}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${status === TaskStatus.TODO ? 'bg-slate-400' : status === TaskStatus.IN_PROGRESS ? 'bg-primary-500' : 'bg-green-500'}`} />
                             {status}
                         </div>
 
                         {/* Assignee Selector */}
-                        <div className="relative">
+                        <div className="relative w-fit">
                             <button
-                                onClick={() => setAssigneeSelectorOpen(!isAssigneeSelectorOpen)}
-                                className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors"
-                            >
+                            onClick={() => {
+                                const wasOpen = isAssigneeSelectorOpen;
+                                closeAllDropdowns();
+                                setAssigneeSelectorOpen(!wasOpen);
+                            }}
+                            className="flex items-center gap-2 px-3 py-1.5 h-9 bg-white dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl hover:border-lime-400 dark:hover:border-lime-400/50 hover:shadow-sm text-slate-700 dark:text-slate-300 transition-all duration-200"
+                        >
                                 <UserIcon className="w-4 h-4 text-neutral-400" />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                                     {selectedAssignees.length === 0 ? 'Unassigned' : selectedAssignees.length === 1 ? selectedAssignees[0].name : `${selectedAssignees.length} Assignees`}
                                 </span>
                             </button>
-                            {/* Simplified Assignee Dropdown */}
+                            {/* Enhanced Assignee Dropdown */}
                             {isAssigneeSelectorOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-[#2A2A2D] border border-neutral-200 dark:border-white/10 rounded-xl shadow-xl z-50 py-1 max-h-48 overflow-y-auto">
-                                    {employees.map(e => {
-                                        const isSelected = assigneeIds.includes(e.id);
-                                        return (
-                                            <button
-                                                key={e.id}
-                                                onClick={(event) => handleAssigneeToggle(e.id, event)}
-                                                className={`w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-white/5 text-sm flex items-center justify-between gap-2 ${isSelected ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10' : 'text-slate-700 dark:text-slate-200'}`}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <img src={e.avatarUrl} className="w-5 h-5 rounded-full" />
-                                                    {e.name}
-                                                </div>
-                                                {isSelected && <span className="text-xs">✓</span>}
-                                            </button>
-                                        );
-                                    })}
+                                <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-[#2A2A2D] border border-neutral-200 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+                                    {/* Search Input */}
+                                    <div className="p-3 border-b border-neutral-100 dark:border-white/5 bg-neutral-50/50 dark:bg-white/[0.02]">
+                                        <div className="relative">
+                                            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <input
+                                                type="text"
+                                                value={assigneeSearchTerm}
+                                                onChange={(e) => setAssigneeSearchTerm(e.target.value)}
+                                                placeholder="Search members..."
+                                                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-400/50 focus:border-lime-400/50 transition-all outline-none"
+                                                autoFocus
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* List */}
+                                    <div className="max-h-80 overflow-y-auto p-1 scrollbar-thin">
+                                        {employees
+                                            .filter(e => e.name.toLowerCase().includes(assigneeSearchTerm.toLowerCase()))
+                                            .map(e => {
+                                                const isSelected = assigneeIds.includes(e.id);
+                                                return (
+                                                    <button
+                                                        key={e.id}
+                                                        onClick={(event) => handleAssigneeToggle(e.id, event)}
+                                                        className={`w-full text-left px-3 py-2.5 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-xl transition-all flex items-center justify-between gap-3 group
+                                                            ${isSelected ? 'bg-lime-50 dark:bg-lime-400/10' : ''}`}
+                                                    >
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            <div className="relative flex-shrink-0">
+                                                                <img src={e.avatarUrl} className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-neutral-800" />
+                                                                {isSelected && (
+                                                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-lime-500 rounded-full border-2 border-white dark:border-neutral-900 flex items-center justify-center">
+                                                                        <span className="text-[10px] text-white font-black">✓</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className={`text-sm font-bold truncate ${isSelected ? 'text-lime-700 dark:text-lime-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                                    {e.name}
+                                                                </p>
+                                                                <p className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold truncate">
+                                                                    {e.position || 'Member'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {!isSelected && (
+                                                            <div className="w-5 h-5 rounded-full border-2 border-neutral-200 dark:border-neutral-700 group-hover:border-lime-400 transition-colors flex-shrink-0" />
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        
+                                        {employees.filter(e => e.name.toLowerCase().includes(assigneeSearchTerm.toLowerCase())).length === 0 && (
+                                            <div className="py-8 text-center">
+                                                <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">No members found</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
 
                         {/* Priority Selector */}
-                        <div className="relative">
+                        <div className="relative w-fit">
                             <button
-                                onClick={() => setPrioritySelectorOpen(!isPrioritySelectorOpen)}
-                                className={`flex items-center gap-2 px-3 py-1.5 border border-transparent rounded-full hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors
-                            ${priority === Priority.URGENT ? 'text-red-500 bg-red-500/10' : priority === Priority.HIGH ? 'text-orange-500 bg-orange-500/10' : priority === Priority.MEDIUM ? 'text-yellow-500 bg-yellow-500/10' : 'text-slate-500 bg-slate-500/10'}
-                        `}
+                            onClick={() => {
+                                const wasOpen = isPrioritySelectorOpen;
+                                closeAllDropdowns();
+                                setPrioritySelectorOpen(!wasOpen);
+                            }}
+                            className={`flex items-center gap-2 px-3 py-1.5 h-9 border rounded-xl hover:shadow-sm transition-all duration-200
+                                    ${priority === Priority.LOW ? 'bg-neutral-50 dark:bg-neutral-500/10 border-neutral-200 dark:border-neutral-500/20 text-neutral-600 dark:text-neutral-400' : ''}
+                                    ${priority === Priority.MEDIUM ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20 text-amber-600 dark:text-amber-400' : ''}
+                                    ${priority === Priority.HIGH ? 'bg-orange-50 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/20 text-orange-600 dark:text-orange-400' : ''}
+                                    ${priority === Priority.URGENT ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400' : ''}
+                                `}
                             >
-                                <FlagIcon className="w-4 h-4" />
-                                <span className="text-sm font-bold">{priority}</span>
+                                <FlagIcon className={`w-4 h-4 
+                                    ${priority === Priority.LOW ? 'text-neutral-500' : ''}
+                                    ${priority === Priority.MEDIUM ? 'text-amber-500' : ''}
+                                    ${priority === Priority.HIGH ? 'text-orange-500' : ''}
+                                    ${priority === Priority.URGENT ? 'text-rose-500' : ''}
+                                `} />
+                                <span className="text-sm font-bold">Priority: {priority}</span>
                             </button>
                             {isPrioritySelectorOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-32 bg-white dark:bg-[#2A2A2D] border border-neutral-200 dark:border-white/10 rounded-xl shadow-xl z-50 py-1">
-                                    {([Priority.LOW, Priority.MEDIUM, Priority.HIGH, Priority.URGENT] as Priority[]).map(p => (
+                                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-[#2A2A2D] border border-neutral-200 dark:border-white/10 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-200">
+                                    {(Object.values(Priority)).map((p) => (
                                         <button
                                             key={p}
                                             onClick={() => { setPriority(p); setPrioritySelectorOpen(false); }}
-                                            className={`w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-white/5 text-sm font-bold
-                                        ${p === Priority.URGENT ? 'text-red-500' : p === Priority.HIGH ? 'text-orange-500' : p === Priority.MEDIUM ? 'text-yellow-500' : 'text-slate-500'}
-                                    `}
+                                            className={`w-full text-left px-4 py-2 hover:bg-neutral-50 dark:hover:bg-white/5 text-sm font-bold flex items-center gap-3 transition-colors
+                                                ${priority === p ? 'bg-neutral-50 dark:bg-white/5' : ''}
+                                            `}
                                         >
-                                            {p}
+                                            <FlagIcon className={`w-4 h-4 
+                                                ${p === Priority.LOW ? 'text-neutral-500' : ''}
+                                                ${p === Priority.MEDIUM ? 'text-amber-500' : ''}
+                                                ${p === Priority.HIGH ? 'text-orange-500' : ''}
+                                                ${p === Priority.URGENT ? 'text-rose-500' : ''}
+                                            `} />
+                                            <span className={`
+                                                ${p === Priority.LOW ? 'text-neutral-600 dark:text-neutral-300' : ''}
+                                                ${p === Priority.MEDIUM ? 'text-amber-600 dark:text-amber-400' : ''}
+                                                ${p === Priority.HIGH ? 'text-orange-600 dark:text-orange-400' : ''}
+                                                ${p === Priority.URGENT ? 'text-rose-600 dark:text-rose-400' : ''}
+                                            `}>
+                                                {p}
+                                            </span>
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
 
-                        {/* Due Date */}
-                        <div className="flex items-center gap-2">
-                            <div
-                                className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer relative group"
-                                onClick={() => dateInputRef.current?.showPicker()}
-                            >
-                                <CalendarIcon className="w-4 h-4" />
-                                <input
-                                    ref={dateInputRef}
-                                    type="date"
-                                    value={dueDate}
-                                    onChange={(e) => {
-                                        setDueDate(e.target.value);
-                                        if (!e.target.value) setDueTime(''); // Clear time if date is cleared
+                        {/* Date Picker Section - Flattened */}
+                        <div className="relative w-fit">
+                            <button
+                                onClick={() => {
+                                    const wasOpen = isCalendarOpen;
+                                    closeAllDropdowns();
+                                    setCalendarOpen(!wasOpen);
+                                }}
+                            className={`flex items-center gap-2 px-3 py-1.5 h-9 bg-white dark:bg-white/5 border rounded-xl hover:shadow-sm text-slate-800 dark:text-white transition-all duration-200 w-fit active:scale-95
+                                    ${dueDate ? 'border-lime-400/50 shadow-sm' : 'border-neutral-200 dark:border-white/10 hover:border-lime-400 dark:hover:border-lime-400/50 hover:shadow-sm'}
+                                `}
+                        >
+                                <CalendarIcon className={`w-4 h-4 ${dueDate ? 'text-lime-600 dark:text-lime-400' : ''}`} />
+                                <span className="text-sm font-bold whitespace-nowrap">
+                                    {dueDate ? format(new Date(dueDate), 'MMM d, yyyy') : 'Set Date'}
+                                </span>
+                            </button>
+                            
+                            {isCalendarOpen && (
+                                <CalendarPicker
+                                    selectedDate={dueDate}
+                                    onSelect={(date) => {
+                                        setDueDate(date);
+                                        setCalendarOpen(false);
                                     }}
-                                    className="absolute inset-0 opacity-0 cursor-pointer w-[1px] h-[1px]"
-                                    style={{ pointerEvents: 'none' }}
+                                    onClear={() => {
+                                        setDueDate('');
+                                        setDueTime('');
+                                        setCalendarOpen(false);
+                                    }}
+                                    onClose={() => setCalendarOpen(false)}
                                 />
-                                <span className="text-sm font-medium">{dueDate || 'Set Date'}</span>
-                            </div>
-
-                            {/* Due Time (Only visible if Date is set) */}
-                            {dueDate && (
-                                <div
-                                    className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer relative group"
-                                >
-                                    <ClockIcon className="w-4 h-4" />
-                                    <input
-                                        type="time"
-                                        value={dueTime}
-                                        onChange={(e) => setDueTime(e.target.value)}
-                                        className="bg-transparent border-none text-sm font-medium focus:ring-0 p-0 text-slate-700 dark:text-slate-300 cursor-pointer"
-                                    />
-                                </div>
                             )}
-
-                            {/* Recurrence Selector */}
-                            <div className="flex items-center gap-2 px-3 py-1.5 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors relative">
-                                <select
-                                    value={recurrence}
-                                    onChange={(e) => setRecurrence(e.target.value as 'none' | 'daily' | 'weekly' | 'monthly')}
-                                    className="bg-transparent border-none text-sm font-medium focus:ring-0 p-0 text-neutral-500 cursor-pointer outline-none w-auto pr-6"
-                                >
-                                    <option value="none">Non-Recurring</option>
-                                    <option value="daily">Daily</option>
-                                    <option value="weekly">Weekly</option>
-                                    <option value="monthly">Monthly</option>
-                                </select>
-                            </div>
                         </div>
 
+                        {/* Due Time (Only visible if Date is set) - Flattened */}
+                        {dueDate && (
+                            <div
+                                className="flex items-center gap-2 px-3 py-1.5 h-9 bg-white dark:bg-white/5 border border-lime-400/30 dark:border-lime-400/20 rounded-xl hover:border-lime-400 dark:hover:border-lime-400/50 hover:shadow-sm text-slate-800 dark:text-white transition-all duration-200 w-fit"
+                            >
+                                <ClockIcon className="w-4 h-4 text-lime-600 dark:text-lime-400" />
+                                <input
+                                    type="time"
+                                    value={dueTime}
+                                    onChange={(e) => setDueTime(e.target.value)}
+                                    className="bg-transparent border-none text-sm font-bold focus:ring-0 p-0 text-slate-800 dark:text-white cursor-pointer [color-scheme:light] dark:[color-scheme:dark] w-20"
+                                />
+                            </div>
+                        )}
+
+                        {/* Recurrence Selector - Flattened */}
+                        <div className="relative w-fit">
+                        <button
+                            onClick={() => {
+                                const wasOpen = isRecurrenceSelectorOpen;
+                                closeAllDropdowns();
+                                setRecurrenceSelectorOpen(!wasOpen);
+                            }}
+                            className={`flex items-center gap-2 px-3 py-1.5 h-9 border rounded-xl hover:shadow-sm transition-all duration-200
+                                    ${recurrence !== 'none' 
+                                        ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400' 
+                                        : 'bg-white dark:bg-white/5 border-neutral-200 dark:border-white/10 text-neutral-500 hover:border-lime-400 dark:hover:border-lime-400/50'}
+                                `}
+                            >
+                                <ArrowPathIcon className={`w-4 h-4 ${recurrence !== 'none' ? 'text-indigo-500' : 'text-neutral-400'}`} />
+                                <span className="text-sm font-bold">
+                                    {recurrence === 'none' ? 'Non-Recurring' : recurrence.charAt(0).toUpperCase() + recurrence.slice(1)}
+                                </span>
+                                <ChevronDownIcon className="w-3 h-3 ml-0.5 opacity-50" />
+                            </button>
+
+                            {isRecurrenceSelectorOpen && (
+                                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-[#2A2A2D] border border-neutral-200 dark:border-white/10 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-200">
+                                    {[
+                                        { value: 'none', label: 'Non-Recurring' },
+                                        { value: 'daily', label: 'Daily' },
+                                        { value: 'weekly', label: 'Weekly' },
+                                        { value: 'monthly', label: 'Monthly' }
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => { 
+                                                setRecurrence(opt.value as any); 
+                                                setRecurrenceSelectorOpen(false); 
+                                            }}
+                                            className={`w-full text-left px-4 py-2 hover:bg-neutral-50 dark:hover:bg-white/5 text-sm font-bold flex items-center gap-3 transition-colors
+                                                ${recurrence === opt.value ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/30 dark:bg-indigo-500/5' : 'text-slate-700 dark:text-slate-200'}
+                                            `}
+                                        >
+                                            <div className={`w-1.5 h-1.5 rounded-full ${recurrence === opt.value ? 'bg-indigo-500' : 'bg-transparent'}`} />
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Description */}
                     <div className="mb-8">
-                        <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Description</label>
+                        <label className="block text-xs font-bold text-neutral-400 dark:text-white/30 uppercase tracking-widest mb-2">Description</label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Add a description..."
                             rows={4}
-                            className="w-full bg-neutral-50 dark:bg-black/20 border border-neutral-200 dark:border-white/10 rounded-xl p-4 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/20 focus:border-transparent transition-all"
+                            className="w-full bg-neutral-50 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 rounded-2xl p-4 text-slate-700 dark:text-slate-300 placeholder:text-neutral-300 dark:placeholder:text-neutral-600 focus:ring-2 focus:ring-lime-400/40 dark:focus:ring-lime-400/20 focus:border-lime-400/50 transition-all resize-none"
                         />
                     </div>
 
@@ -446,23 +597,32 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 </div >
 
                 {/* Footer */}
-                < div className="px-6 py-4 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-black/20" >
-                    <div className="text-xs text-neutral-400">
-                        Press <span className="font-bold">Enter</span> to create
+                <div className="px-6 py-4 border-t border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between bg-neutral-50/50 dark:bg-white/[0.02]">
+                    <div className="text-xs text-neutral-400 dark:text-white/20">
+                        Press <kbd className="px-1.5 py-0.5 bg-neutral-200 dark:bg-white/10 rounded text-[10px] font-bold">Enter</kbd> to create
                     </div>
                     <div className="flex items-center gap-3">
-                        <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                        <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5">
                             Cancel
                         </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={!title.trim()}
-                            className="px-6 py-2 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none"
-                        >
-                            Create Task
-                        </button>
+                        <div className="relative group">
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-300 pointer-events-none" />
+                            <button
+                                onClick={handleSave}
+                                disabled={!title.trim()}
+                                className="relative px-6 py-2.5 rounded-xl text-sm font-black overflow-hidden
+                                    bg-gradient-to-r from-lime-400 via-emerald-400 to-lime-400
+                                    text-black shadow-md shadow-lime-500/20
+                                    hover:shadow-lg hover:shadow-lime-500/30 hover:scale-[1.04]
+                                    active:scale-[0.97] transition-all duration-200
+                                    disabled:opacity-40 disabled:hover:scale-100 disabled:hover:shadow-none"
+                            >
+                                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 pointer-events-none" />
+                                {taskToEdit ? 'Save Changes' : 'Create Task'}
+                            </button>
+                        </div>
                     </div>
-                </div >
+                </div>
             </div >
 
             {/* Custom Confirmation Modal */}
