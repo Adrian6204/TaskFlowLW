@@ -40,10 +40,14 @@ export interface Employee {
   mustChangePassword?: boolean;
 }
 
-export interface EmployeeWithRole extends Employee {
+export interface UserWorkspace {
   spaceId: string;
   spaceName: string;
   role: 'admin' | 'member';
+}
+
+export interface EmployeeWithRole extends Employee {
+  workspaces: UserWorkspace[];
   isSuperAdmin: boolean;
 }
 

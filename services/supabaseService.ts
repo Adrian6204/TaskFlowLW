@@ -673,14 +673,18 @@ export const getAllUsersWithRoles = async () => {
 
   // 3. Merge data
   const usersWithRoles = profiles.map((profile: any) => {
-    // Find the membership entry for this user (assuming 1 workspace per user for now, or take the first one)
-    const membership = members?.find((m: any) => m.user_id === profile.id);
+    // Find all membership entries for this user
+    const userMemberships = members?.filter((m: any) => m.user_id === profile.id) || [];
+    
+    const workspaces = userMemberships.map((m: any) => ({
+      spaceId: m.space_id,
+      spaceName: (m.spaces as any)?.name || 'Unknown Workspace',
+      role: m.role || 'member'
+    }));
 
     return {
       ...mapDbProfileToEmployee(profile),
-      spaceId: membership?.space_id || '',
-      spaceName: (membership?.spaces as any)?.name || 'Unassigned',
-      role: membership?.role || 'member', // Default to member if not found (or if they have no workspace)
+      workspaces,
       isSuperAdmin: profile.is_admin || false,
       mustChangePassword: profile.must_change_password || false,
     };
