@@ -57,7 +57,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
     // UI States
     const [isSpaceSelectorOpen, setSpaceSelectorOpen] = useState(false);
-    const [isListSelectorOpen, setListSelectorOpen] = useState(false);
     const [isAssigneeSelectorOpen, setAssigneeSelectorOpen] = useState(false);
     const [isPrioritySelectorOpen, setPrioritySelectorOpen] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
@@ -68,7 +67,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
     const closeAllDropdowns = () => {
         setSpaceSelectorOpen(false);
-        setListSelectorOpen(false);
         setAssigneeSelectorOpen(false);
         setPrioritySelectorOpen(false);
         setCalendarOpen(false);
@@ -145,8 +143,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     };
 
     const currentSpace = spaces.find((s) => s.id === spaceId);
-    const spaceLists = lists.filter((l) => l.spaceId === spaceId);
-    const currentList = lists.find((l) => l.id === listId);
 
     // UI Helpers for multiple assignees
     const selectedAssignees = employees.filter((e) => assigneeIds.includes(e.id));
@@ -219,44 +215,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                                             className="w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-white/5 text-sm text-slate-700 dark:text-slate-200"
                                         >
                                             {s.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <span className="text-neutral-400">/</span>
-
-                        {/* List Selector Trigger */}
-                        <div className="relative">
-                            <button
-                            onClick={() => {
-                                const wasOpen = isListSelectorOpen;
-                                closeAllDropdowns();
-                                setListSelectorOpen(!wasOpen);
-                            }}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors text-slate-700 dark:text-slate-200"
-                        >
-                                <div className={`w-2 h-2 rounded-full ${currentList?.color ? '' : 'bg-transparent'}`} style={{ backgroundColor: currentList?.color }} />
-                                <span className="font-semibold">{currentList?.name || 'Select List'}</span>
-                            </button>
-
-                            {isListSelectorOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-[#2A2A2D] border border-neutral-200 dark:border-white/10 rounded-xl shadow-xl z-50 py-1">
-                                    <button
-                                        onClick={() => { setListId(null); setListSelectorOpen(false); }}
-                                        className="w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-white/5 text-sm text-neutral-500 italic"
-                                    >
-                                        No List
-                                    </button>
-                                    {spaceLists.map(l => (
-                                        <button
-                                            key={l.id}
-                                            onClick={() => { setListId(l.id); setListSelectorOpen(false); }}
-                                            className="w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-white/5 text-sm text-slate-700 dark:text-slate-200 flex items-center gap-2"
-                                        >
-                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
-                                            {l.name}
                                         </button>
                                     ))}
                                 </div>
@@ -599,7 +557,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 {/* Footer */}
                 <div className="px-6 py-4 border-t border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between bg-neutral-50/50 dark:bg-white/[0.02]">
                     <div className="text-xs text-neutral-400 dark:text-white/20">
-                        Press <kbd className="px-1.5 py-0.5 bg-neutral-200 dark:bg-white/10 rounded text-[10px] font-bold">Enter</kbd> to create
                     </div>
                     <div className="flex items-center gap-3">
                         <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5">
