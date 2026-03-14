@@ -234,15 +234,20 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     useEffect(() => {
         if (!preferences.autoCompleteRecurring || !isDataLoaded) return;
 
-        // Only auto-complete after 7PM (19:00)
         const now = new Date();
-        if (now.getHours() < 19) return;
+        const startOfToday = new Date(now);
+        startOfToday.setHours(0, 0, 0, 0);
 
-        const overdueRecurringTasks = tasks.filter(t => 
-            t.recurrence && 
-            t.recurrence !== 'none' && 
-            isTaskOverdue(t)
-        );
+        const overdueRecurringTasks = allUserTasks.filter(t => {
+            if (!t.recurrence || t.recurrence === 'none' || !isTaskOverdue(t)) return false;
+
+            const dueDate = new Date(t.dueDate);
+            // If due before today, auto-complete immediately
+            if (dueDate < startOfToday) return true;
+
+            // If due today, wait until 7 PM (19:00)
+            return now.getHours() >= 19;
+        });
 
         if (overdueRecurringTasks.length > 0) {
             const processTasks = async () => {
@@ -252,7 +257,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
             };
             processTasks();
         }
-    }, [tasks, preferences.autoCompleteRecurring, isDataLoaded]);
+    }, [allUserTasks, preferences.autoCompleteRecurring, isDataLoaded]);
 
     // ─── Computed Values ──────────────────────────────────────────────────
     const availableTasks = useMemo(() => tasks.filter(isTaskAvailable), [tasks]);
