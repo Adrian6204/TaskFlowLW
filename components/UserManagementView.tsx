@@ -23,7 +23,6 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
     const [selectedUserToEnroll, setSelectedUserToEnroll] = useState<string>('');
     const [selectedSpaceToEnroll, setSelectedSpaceToEnroll] = useState<string>(spaces[0]?.id || '');
-    const [selectedRoleToEnroll, setSelectedRoleToEnroll] = useState<'member' | 'admin'>('member');
 
     // Inline Editing State
     const [editingPositionUserId, setEditingPositionUserId] = useState<string | null>(null);
@@ -85,49 +84,6 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
         } catch (error) {
             console.error("Failed to load users", error);
         }
-    };
-
-    const handleToggleAdmin = (user: EmployeeWithRole, spaceId?: string, spaceName?: string) => {
-        // If a specific space is provided, we use that. Otherwise, we use the first one if it exists.
-        const targetSpaceId = spaceId || user.workspaces[0]?.spaceId;
-        const targetSpaceName = spaceName || user.workspaces[0]?.spaceName;
-        const userWorkspace = user.workspaces.find(w => w.spaceId === targetSpaceId);
-
-        if (!targetSpaceId) {
-            // If they aren't in a workspace, open the enroll modal to put them in one as an admin
-            setSelectedUserToEnroll(user.id);
-            setSelectedRoleToEnroll('admin');
-            setIsEnrollModalOpen(true);
-            return;
-        }
-
-        const isAdmin = userWorkspace?.role === 'admin';
-        const action = isAdmin ? 'Revoke' : 'Grant';
-        const newRole = isAdmin ? 'member' : 'admin';
-
-        setConfirmModal({
-            isOpen: true,
-            title: `${action} Workspace Admin?`,
-            message: `Are you sure you want to ${action.toLowerCase()} Workspace Admin rights for ${user.name}? They will ${action === 'Grant' ? 'gain' : 'lose'} the ability to manage tasks and members inside the "${targetSpaceName}" workspace.`,
-            type: isAdmin ? 'warning' : 'info',
-            onConfirm: async () => {
-                try {
-                    // Optimistic update
-                    setUsers(users.map(u => u.id === user.id ? { 
-                        ...u, 
-                        workspaces: u.workspaces.map(w => w.spaceId === targetSpaceId ? { ...w, role: newRole as 'admin' | 'member' } : w)
-                    } : u));
-
-                    await dataService.updateWorkspaceRole(user.id, targetSpaceId, newRole as 'admin' | 'member');
-                } catch (error) {
-                    console.error("Failed to update role", error);
-                    alert("Failed to update role. Please try again.");
-                    loadUsers(); // Revert on error
-                } finally {
-                    setConfirmModal({ ...confirmModal, isOpen: false });
-                }
-            }
-        });
     };
 
     const handleToggleSuperAdmin = (user: EmployeeWithRole) => {
@@ -279,7 +235,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
         if (!selectedUserToEnroll || !selectedSpaceToEnroll) return;
 
         try {
-            await dataService.addMemberToSpace(selectedSpaceToEnroll, selectedUserToEnroll, selectedRoleToEnroll);
+            await dataService.addMemberToSpace(selectedSpaceToEnroll, selectedUserToEnroll, 'member');
             setIsEnrollModalOpen(false);
             loadUsers(); // Reload
             setSelectedUserToEnroll('');
@@ -337,7 +293,6 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                         <button
                             onClick={() => {
                                 setSelectedUserToEnroll('');
-                                setSelectedRoleToEnroll('member');
                                 setIsEnrollModalOpen(true);
                             }}
                             className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2 shadow-lg shadow-black/5"
@@ -356,24 +311,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                         key={user.id}
                         className={`p-8 group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/5 dark:hover:shadow-none flex flex-col h-full ${user.mustChangePassword ? 'ring-1 ring-rose-500/30 bg-rose-500/[0.02] shadow-[0_0_20px_-5px_rgba(244,63,94,0.1)]' : ''}`}
                     >
-                        {/* Maintenance Actions — Subtle top-right row */}
-                        <div className="absolute top-6 right-6 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                            <button
-                                onClick={() => handleResetPassword(user)}
-                                className="p-2 rounded-lg bg-white dark:bg-white/10 text-slate-400 dark:text-white/40 hover:text-amber-500 hover:bg-amber-500/10 transition-all border border-slate-200/50 dark:border-white/5"
-                                title="Reset Password"
-                            >
-                                <KeyIcon className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                                onClick={() => handleDeleteAccount(user)}
-                                disabled={user.id === currentUserId}
-                                className={`p-2 rounded-lg bg-white dark:bg-white/10 text-slate-400 dark:text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-all border border-slate-200/50 dark:border-white/5 ${user.id === currentUserId ? 'opacity-0 pointer-events-none' : ''}`}
-                                title="Delete Account"
-                            >
-                                <TrashIcon className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
+
                         <div className="flex items-start justify-between mb-6">
                             <div className="flex items-center gap-5">
                                 <div className="relative">
@@ -390,10 +328,10 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                                 onClick={() => setPositionDropdownOpen(!positionDropdownOpen)}
                                                 className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded px-2 py-1 flex items-center justify-between cursor-pointer min-w-[140px]"
                                             >
-                                                <span className="text-[10px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-widest truncate">
+                                                <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 capitalize tracking-widest truncate">
                                                     {editingPositionValue.length ? editingPositionValue.join(', ') : "Select Position"}
                                                 </span>
-                                                <svg className={`w-3 h-3 text-rose-500 transition-transform ${positionDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className={`w-3 h-3 text-emerald-600 transition-transform ${positionDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                                                 </svg>
                                             </div>
@@ -416,10 +354,10 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                                                         }
                                                                     }}
                                                                 />
-                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center mr-3 shrink-0 transition-colors ${isSelected ? 'bg-rose-500 border-rose-500' : 'border-slate-300 dark:border-white/20'}`}>
+                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center mr-3 shrink-0 transition-colors ${isSelected ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300 dark:border-white/20'}`}>
                                                                     {isSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" /></svg>}
                                                                 </div>
-                                                                <span className="text-[11px] font-bold text-slate-700 dark:text-white/90 uppercase tracking-wider text-left">{pos}</span>
+                                                                <span className="text-[11px] font-bold text-slate-700 dark:text-white/90 capitalize tracking-wider text-left">{pos}</span>
                                                             </label>
                                                         );
                                                     })}
@@ -435,7 +373,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                                 setEditingPositionValue(initialPositions);
                                                 setPositionDropdownOpen(true);
                                             }}
-                                            className="group/pos flex items-start gap-1.5 text-[10px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-widest hover:text-rose-600 dark:hover:text-rose-300 transition-colors w-full text-left"
+                                            className="group/pos flex items-start gap-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-400 capitalize tracking-widest hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors w-full text-left"
                                         >
                                             <span className="flex-1 text-left whitespace-normal">{user.position || 'No Position'}</span>
                                             <PencilSquareIcon className="w-3 h-3 mt-0.5 opacity-0 group-hover/pos:opacity-100 transition-opacity shrink-0" />
@@ -445,48 +383,53 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 mb-6 flex-wrap min-h-[28px]">
-                            {user.isSuperAdmin && (
-                                <span className="px-2.5 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[9px] font-black uppercase tracking-widest border border-primary-500/20">
-                                    System Admin
-                                </span>
-                            )}
-                            {user.mustChangePassword && (
-                                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[9px] font-black uppercase tracking-widest border border-rose-500/20">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
-                                        <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
-                                    </svg>
-                                    Initial Password
-                                </span>
-                            )}
+                        <div className="flex items-center justify-between mb-6 flex-wrap gap-y-4">
+                            <div className="flex items-center gap-2 flex-wrap min-h-[28px]">
+                                {user.isSuperAdmin && (
+                                    <span className="px-2.5 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[9px] font-black uppercase tracking-widest border border-primary-500/20">
+                                        System Admin
+                                    </span>
+                                )}
+                                {user.mustChangePassword && (
+                                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[9px] font-black uppercase tracking-widest border border-rose-500/20">
+                                        Default Password
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Maintenance Actions */}
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handleResetPassword(user)}
+                                    className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all"
+                                    title="Reset Password"
+                                >
+                                    <KeyIcon className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteAccount(user)}
+                                    disabled={user.id === currentUserId}
+                                    className={`p-2 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all ${user.id === currentUserId ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+                                    title="Delete Account"
+                                >
+                                    <TrashIcon className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="mb-8 p-5 bg-slate-50 dark:bg-white/[0.03] rounded-2xl border border-slate-200/40 dark:border-white/5 flex flex-col min-h-[160px]">
                             <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest mb-3">Workspaces</span>
                             <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 max-h-[160px]">
                                 {user.workspaces.length > 0 ? (
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         {user.workspaces.map((w) => (
-                                            <div key={w.spaceId} className="flex items-center justify-between group/ws bg-white/50 dark:bg-black/20 p-2.5 rounded-xl border border-slate-200/50 dark:border-white/5">
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-slate-900 dark:text-white/90">
-                                                        {w.spaceName}
-                                                    </span>
-                                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${w.role === 'admin' ? 'bg-lime-500 text-black' : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-white/40'}`}>
-                                                            {w.role}
-                                                        </span>
-                                                        <button 
-                                                            onClick={() => handleToggleAdmin(user, w.spaceId, w.spaceName)}
-                                                            className="text-[8px] font-black uppercase tracking-widest text-primary-500 hover:text-primary-600 transition-colors"
-                                                        >
-                                                            {w.role === 'admin' ? 'Revoke Admin' : 'Make Admin'}
-                                                        </button>
-                                                    </div>
-                                                </div>
+                                            <div key={w.spaceId} className="flex items-center justify-between group/ws bg-white/80 dark:bg-white/5 py-1.5 px-3 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm transition-all hover:border-lime-400/40 dark:hover:border-lime-400/30">
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white/90 truncate mr-2">
+                                                    {w.spaceName}
+                                                </span>
                                                 <button
                                                     onClick={() => handleRemoveFromWorkspace(user, w.spaceId, w.spaceName)}
-                                                    className="p-1 px-2 hover:bg-red-500 hover:text-white text-slate-400 rounded-lg transition-all opacity-0 group-hover/ws:opacity-100"
+                                                    className="p-1 px-1.5 hover:bg-rose-500 hover:text-white text-slate-400 rounded-lg transition-all opacity-0 group-hover/ws:opacity-100 flex-shrink-0"
                                                     title="Remove from Workspace"
                                                 >
                                                     <XMarkIcon className="w-3.5 h-3.5" />
@@ -520,7 +463,6 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                             <button
                                 onClick={() => {
                                     setSelectedUserToEnroll(user.id);
-                                    setSelectedRoleToEnroll('member');
                                     setIsEnrollModalOpen(true);
                                 }}
                                 className="w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all duration-300 bg-amber-100 dark:bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500 hover:text-white active:scale-95"
@@ -577,17 +519,6 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                     {spaces.map(s => (
                                         <option key={s.id} value={s.id}>{s.name}</option>
                                     ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mb-2">Role in Workspace</label>
-                                <select
-                                    value={selectedRoleToEnroll}
-                                    onChange={(e) => setSelectedRoleToEnroll(e.target.value as 'member' | 'admin')}
-                                    className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none appearance-none"
-                                >
-                                    <option value="member">Member</option>
                                 </select>
                             </div>
 

@@ -22,7 +22,6 @@ interface SpaceSettingsViewProps {
   onRemoveMember: (spaceId: string, memberId: string) => void;
   onAddMember: (spaceId: string, memberId: string) => void;
   onDeleteSpace: (spaceId: string) => void;
-  onUpdateRole?: (spaceId: string, memberId: string, role: 'admin' | 'member') => void;
   onUpdateSpace?: (spaceId: string, updates: { name: string; description: string; theme?: string; logoUrl?: string | null }) => Promise<void>;
 }
 
@@ -36,7 +35,6 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
   onRemoveMember,
   onAddMember,
   onDeleteSpace,
-  onUpdateRole,
   onUpdateSpace
 }) => {
   const [copied, setCopied] = useState(false);
@@ -465,7 +463,6 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   {/* Role Tags */}
-                  {member.role === 'admin' && <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${accent ? `bg-gradient-to-br ${accent.from} ${accent.to} bg-opacity-10 ${accent.text} ${accent.darkText}` : 'bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A]'} rounded`}>Workspace Admin</span>}
 
                   {member.id === space.ownerId ? (
                     <span className="px-3 py-1 text-xs font-bold uppercase bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg">
