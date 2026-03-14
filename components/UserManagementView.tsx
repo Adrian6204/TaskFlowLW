@@ -500,20 +500,15 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                 {user.isSuperAdmin ? 'Full Access Granted' : 'Give System Admin Access'}
                             </button>
 
-                            <button
-                                onClick={() => handleToggleAdmin(user)}
-                                className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all duration-300
-                                    ${(!user.spaceId)
-                                        ? 'bg-amber-100 dark:bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500 hover:text-white'
-                                        : user.role === 'admin'
-                                            ? 'bg-lime-500 text-black shadow-lg shadow-lime-500/25 ring-2 ring-lime-500'
-                                            : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/40 border border-slate-200 dark:border-white/10 hover:border-lime-500 hover:text-lime-600'
-                                    } active:scale-95
-                                `}
-                            >
-                                <KeyIcon className="w-4 h-4" />
-                                {(!user.spaceId) ? 'Quick Assign & Manage' : (user.role === 'admin' ? 'Workspace Admin Active' : 'Promote to Workspace Admin')}
-                            </button>
+                            {(!user.spaceId) && (
+                                <button
+                                    onClick={() => handleToggleAdmin(user)}
+                                    className="w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all duration-300 bg-amber-100 dark:bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500 hover:text-white active:scale-95"
+                                >
+                                    <KeyIcon className="w-4 h-4" />
+                                    Quick Assign & Manage
+                                </button>
+                            )}
                         </div>
 
                     </BentoCard>
@@ -574,7 +569,6 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                     className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none appearance-none"
                                 >
                                     <option value="member">Member</option>
-                                    <option value="admin">Workspace Admin</option>
                                 </select>
                             </div>
 
