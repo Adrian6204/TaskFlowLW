@@ -101,15 +101,15 @@ const TopNav: React.FC<TopNavProps> = ({
                             <img
                                 src={currentUserEmployee?.avatarUrl || user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`}
                                 alt=""
-                                className={`w-9 h-9 rounded-full object-cover ring-2 transition-all duration-500 group-hover:scale-105 ${user.isAdmin ? 'ring-primary-500/60' : (accent ? `ring-${accent.from.split('-')[1]}-400/50` : 'ring-lime-400/50')}`}
+                                className={`w-11 h-11 rounded-full object-cover ring-2 transition-all duration-500 group-hover:scale-105 ${user.isAdmin ? 'ring-primary-500/60' : (accent ? `ring-${accent.from.split('-')[1]}-400/50` : 'ring-lime-400/50')}`}
                             />
                             <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-2 border-white dark:border-black rounded-full transition-colors duration-500 ${user.isAdmin ? 'bg-primary-500' : statusColor(myStatus)} ${myStatus === 'online' && !user.isAdmin ? 'animate-pulse' : ''}`}></div>
                         </div>
                         <div className="hidden lg:flex flex-col items-start leading-tight">
-                            <span className="text-[11px] font-black text-slate-900 dark:text-white tracking-tight">
+                            <span className="text-[13px] font-black text-slate-900 dark:text-white tracking-tight">
                                 {user.fullName || user.username}
                             </span>
-                            <span className={`text-[8px] font-bold uppercase tracking-widest ${
+                            <span className={`text-[9px] font-bold uppercase tracking-widest ${
                                 user.isAdmin
                                   ? 'text-primary-600 dark:text-primary-400'
                                   : myStatus === 'online'
