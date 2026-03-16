@@ -431,8 +431,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         user={user}
                         onOpenProfile={() => setProfileModalOpen(true)}
                         onLogout={onLogout}
-                        searchTerm={searchTerm}
-                        onSearchChange={setSearchTerm}
                         currentView={currentView}
                         timelineViewMode={timelineViewMode}
                         onTimelineViewModeChange={setTimelineViewMode}
