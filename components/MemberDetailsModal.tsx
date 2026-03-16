@@ -84,7 +84,7 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                     <div className="text-center md:text-left flex-1 min-w-0">
                         <h2 className="text-3xl font-black text-slate-900 dark:text-white leading-tight">{member.name}</h2>
                         <div className="flex flex-col md:flex-row items-center gap-2 mt-1 flex-wrap justify-center md:justify-start">
-                            <span className={`px-2 py-0.5 rounded-md ${accent ? `bg-gradient-to-br ${accent.from} ${accent.to} bg-opacity-10 ${accent.text} ${accent.darkText}` : 'bg-lime-500/10 dark:bg-[#CEFD4A]/10 text-lime-600 dark:text-[#CEFD4A]'} text-[10px] font-black uppercase tracking-wider whitespace-nowrap`}>
+                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/60 text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-sm border border-slate-200 dark:border-white/5">
                                 {member.id === 'emp-1' ? 'Owner' : 'Member'}
                             </span>
                         </div>
@@ -125,7 +125,7 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                                         className={`group flex items-center gap-4 p-4 bg-white dark:bg-black/20 border border-slate-100 dark:border-white/5 hover:border-${accent ? accent.from.split('-')[1] : 'lime'}-500/30 dark:hover:border-${accent ? accent.darkText.split('-')[1].replace('#', '') : '[#CEFD4A]'}/30 rounded-[20px] transition-all cursor-pointer shadow-sm hover:shadow-md`}
                                     >
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${task.status === TaskStatus.DONE
-                                            ? `${accent ? `bg-gradient-to-br ${accent.from} ${accent.to} bg-opacity-10 border-${accent.from.split('-')[1]}-500/20 ${accent.text} ${accent.darkText}` : 'bg-lime-500/10 border-lime-500/20 text-lime-600 dark:text-[#CEFD4A]'}`
+                                            ? 'bg-lime-500/20 border-lime-500 text-lime-600 dark:bg-[#CEFD4A]/20 dark:border-[#CEFD4A] dark:text-[#CEFD4A]'
                                             : task.status === TaskStatus.IN_PROGRESS
                                                 ? 'border-primary-500 text-primary-500'
                                                 : 'border-slate-200 dark:border-white/10 text-transparent'
