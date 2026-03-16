@@ -6,6 +6,7 @@ import { TrashIcon } from './icons/TrashIcon'; // Assuming this exists or use XM
 import { XMarkIcon } from './icons/XMarkIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import * as dataService from '../services/supabaseService';
+import { usePresenceContext, statusColor } from '../context/PresenceContext';
 
 interface MembersViewProps {
   employees: Employee[];
@@ -18,6 +19,7 @@ interface MembersViewProps {
 const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser, currentSpace, onMemberUpdate }) => {
 
   const { tasks: dailyTasks } = useDailyTasks();
+  const { getStatus } = usePresenceContext();
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Employee[]>([]);
@@ -160,7 +162,11 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
                     alt={employee.name}
                     className="w-14 h-14 rounded-2xl object-cover border border-neutral-200/50 dark:border-neutral-700/50"
                   />
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-neutral-900 rounded-full"></div>
+                  {/* Live presence dot */}
+                  <div
+                    title={getStatus(employee.id)}
+                    className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white dark:border-neutral-900 rounded-full transition-colors duration-500 ${statusColor(getStatus(employee.id))} ${getStatus(employee.id) === 'online' ? 'animate-pulse' : ''}`}
+                  ></div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-black text-zinc-900 dark:text-white leading-tight mb-1">

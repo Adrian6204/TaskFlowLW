@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from './lib/supabaseClient';
 import MainApp from './components/MainApp';
 import SplashScreen from './components/SplashScreen';
 import ForceChangePasswordPage from './components/ForceChangePasswordPage';
+import { PresenceProvider } from './context/PresenceContext';
 
 // Setup Required Screen Component
 const SetupRequiredScreen: React.FC = () => (
@@ -73,7 +74,11 @@ const AppGateway: React.FC = () => {
 
   if (!user) return <Navigate to="/login" />;
 
-  return <MainApp user={user} onLogout={logout} />;
+  return (
+    <PresenceProvider userId={user.employeeId}>
+      <MainApp user={user} onLogout={logout} />
+    </PresenceProvider>
+  );
 };
 
 // Inner component that has access to auth context
