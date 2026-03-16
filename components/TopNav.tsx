@@ -103,22 +103,20 @@ const TopNav: React.FC<TopNavProps> = ({
                                 alt=""
                                 className={`w-11 h-11 rounded-full object-cover ring-2 transition-all duration-500 group-hover:scale-105 ${user.isAdmin ? 'ring-primary-500/60' : (accent ? `ring-${accent.from.split('-')[1]}-400/50` : 'ring-lime-400/50')}`}
                             />
-                            <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-2 border-white dark:border-black rounded-full transition-colors duration-500 ${user.isAdmin ? 'bg-primary-500' : statusColor(myStatus)} ${myStatus === 'online' && !user.isAdmin ? 'animate-pulse' : ''}`}></div>
+                            <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-2 border-white dark:border-black rounded-full transition-colors duration-500 ${statusColor(myStatus)} ${myStatus === 'online' ? 'animate-pulse' : ''}`}></div>
                         </div>
                         <div className="hidden lg:flex flex-col items-start leading-tight">
                             <span className="text-[13px] font-black text-slate-900 dark:text-white tracking-tight">
                                 {user.fullName || user.username}
                             </span>
                             <span className={`text-[9px] font-bold uppercase tracking-widest ${
-                                user.isAdmin
-                                  ? 'text-primary-600 dark:text-primary-400'
-                                  : myStatus === 'online'
+                                myStatus === 'online'
                                   ? 'text-lime-600 dark:text-lime-400'
                                   : myStatus === 'idle'
                                   ? 'text-amber-500 dark:text-amber-400'
                                   : 'text-slate-400 dark:text-white/30'
                               }`}>
-                                {user.isAdmin ? 'Admin' : statusLabel(myStatus)}
+                                {statusLabel(myStatus)}
                             </span>
                         </div>
                     </button>
