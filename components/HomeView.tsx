@@ -477,9 +477,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                   alt={emp.name}
                   className="w-10 h-10 rounded-full border-2 border-transparent group-hover:border-lime-500 dark:group-hover:border-[#CEFD4A] transition-all object-cover bg-neutral-200 dark:bg-neutral-800"
                 />
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-white dark:bg-black rounded-full flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-lime-500 dark:bg-[#CEFD4A]"></div>
-                </div>
+
               </div>
             ))}
           </div>
