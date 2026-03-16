@@ -95,6 +95,7 @@ export interface Task {
   updated_at?: string;
   dueTime?: string; // HH:mm
   recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
+  parent_task_id?: number | null;
 }
 
 export interface Space {

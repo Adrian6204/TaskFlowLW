@@ -21,6 +21,7 @@ interface DbTask {
   blocked_by_id: number | null;
   completed_at: string | null;
   list_id?: number | null;
+  parent_task_id?: number | null;
 }
 
 interface DbList {
@@ -68,6 +69,7 @@ const mapDbTaskToApp = (dbTask: any): Task => ({
   completedAt: dbTask.completed_at,
   blockedById: dbTask.blocked_by_id,
   listId: dbTask.list_id,
+  parent_task_id: dbTask.parent_task_id,
   comments: dbTask.comments ? dbTask.comments.map(mapDbCommentToApp) : [],
   subtasks: dbTask.subtasks ? dbTask.subtasks.map(mapDbSubtaskToApp) : [],
   timeLogs: dbTask.time_logs ? dbTask.time_logs.map(mapDbTimeLogToApp) : [],
@@ -370,43 +372,58 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
       data.recurrence !== 'none'
     ) {
       // Check if we already spanned a recurring task for this date to avoid duplicates
-      // (simplification: we just create a new one for the next interval)
-      const currentDueDate = new Date(data.due_date);
-      const nextDueDate = new Date(currentDueDate);
+      const { data: existingSuccessor, error: checkError } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('parent_task_id', data.id)
+        .maybeSingle();
 
-      if (data.recurrence === 'daily') {
-        nextDueDate.setDate(nextDueDate.getDate() + 1);
-      } else if (data.recurrence === 'weekly') {
-        nextDueDate.setDate(nextDueDate.getDate() + 7);
-      } else if (data.recurrence === 'monthly') {
-        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+      if (!checkError && !existingSuccessor) {
+        const currentDueDate = new Date(data.due_date);
+        const nextDueDate = new Date(currentDueDate);
+
+        if (data.recurrence === 'daily') {
+          nextDueDate.setDate(nextDueDate.getDate() + 1);
+        } else if (data.recurrence === 'weekly') {
+          nextDueDate.setDate(nextDueDate.getDate() + 7);
+        } else if (data.recurrence === 'monthly') {
+          nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+        }
+
+        // Skip Sunday (0) - only Monday-Saturday are work days
+        if (nextDueDate.getDay() === 0) {
+          nextDueDate.setDate(nextDueDate.getDate() + 1);
+        }
+
+        const newTaskPayload: DbTask = {
+          space_id: data.space_id,
+          title: data.title,
+          description: data.description || '',
+          assignee_id: data.assignee_id || '',
+          assignee_ids: data.assignee_ids || (data.assignee_id ? [data.assignee_id] : []),
+          creator_id: data.creator_id,
+          due_date: nextDueDate.toISOString(),
+          due_time: data.due_time || null,
+          status: TaskStatus.TODO,
+          priority: data.priority,
+          tags: data.tags || [],
+          timer_start_time: null,
+          recurrence: data.recurrence,
+          blocked_by_id: data.blocked_by_id || null,
+          completed_at: null,
+          list_id: data.list_id || null,
+          parent_task_id: data.id,
+        };
+
+        try {
+          await supabase.from('tasks').insert(newTaskPayload);
+        } catch (e: any) {
+          // If a unique constraint violation occurs (code 23505), 
+          // it means another process already spawned the task. 
+          // We can safely ignore this.
+          if (e.code !== '23505') throw e;
+        }
       }
-
-      // Skip Sunday (0) - only Monday-Saturday are work days
-      if (nextDueDate.getDay() === 0) {
-        nextDueDate.setDate(nextDueDate.getDate() + 1);
-      }
-
-      const newTaskPayload: DbTask = {
-        space_id: data.space_id,
-        title: data.title,
-        description: data.description || '',
-        assignee_id: data.assignee_id || '',
-        assignee_ids: data.assignee_ids || (data.assignee_id ? [data.assignee_id] : []),
-        creator_id: data.creator_id,
-        due_date: nextDueDate.toISOString(),
-        due_time: data.due_time || null,
-        status: TaskStatus.TODO,
-        priority: data.priority,
-        tags: data.tags || [],
-        timer_start_time: null,
-        recurrence: data.recurrence,
-        blocked_by_id: data.blocked_by_id || null,
-        completed_at: null,
-        list_id: data.list_id || null,
-      };
-
-      await supabase.from('tasks').insert(newTaskPayload);
     }
 
     // Handle Subtasks for Update
