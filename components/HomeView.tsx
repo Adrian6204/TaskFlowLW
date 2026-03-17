@@ -283,37 +283,32 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
           </div>
         </BentoCard>
 
-        {/* 2. Quick Actions / Time (Span 1) */}
-        {/* 2. Add New Task (Span 1) */}
-        {/* 2. Add New Task (Span 1) */}
-        <BentoCard className="col-span-1 p-0 flex flex-col justify-between relative overflow-hidden group min-h-[220px]">
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <div className="w-24 h-24 bg-lime-500 blur-[60px] rounded-full"></div>
+        <BentoCard className="col-span-1 p-0 flex flex-col relative overflow-hidden group min-h-[220px]">
+          {/* Animated Background Elements */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-500 pointer-events-none`}></div>
+          <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700">
+            <div className={`w-32 h-32 bg-gradient-to-br ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} blur-[60px] rounded-full`}></div>
           </div>
 
           <div className="p-6 relative z-10 flex flex-col h-full justify-between">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Quick Actions</h3>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center justify-center text-center">
-              <button
-                onClick={() => onAddTask({})}
-                className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${accent.from} ${accent.to} opacity-10 flex items-center justify-center ${accent.text} ${accent.darkText} mb-4 hover:scale-110 active:scale-95 hover:opacity-20 transition-all duration-300 cursor-pointer`}
-              >
-                <PlusIcon className="w-8 h-8" />
-              </button>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Create New Task</h3>
-              <p className="text-xs text-slate-500 dark:text-white/40 max-w-[200px]">
-                Add a task to a list with assignee, due date, and priority.
-              </p>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest flex items-center gap-2">
+                <BoltIcon className="w-3.5 h-3.5" />
+                Quick Actions
+              </h3>
             </div>
 
             <button
               onClick={() => onAddTask({})}
-              className="w-full py-3 rounded-xl bg-lime-500 dark:bg-[#CEFD4A] text-black text-xs font-black uppercase tracking-widest hover:shadow-lg hover:shadow-lime-500/20 transition-all active:scale-[0.98]"
+              className="flex-1 flex flex-col items-center justify-center text-center p-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-lime-500/50 dark:hover:border-[#CEFD4A]/50 hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300 group/btn"
             >
-              Open Task Creator
+              <div className={`w-14 h-14 rounded-2xl bg-white dark:bg-white/10 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center ${accent?.text || 'text-lime-600'} ${accent?.darkText || 'dark:text-[#CEFD4A]'} mb-4 group-hover/btn:scale-110 group-hover/btn:-translate-y-1 transition-all duration-300`}>
+                <PlusIcon className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1 group-hover/btn:text-lime-600 dark:group-hover/btn:text-[#CEFD4A] transition-colors">Create New Task</h3>
+              <p className="text-[11px] font-medium text-slate-500 dark:text-white/40 max-w-[180px] leading-relaxed">
+                Quickly add a new task to your workspace
+              </p>
             </button>
           </div>
         </BentoCard>
