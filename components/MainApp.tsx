@@ -596,12 +596,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                         }}
                                         isAdmin={currentSpaceRole === 'admin'}
                                         isSuperAdmin={isSuperAdmin}
-                                        onUpdateRole={async (spaceId, memberId, role) => {
-                                            try {
-                                                await dataService.updateWorkspaceRole(memberId, spaceId, role);
-                                                loadData();
-                                            } catch (e) { console.error(e); }
-                                        }}
                                         onUpdateSpace={async (spaceId, updates) => {
                                             try {
                                                 await dataService.updateSpace(spaceId, updates);
