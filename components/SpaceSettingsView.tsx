@@ -311,7 +311,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                 <button
                   onClick={handleSaveInfo}
                   disabled={isSaving || !editName.trim()}
-                  className={`px-6 py-2.5 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} text-black font-black uppercase tracking-wider rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`px-5 py-2 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} text-white font-semibold text-sm rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -323,7 +323,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
                     setEditTheme(space.theme || '');
                     setEditLogoUrl(space.logoUrl || '');
                   }}
-                  className="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white font-bold rounded-xl transition-colors"
+                  className="px-5 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white font-semibold text-sm rounded-xl transition-colors active:scale-95"
                 >
                   Cancel
                 </button>
