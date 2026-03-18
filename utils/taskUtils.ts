@@ -45,3 +45,35 @@ export const isTaskAvailable = (task: Task): boolean => {
     
     return now.getTime() >= availabilityThreshold.getTime();
 };
+
+/**
+ * Specifically for recurring tasks: checks if they should be auto-completed.
+ * 1. If due before today: Yes.
+ * 2. If due today: Yes, but only after 7 PM (19:00).
+ */
+export const isRecurringTaskReadyForAutoComplete = (task: Task): boolean => {
+    if (!task.recurrence || task.recurrence === 'none') return false;
+    if (task.status === TaskStatus.DONE) return false;
+
+    const now = new Date();
+    
+    // Robust local date parsing (avoids UTC pitfalls with new Date("YYYY-MM-DD"))
+    const [year, month, day] = task.dueDate.split('-').map(Number);
+    const dueDate = new Date(year, month - 1, day);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+
+    // If due before today
+    if (dueDate.getTime() < today.getTime()) {
+        return true;
+    }
+
+    // If due today, check if it's past 7 PM (19:00)
+    if (dueDate.getTime() === today.getTime()) {
+        return now.getHours() >= 19;
+    }
+
+    return false;
+};

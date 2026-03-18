@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { User, Employee, Task, Space, List, TaskStatus } from '../types';
 import * as dataService from '../services/supabaseService';
@@ -35,7 +35,7 @@ import { useDailyTasks } from '../hooks/useDailyTasks';
 import { useTheme } from './hooks/useTheme';
 import { usePreferences } from './hooks/usePreferences';
 import SpaceSettingsView from './SpaceSettingsView';
-import { isTaskOverdue, isTaskAvailable } from '../utils/taskUtils';
+import { isTaskOverdue, isTaskAvailable, isRecurringTaskReadyForAutoComplete } from '../utils/taskUtils';
 
 interface MainAppProps {
     user: User;
@@ -75,6 +75,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const [memberships, setMemberships] = useState<{ space_id: string; user_id: string; role: string }[]>([]);
     const [lists, setLists] = useState<List[]>([]);
     const [isDataLoaded, setIsDataLoaded] = useState(false);
+    const isProcessingAutoComplete = useRef(false);
 
     // ─── Active Space ─────────────────────────────────────────────────────
     // Derived from the URL: /app/workspace/:spaceSlug/view
@@ -232,28 +233,25 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     
     // ─── Auto-Complete Overdue Recurring Tasks ──────────────────────────
     useEffect(() => {
-        if (!preferences.autoCompleteRecurring || !isDataLoaded) return;
+        if (!preferences.autoCompleteRecurring || !isDataLoaded || allUserTasks.length === 0 || isProcessingAutoComplete.current) return;
 
-        const now = new Date();
-        const startOfToday = new Date(now);
-        startOfToday.setHours(0, 0, 0, 0);
+        const tasksToAutoComplete = allUserTasks.filter(isRecurringTaskReadyForAutoComplete);
 
-        const overdueRecurringTasks = allUserTasks.filter(t => {
-            if (!t.recurrence || t.recurrence === 'none' || !isTaskOverdue(t)) return false;
-
-            const dueDate = new Date(t.dueDate);
-            // If due before today, auto-complete immediately
-            if (dueDate < startOfToday) return true;
-
-            // If due today, wait until 7 PM (19:00)
-            return now.getHours() >= 19;
-        });
-
-        if (overdueRecurringTasks.length > 0) {
+        if (tasksToAutoComplete.length > 0) {
             const processTasks = async () => {
-                // Focus on one at a time to allow spawning logic to catch up
-                const task = overdueRecurringTasks[0];
-                await handleUpdateTaskStatus(task.id, TaskStatus.DONE);
+                isProcessingAutoComplete.current = true;
+                try {
+                    // Process all applicable tasks sequentially to ensure proper spawning and avoid race conditions
+                    console.log(`Auto-completing ${tasksToAutoComplete.length} recurring tasks...`);
+                    for (const task of tasksToAutoComplete) {
+                        await handleUpdateTaskStatus(task.id, TaskStatus.DONE, true); // skip individual refreshes
+                    }
+                    // Perform a single final refresh after all tasks are updated
+                    if (activeSpaceId) await loadSpaceTasks(activeSpaceId);
+                    await refreshAllUserTasks();
+                } finally {
+                    isProcessingAutoComplete.current = false;
+                }
             };
             processTasks();
         }
@@ -304,15 +302,19 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
         }
     };
 
-    const handleUpdateTaskStatus = async (id: number, status: TaskStatus) => {
+    const handleUpdateTaskStatus = async (id: number, status: TaskStatus, skipRefresh: boolean = false) => {
         try {
             const task = tasks.find(t => t.id === id) || allUserTasks.find(t => t.id === id);
             if (task) {
                 await dataService.upsertTask({ ...task, status, spaceId: task.spaceId });
-                if (activeSpaceId) loadSpaceTasks(activeSpaceId);
-                refreshAllUserTasks();
+                if (!skipRefresh) {
+                    if (activeSpaceId) loadSpaceTasks(activeSpaceId);
+                    refreshAllUserTasks();
+                }
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error('Failed to update task status:', e);
+        }
     };
 
     const handleSaveTask = async (task: any, id: number | null) => {
