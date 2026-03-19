@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { EmployeeWithRole, Space, Employee, Position } from '../types';
 import * as dataService from '../services/supabaseService';
 import BentoCard from './BentoCard';
@@ -484,8 +485,8 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
             )}
 
             {/* Enroll Modal */}
-            {isEnrollModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setIsEnrollModalOpen(false)}>
+            {isEnrollModalOpen && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setIsEnrollModalOpen(false)}>
                     <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-scale-in border border-white/10" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-2xl font-black text-slate-900 dark:text-white">Enroll Member to Workspace</h3>
@@ -536,7 +537,8 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             <ConfirmationModal
