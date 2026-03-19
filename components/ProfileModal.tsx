@@ -17,6 +17,7 @@ import { usePreferences, LandingPage, WeekStartDay, TimeFormat, TaskVisibility }
 import { supabase } from '../lib/supabaseClient';
 import { deleteAvatar, getFallbackAvatar } from '../services/supabaseService';
 import { useAuth } from '../auth/AuthContext';
+import CustomDropdown from './CustomDropdown';
 
 interface ProfileModalProps {
     isOpen: boolean;
@@ -82,22 +83,11 @@ const SegmentedControl: React.FC<{ options: { label: string; value: string }[], 
 );
 
 const Select: React.FC<{ options: { label: string; value: string }[], value: string, onChange: (val: any) => void }> = ({ options, value, onChange }) => (
-    <div className="relative">
-        <select
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full appearance-none bg-slate-100 dark:bg-white/5 border border-transparent dark:border-white/5 text-slate-900 dark:text-white text-sm rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary-500 focus:outline-none"
-        >
-            {options.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 dark:text-white/40">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-        </div>
-    </div>
+    <CustomDropdown
+        value={value}
+        onChange={onChange}
+        options={options}
+    />
 );
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, currentUserEmployee, onSave, onLogout }) => {
@@ -723,7 +713,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                                 <p className="font-bold text-slate-900 dark:text-white text-sm">Completed Tasks</p>
                                                 <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">Control when completed tasks disappear.</p>
                                             </div>
-                                            <div className="w-40">
+                                            <div className="w-52">
                                                 <Select
                                                     value={preferences.showCompletedTasks}
                                                     onChange={(val) => setPreferences('showCompletedTasks', val)}
