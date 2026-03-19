@@ -46,13 +46,21 @@ export function usePresence(userId: string | undefined) {
     if (!userId) return;
 
     // Build the presence map from the current sync state
-    const syncPresenceMap = (state: Record<string, unknown[]>) => {
+    // We use the presence_key (which is the userId) as the map key.
+    // If a user has multiple sessions (e.g. phone and desktop), 
+    // we prioritize 'online' > 'idle'.
+    const syncPresenceMap = (state: Record<string, any[]>) => {
       const map: PresenceMap = {};
-      for (const presences of Object.values(state)) {
-        for (const p of presences as unknown as PresenceState[]) {
-          if (p.userId) {
-            map[p.userId] = p.status ?? 'online';
-          }
+      for (const key of Object.keys(state)) {
+        const presences = state[key];
+        const statuses = presences.map(p => p.status || 'online');
+        
+        if (statuses.includes('online')) {
+          map[key] = 'online';
+        } else if (statuses.includes('idle')) {
+          map[key] = 'idle';
+        } else {
+          map[key] = 'offline';
         }
       }
       setPresenceMap(map);
@@ -67,24 +75,6 @@ export function usePresence(userId: string | undefined) {
     channel
       .on('presence', { event: 'sync' }, () => {
         syncPresenceMap(channel.presenceState());
-      })
-      .on('presence', { event: 'join' }, ({ newPresences }) => {
-        setPresenceMap((prev) => {
-          const updated = { ...prev };
-          for (const p of (newPresences as unknown as PresenceState[])) {
-            if (p.userId) updated[p.userId] = p.status ?? 'online';
-          }
-          return updated;
-        });
-      })
-      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        setPresenceMap((prev) => {
-          const updated = { ...prev };
-          for (const p of (leftPresences as unknown as PresenceState[])) {
-            if (p.userId) delete updated[p.userId];
-          }
-          return updated;
-        });
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
