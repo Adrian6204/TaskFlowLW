@@ -9,6 +9,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { PencilSquareIcon } from './icons/PencilSquareIcon';
 import ConfirmationModal from './ConfirmationModal';
+import CustomDropdown from './CustomDropdown';
 
 interface UserManagementViewProps {
     currentUserId: string;
@@ -496,30 +497,34 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mb-2">Select User</label>
-                                <select
+                                <CustomDropdown
                                     value={selectedUserToEnroll}
-                                    onChange={(e) => setSelectedUserToEnroll(e.target.value)}
-                                    className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none appearance-none"
-                                >
-                                    <option value="">-- Choose User --</option>
-                                    {users.filter(u => u.id !== currentUserId).map(u => (
-                                        <option key={u.id} value={u.id}>{u.name} ({u.workspaces.length ? u.workspaces.map(w => w.spaceName).join(', ') : 'Unassigned'})</option>
-                                    ))}
-                                </select>
+                                    onChange={(val) => setSelectedUserToEnroll(val as string)}
+                                    options={users
+                                        .filter(u => u.id !== currentUserId)
+                                        .map(u => ({
+                                            value: u.id,
+                                            label: u.name,
+                                            subtitle: u.workspaces.length ? u.workspaces.map(w => w.spaceName).join(', ') : 'Unassigned'
+                                        }))
+                                    }
+                                    placeholder="Search and choose user..."
+                                    searchable
+                                />
                             </div>
 
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mb-2">Select Target Workspace</label>
-                                <select
+                                <CustomDropdown
                                     value={selectedSpaceToEnroll}
-                                    onChange={(e) => setSelectedSpaceToEnroll(e.target.value)}
-                                    className="w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-lime-500 outline-none appearance-none"
-                                >
-                                    {spaces.length === 0 && <option value="">No workspaces available</option>}
-                                    {spaces.map(s => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
-                                    ))}
-                                </select>
+                                    onChange={(val) => setSelectedSpaceToEnroll(val as string)}
+                                    options={spaces.map(s => ({
+                                        value: s.id,
+                                        label: s.name
+                                    }))}
+                                    placeholder="Select target workspace..."
+                                    searchable={spaces.length > 5}
+                                />
                             </div>
 
                             <button
