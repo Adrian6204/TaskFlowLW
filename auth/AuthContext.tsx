@@ -239,9 +239,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) throw error;
 
     if (isAcceptable) {
+      // Refresh session first to ensure we have a valid token before updating
+      await supabase.auth.refreshSession();
+
       // RPC approved — now actually change the Auth password
-      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
-      if (updateError) throw updateError;
+      const { data: updateData, error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) {
+        // If the session was completely ruined/missing somehow, we should throw a clearer error
+        if (updateError.message.toLowerCase().includes('session') || updateError.name.includes('Session')) {
+           throw new Error("Your session expired. Please log out and log back in, then try again.");
+        }
+        throw updateError;
+      }
 
       // Sync local state
       setUser(prev => prev ? { ...prev, mustChangePassword: false } : null);
