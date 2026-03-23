@@ -207,8 +207,20 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                                 <h4 className={`font-semibold text-sm leading-snug line-clamp-2 ${overdue ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
                                                     {task.title}
                                                 </h4>
+                                                {task.subtasks && task.subtasks.length > 0 && (
+                                                    <ul className="mt-2.5 space-y-1.5 w-full">
+                                                        {task.subtasks.map(st => (
+                                                            <li key={st.id} className="flex items-start gap-2 text-xs">
+                                                                <div className={`mt-[0.35rem] w-1.5 h-1.5 rounded-full shrink-0 ${st.isCompleted ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                                                                <span className={`leading-tight line-clamp-2 ${st.isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
+                                                                    {st.title}
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
                                             </div>
-                                            <div className="flex items-center gap-2 w-full">
+                                            <div className="flex items-center gap-2 w-full mt-1">
                                                 {overdue && (
                                                     <span className="px-2 py-1 rounded bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-[10px] font-black uppercase tracking-widest border border-red-100 shrink-0">
                                                         Overdue
