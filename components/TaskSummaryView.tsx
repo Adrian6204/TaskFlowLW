@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Task, Employee, TaskStatus } from '../types';
 import { isTaskOverdue } from '../utils/taskUtils';
-import { Clock, Maximize2, Minimize2 } from 'lucide-react';
+import { Clock, Maximize2, Minimize2, ChevronDown, Check } from 'lucide-react';
 
 interface TaskSummaryViewProps {
     tasks: Task[];
@@ -12,6 +12,20 @@ interface TaskSummaryViewProps {
 const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onViewTask }) => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
+    const [filterOpen, setFilterOpen] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+                setFilterOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
 
     // Update time every minute
     useEffect(() => {
@@ -26,19 +40,44 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
         hour: 'numeric', minute: '2-digit', hour12: true
     });
 
+    // Unique sorted positions — split comma-separated DB values into individual entries
+    const uniquePositions = useMemo(() => {
+        const posSet = new Set<string>();
+        employees.forEach(e => {
+            if (e.position) {
+                (e.position as string).split(',').map(p => p.trim()).filter(Boolean).forEach(p => posSet.add(p));
+            }
+        });
+        return Array.from(posSet).sort();
+    }, [employees]);
+
+    const togglePosition = (pos: string) => {
+        setSelectedPositions(prev =>
+            prev.includes(pos) ? prev.filter(p => p !== pos) : [...prev, pos]
+        );
+    };
+
     // Group tasks by assigneeId, excluding completed tasks
-    const tasksByUser = employees.map(emp => {
+    const allTasksByUser = employees.map(emp => {
         const activeTasks = tasks.filter(t => (t.assigneeIds?.includes(emp.id) || t.assigneeId === emp.id) && t.status !== TaskStatus.DONE);
         return {
             employee: emp,
             userTasks: activeTasks
         };
-    }).filter(group => group.userTasks.length > 0 || group.employee.id); // Keep all employees even if 0 tasks (based on existing logic, or you could filter them out)
+    }).filter(group => group.userTasks.length > 0 || group.employee.id);
+
+    const tasksByUser = selectedPositions.length === 0
+        ? allTasksByUser
+        : allTasksByUser.filter(({ employee }) => {
+            if (!employee.position) return false;
+            const parts = (employee.position as string).split(',').map(p => p.trim());
+            return parts.some(p => selectedPositions.includes(p));
+          });
 
     return (
         <div className={`flex flex-col backdrop-blur-[40px] border border-white/40 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-none animate-fade-in transition-all duration-300 ${isFullscreen
             ? 'fixed inset-0 z-[100] overflow-y-auto bg-[#FAFAFA] dark:bg-[#0f1115] p-8 md:p-12 rounded-none'
-            : 'h-full relative bg-white/60 dark:bg-black/40 rounded-[32px] overflow-hidden p-8'
+            : 'h-full relative bg-white/60 dark:bg-black/40 rounded-[32px] p-8'
             }`}>
 
             {/* Header Area */}
@@ -56,22 +95,79 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                     </div>
                 </div>
 
-                <button
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 rounded-xl font-bold text-sm transition-all border border-indigo-100 dark:border-indigo-500/20 shadow-sm whitespace-nowrap"
-                >
-                    {isFullscreen ? (
-                        <>
-                            <Minimize2 className="w-4 h-4" />
-                            Exit Fullscreen
-                        </>
-                    ) : (
-                        <>
-                            <Maximize2 className="w-4 h-4" />
-                            Fullscreen
-                        </>
+                <div className="flex items-center gap-2">
+                    {/* Position Filter Dropdown */}
+                    {uniquePositions.length > 0 && (
+                        <div ref={wrapperRef} className="relative">
+                            <button
+                                onClick={() => setFilterOpen(o => !o)}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border shadow-sm whitespace-nowrap ${
+                                    selectedPositions.length > 0
+                                        ? 'bg-indigo-500 text-white border-indigo-500'
+                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/60 border-slate-200 dark:border-white/10'
+                                }`}
+                            >
+                                Filter by Position
+                                {selectedPositions.length > 0 && (
+                                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/30 text-white text-[10px] font-black">
+                                        {selectedPositions.length}
+                                    </span>
+                                )}
+                                <ChevronDown className={`w-4 h-4 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {filterOpen && (
+                                <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-[#1a1d23] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl shadow-black/10 dark:shadow-black/40 z-50">
+                                    <div className="p-2 max-h-72 overflow-y-auto">
+                                        {uniquePositions.map(pos => {
+                                            const active = selectedPositions.includes(pos);
+                                            return (
+                                                <button
+                                                    key={pos}
+                                                    onClick={() => togglePosition(pos)}
+                                                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-slate-50 dark:hover:bg-white/5 text-left"
+                                                >
+                                                    <span className={active ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-white/70'}>
+                                                        {pos}
+                                                    </span>
+                                                    {active && <Check className="w-4 h-4 text-indigo-500 shrink-0" />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {selectedPositions.length > 0 && (
+                                        <div className="border-t border-slate-100 dark:border-white/5 p-2">
+                                            <button
+                                                onClick={() => { setSelectedPositions([]); setFilterOpen(false); }}
+                                                className="w-full text-center text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 py-2 rounded-xl transition-all"
+                                            >
+                                                Clear all filters
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     )}
-                </button>
+
+                    {/* Fullscreen button */}
+                    <button
+                        onClick={() => setIsFullscreen(!isFullscreen)}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 rounded-xl font-bold text-sm transition-all border border-indigo-100 dark:border-indigo-500/20 shadow-sm whitespace-nowrap"
+                    >
+                        {isFullscreen ? (
+                            <>
+                                <Minimize2 className="w-4 h-4" />
+                                Exit Fullscreen
+                            </>
+                        ) : (
+                            <>
+                                <Maximize2 className="w-4 h-4" />
+                                Fullscreen
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* The content container */}
