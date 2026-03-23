@@ -1,5 +1,5 @@
-
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { Search, ChevronDown, Check } from 'lucide-react';
 import { Task, Employee, TaskStatus, Priority } from '../types';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
@@ -14,6 +14,20 @@ interface GanttChartProps {
 const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [preferences] = usePreferences();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>('all');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   // ... (rest of the logic remains same until return)
   // I'll use multi_replace for better precision if needed, but I'll try a larger chunk here.
@@ -78,7 +92,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
     return employees.find(e => e.id === id);
   };
 
-  // Group tasks by assignee
+  // Group tasks by assignee and apply filters
   const tasksByAssignee = useMemo(() => {
     const grouped: { [key: string]: Task[] } = {};
     tasks.forEach(task => {
@@ -86,8 +100,15 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(task);
     });
-    return grouped;
-  }, [tasks]);
+
+    const filteredGrouped: { [key: string]: Task[] } = {};
+    Object.entries(grouped).forEach(([assigneeId, tks]) => {
+      if (selectedAssigneeId !== 'all' && assigneeId !== selectedAssigneeId) return;
+      filteredGrouped[assigneeId] = tks;
+    });
+
+    return filteredGrouped;
+  }, [tasks, selectedAssigneeId, employees]);
 
   return (
     <div className={`bg-white/80 dark:bg-black/60 ${preferences.performanceMode ? '' : 'backdrop-blur-xl'} rounded-3xl border border-zinc-200 dark:border-white/10 overflow-hidden shadow-xl transition-all duration-300`}>
@@ -103,7 +124,77 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center justify-between gap-3 px-3 py-1.5 text-xs rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1a1d24] text-zinc-900 dark:text-white focus:outline-none hover:bg-zinc-50 dark:hover:bg-white/5 transition-all w-48 shadow-sm"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <span className="font-semibold truncate">
+                    {selectedAssigneeId === 'all' 
+                      ? 'All Members' 
+                      : selectedAssigneeId === 'unassigned'
+                        ? 'Unassigned'
+                        : employees.find(e => e.id === selectedAssigneeId)?.name || 'Select Member'}
+                  </span>
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#1a1d24] rounded-xl border border-zinc-200 dark:border-white/10 shadow-xl z-50 overflow-hidden flex flex-col">
+                  <div className="p-2 border-b border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-white/[0.02]">
+                    <div className="relative flex items-center">
+                      <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2" />
+                      <input
+                        type="text"
+                        placeholder="Search member..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-7 pr-3 py-1.5 text-xs rounded-lg bg-white dark:bg-[#0f1115] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-primary-500/50 transition-all"
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="max-h-[240px] overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-white/10">
+                    <button
+                      onClick={() => { setSelectedAssigneeId('all'); setIsDropdownOpen(false); setSearchQuery(''); }}
+                      className={`w-full text-left px-3 py-2 text-xs rounded-lg flex items-center justify-between mb-1 ${selectedAssigneeId === 'all' ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 font-semibold' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5'}`}
+                    >
+                      All Members
+                      {selectedAssigneeId === 'all' && <Check className="w-3.5 h-3.5 shrink-0" />}
+                    </button>
+                    
+                    {employees
+                      .filter(emp => !searchQuery || emp.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .map(emp => (
+                        <button
+                          key={emp.id}
+                          onClick={() => { setSelectedAssigneeId(emp.id); setIsDropdownOpen(false); setSearchQuery(''); }}
+                          className={`w-full text-left px-3 py-2 text-xs rounded-lg flex items-center justify-between mb-0.5 ${selectedAssigneeId === emp.id ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 font-semibold' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5'}`}
+                        >
+                          <span className="truncate pr-2 block w-full">{emp.name}</span>
+                          {selectedAssigneeId === emp.id && <Check className="w-3.5 h-3.5 shrink-0" />}
+                        </button>
+                    ))}
+
+                    {(!searchQuery || 'unassigned'.includes(searchQuery.toLowerCase())) && (
+                      <button
+                        onClick={() => { setSelectedAssigneeId('unassigned'); setIsDropdownOpen(false); setSearchQuery(''); }}
+                        className={`w-full mt-1 text-left px-3 py-2 text-xs rounded-lg flex items-center justify-between border-t border-zinc-100 dark:border-white/5 pt-2 ${selectedAssigneeId === 'unassigned' ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 font-semibold' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5'}`}
+                      >
+                        Unassigned
+                        {selectedAssigneeId === 'unassigned' && <Check className="w-3.5 h-3.5 shrink-0" />}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <div className="flex items-center bg-zinc-100 dark:bg-white/5 p-1 rounded-xl border border-zinc-200 dark:border-white/5">
               <button
                 onClick={() => navigateWeek(-1)}
