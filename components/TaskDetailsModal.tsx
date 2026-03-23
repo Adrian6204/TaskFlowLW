@@ -23,6 +23,7 @@ interface TaskDetailsModalProps {
   onAddComment: (taskId: number, content: string) => Promise<void>;
   onDeleteTask?: (taskId: number) => void;
   onUpdateTaskStatus?: (taskId: number, newStatus: TaskStatus) => void;
+  onEditTask?: (task: Task) => void;
   currentUserId?: string;
   isAdmin?: boolean;
 }
@@ -51,7 +52,7 @@ const formatTime = (time24?: string) => {
   return `${hour12}:${m} ${suffix}`;
 };
 
-const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, onUpdateTaskStatus, currentUserId, isAdmin }) => {
+const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, onUpdateTaskStatus, onEditTask, currentUserId, isAdmin }) => {
   const [newComment, setNewComment] = useState('');
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [dummyState, setDummyState] = useState(false); // Used to force re-render for optimistic updates
@@ -60,6 +61,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
   const currentUser = employees.find(e => e.id === user?.employeeId);
   const blockingTask = task.blockedById ? allTasks.find(t => t.id === task.blockedById) : null;
   const canDelete = isAdmin || (currentUserId && (task.assigneeIds?.includes(currentUserId) || task.assigneeId === currentUserId));
+  const canEdit = isAdmin || (currentUserId && (task.assigneeIds?.includes(currentUserId) || task.assigneeId === currentUserId));
   const isOverdue = isTaskOverdue(task);
 
   const [show, setShow] = useState(false);
@@ -219,6 +221,16 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-2 relative z-10">
+              {onEditTask && canEdit && (
+                <button
+                  onClick={() => { onEditTask(task); onClose(); }}
+                  className="px-4 py-3 flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-600 dark:text-indigo-400 hover:text-white rounded-2xl transition-all duration-300 border border-indigo-500/20 hover:border-indigo-500 shadow-sm group"
+                  title="Edit Task"
+                >
+                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  <span className="text-sm font-bold tracking-wide">Edit</span>
+                </button>
+              )}
               {onUpdateTaskStatus && task.status !== TaskStatus.DONE && (
                 <button
                   onClick={() => setShowCompleteConfirm(true)}

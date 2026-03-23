@@ -518,6 +518,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                     <TaskSummaryView
                                         tasks={availableAllUserTasks.filter(t => t.spaceId === activeSpaceId)}
                                         employees={spaceMembers}
+                                        onViewTask={(t) => { setSelectedTask(t); setTaskDetailsModalOpen(true); }}
                                     />
                                 )}
 
@@ -654,7 +655,9 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         onAddComment={handleAddComment}
                         onUpdateTaskStatus={handleUpdateTaskStatus}
                         onDeleteTask={handleDeleteTask}
+                        onEditTask={(t) => { setTaskToEdit(t); setTaskDetailsModalOpen(false); setCreateTaskModalOpen(true); }}
                         currentUserId={user.employeeId}
+                        isAdmin={isSuperAdmin || currentSpaceRole === 'admin'}
                     />
                 )}
 
