@@ -67,6 +67,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
   const [show, setShow] = useState(false);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAssigneesList, setShowAssigneesList] = useState(false);
 
   // Timer State
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -273,26 +274,16 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
 
             {/* Grid Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-primary-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-primary-500/5 shadow-sm">
+              <div 
+                onClick={() => assignees.length > 0 && setShowAssigneesList(true)}
+                className={`p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-primary-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-primary-500/5 shadow-sm ${assignees.length > 0 ? 'cursor-pointer' : ''}`}
+              >
                 <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">
                   {assignees.length > 1 ? 'Assignees' : 'Assignee'}
                 </span>
-                <div className="flex items-center gap-3">
-                  {assignees.length > 0 ? (
-                    <div className="flex -space-x-3 overflow-hidden items-center shrink-0">
-                      {assignees.map((emp, idx) => (
-                        <div key={emp.id} className="relative inline-block" style={{ zIndex: assignees.length - idx }}>
-                          <img src={emp.avatarUrl} alt={emp.name} className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-[#0A0A0A] shadow-sm" title={emp.name} />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10 border-2 border-white dark:border-[#0A0A0A] shadow-sm flex items-center justify-center relative z-10 shrink-0">
-                      <span className="text-[10px] font-bold text-slate-400">-</span>
-                    </div>
-                  )}
-                  <span className="text-sm font-bold text-slate-800 dark:text-white/90 leading-tight break-words block">
-                    {assignees.length === 0 ? 'Unassigned' : assignees.length === 1 ? assignees[0].name : `${assignees.length} Assignees`}
+                <div className={`flex items-center w-full ${assignees.length > 0 ? 'text-primary-600 dark:text-primary-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <span className="text-sm font-black uppercase tracking-wide truncate">
+                    {assignees.length === 0 ? 'Unassigned' : assignees.length === 1 ? assignees[0].name : `${assignees.length} Members`}
                   </span>
                 </div>
               </div>
@@ -569,6 +560,33 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assignees List Modal */}
+      {showAssigneesList && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAssigneesList(false)} />
+          <div className="relative bg-white dark:bg-[#1A1A1A] rounded-[32px] p-8 max-w-sm w-full border border-slate-200 dark:border-white/10 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <h3 className="text-xl font-black text-center text-slate-900 dark:text-white mb-6 tracking-tight">Assignees</h3>
+            <div className="max-h-60 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-white/10">
+              {assignees.map((emp) => (
+                <div key={emp.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                  <img src={emp.avatarUrl} alt={emp.name} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-zinc-800 shadow-sm" />
+                  <div>
+                    <p className="text-sm font-bold text-slate-800 dark:text-white/90">{emp.name}</p>
+                    {emp.position && <p className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mt-0.5">{typeof emp.position === 'string' ? emp.position.split(',')[0] : emp.position}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowAssigneesList(false)}
+              className="mt-6 w-full py-3.5 px-4 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white/70 rounded-[20px] font-bold transition-all"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
