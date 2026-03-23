@@ -84,14 +84,11 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-6 border-b border-black/5 dark:border-white/5 gap-4">
                 <div>
                     <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2">Team Hub Overview</h2>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-white/40 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-md">
-                            <Clock className="w-4 h-4 text-indigo-500" />
-                            {formattedTime}
-                        </div>
-                        <span className="text-xs font-semibold text-slate-400 dark:text-white/30 tracking-wider">
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 text-base font-bold text-slate-500 dark:text-white/40 bg-black/5 dark:bg-white/5 px-4 py-2 rounded-lg">
+                            <Clock className="w-5 h-5 text-indigo-500" />
                             {formattedDate}
-                        </span>
+                        </div>
                     </div>
                 </div>
 
