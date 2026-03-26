@@ -30,8 +30,6 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
   // Check if current user is admin of THIS space specifically? 
   // For now simple admin check + Super Admin.
   // Ideally check space membership role too if available in employees list.
-  console.log('MembersView currentUser:', currentUser);
-  console.log('Is Admin:', isAdmin);
 
   const getTaskStats = (employeeId: string) => {
     const employeeTasks = tasks.filter(t => t.assigneeIds?.includes(employeeId) || t.assigneeId === employeeId);

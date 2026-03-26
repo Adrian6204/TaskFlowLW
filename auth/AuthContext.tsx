@@ -35,7 +35,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           table: 'profiles',
           filter: `id=eq.${userId}`
         }, (payload) => {
-          console.log('Realtime profile update received:', payload.new);
           setUser(prevUser => {
             if (!prevUser) return null;
             return {
@@ -126,8 +125,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const email = sanitizedInput.includes('@')
       ? sanitizedInput
       : `${sanitizedInput.replace(/\s+/g, '')}@lifewood.com`;
-
-    console.log("Attempting login with:", { email, hasPassword: !!password });
 
     const { error } = await supabase.auth.signInWithPassword({
       email,

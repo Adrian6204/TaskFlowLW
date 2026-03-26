@@ -23,7 +23,6 @@ export async function performOcr(imageBase64: string, validUsers: ValidUser[] = 
     let method: 'openrouter' | 'tesseract' | 'none' = 'none';
 
     try {
-        console.log("OCR: Attempting OpenRouter...");
         extractedName = await extractWithOpenRouter(imageBase64);
         method = 'openrouter';
         
@@ -87,7 +86,6 @@ async function performLocalOcr(imageBase64: string): Promise<OcrResult> {
     const { data: { text, confidence } } = await worker.recognize(imageBase64);
     await worker.terminate();
 
-    console.log("OCR: Tesseract Raw Text:", text);
     const name = extractNameHeuristic(text);
     
     return { 

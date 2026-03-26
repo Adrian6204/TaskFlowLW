@@ -64,7 +64,6 @@ export const useScratchpad = () => {
             try {
                 await dataService.syncScratchpad(user.employeeId, newNote);
                 lastSyncedNote.current = newNote;
-                console.log('Scratchpad synced to cloud');
             } catch (err) {
                 console.error('Failed to sync scratchpad to cloud', err);
             }

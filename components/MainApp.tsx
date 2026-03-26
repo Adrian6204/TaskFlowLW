@@ -242,7 +242,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                 isProcessingAutoComplete.current = true;
                 try {
                     // Process all applicable tasks sequentially to ensure proper spawning and avoid race conditions
-                    console.log(`Auto-completing ${tasksToAutoComplete.length} recurring tasks...`);
                     for (const task of tasksToAutoComplete) {
                         await handleUpdateTaskStatus(task.id, TaskStatus.DONE, true); // skip individual refreshes
                     }
