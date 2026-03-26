@@ -16,7 +16,7 @@ interface DbTask {
   priority: string;
   tags: string[];
   timer_start_time: string | null;
-  due_time: string | null;
+  end_date: string | null;
   recurrence: string | null;
   blocked_by_id: number | null;
   completed_at: string | null;
@@ -62,7 +62,7 @@ const mapDbTaskToApp = (dbTask: any): Task => ({
   status: dbTask.status as TaskStatus,
   priority: dbTask.priority as Priority,
   tags: dbTask.tags || [],
-  dueTime: dbTask.due_time,
+  endDate: dbTask.end_date,
   recurrence: dbTask.recurrence || 'none',
   timerStartTime: dbTask.timer_start_time,
   createdAt: dbTask.created_at,
@@ -339,7 +339,7 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
     if (task.assigneeIds !== undefined) payload.assignee_ids = task.assigneeIds;
     if (task.creatorId !== undefined) payload.creator_id = task.creatorId;
     if (task.dueDate !== undefined) payload.due_date = task.dueDate;
-    if (task.dueTime !== undefined) payload.due_time = task.dueTime || null;
+    if (task.endDate !== undefined) payload.end_date = task.endDate || null;
     if (task.recurrence !== undefined) payload.recurrence = task.recurrence;
     if (task.status !== undefined) payload.status = task.status;
     if (task.priority !== undefined) payload.priority = task.priority;
@@ -403,7 +403,7 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
           assignee_ids: data.assignee_ids || (data.assignee_id ? [data.assignee_id] : []),
           creator_id: data.creator_id,
           due_date: nextDueDate.toISOString(),
-          due_time: data.due_time || null,
+          end_date: data.end_date || null,
           status: TaskStatus.TODO,
           priority: data.priority,
           tags: data.tags || [],
@@ -456,7 +456,7 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
       assignee_ids: task.assigneeIds || (task.assigneeId ? [task.assigneeId] : []),
       creator_id: task.creatorId,
       due_date: task.dueDate || new Date().toISOString(),
-      due_time: task.dueTime || null,
+      end_date: task.endDate || null,
       recurrence: task.recurrence || 'none',
       status: task.status || 'To Do',
       priority: task.priority || 'Medium',

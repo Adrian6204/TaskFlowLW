@@ -13,17 +13,12 @@ export const isTaskOverdue = (task: Task): boolean => {
 
     const now = new Date();
 
-    // Create a date object for the deadline
-    const deadline = new Date(task.dueDate);
-
-    if (task.dueTime) {
-        // If there's a specific time, parse it and set it
-        const [hours, minutes] = task.dueTime.split(':').map(Number);
-        deadline.setHours(hours, minutes, 0, 0);
-    } else {
-        // If there's no specific time, the deadline is the very end of that day (23:59:59.999)
-        deadline.setHours(23, 59, 59, 999);
-    }
+    // The effective date for the deadline is the end date if it exists, otherwise the due date.
+    const deadlineStr = task.endDate || task.dueDate;
+    const [year, month, day] = deadlineStr.split('-').map(Number);
+    
+    // Create a date object for the very end of that day (23:59:59.999)
+    const deadline = new Date(year, month - 1, day, 23, 59, 59, 999);
 
     return now.getTime() > deadline.getTime();
 };

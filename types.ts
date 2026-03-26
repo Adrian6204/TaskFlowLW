@@ -93,7 +93,7 @@ export interface Task {
   listId?: number | null;
   isUnplanned?: boolean;
   updated_at?: string;
-  dueTime?: string; // HH:mm
+  endDate?: string; // YYYY-MM-DD
   recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
   parent_task_id?: number | null;
 }

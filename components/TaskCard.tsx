@@ -33,14 +33,7 @@ const priorityConfig = {
   [Priority.LOW]: { glow: 'bg-slate-400 shadow-slate-400/50', border: 'border-slate-500/20' },
 };
 
-const formatTime = (time24?: string) => {
-  if (!time24) return '';
-  const [h, m] = time24.split(':');
-  const hours = parseInt(h, 10);
-  const suffix = hours >= 12 ? 'PM' : 'AM';
-  const hour12 = hours % 12 || 12;
-  return `${hour12}:${m} ${suffix}`;
-};
+// formatTime removed
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, currentUserId, isAdmin }) => {
   // Use the new centralized helper for overdue check
@@ -142,7 +135,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onE
           <div className="flex items-center gap-2">
             <span className={`text-[10px] font-black font-mono tracking-tight uppercase ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-white/30'}`}>
               {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-              {task.dueTime && ` • ${formatTime(task.dueTime)}`}
+              {task.endDate && ` - ${new Date(task.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
             </span>
             {isOverdue && (
               <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">

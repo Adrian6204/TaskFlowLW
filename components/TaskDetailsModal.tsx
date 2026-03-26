@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Task, Employee, Priority, TaskStatus } from '../types';
 import { useAuth } from '../auth/AuthContext';
 import { XMarkIcon } from './icons/XMarkIcon';
-import { ClockIcon } from './icons/ClockIcon';
 import { FlagIcon } from './icons/FlagIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -43,14 +42,7 @@ const formatDuration = (ms: number) => {
   return `${hours}h ${minutes}m ${seconds}s`;
 };
 
-const formatTime = (time24?: string) => {
-  if (!time24) return '';
-  const [h, m] = time24.split(':');
-  const hours = parseInt(h, 10);
-  const suffix = hours >= 12 ? 'PM' : 'AM';
-  const hour12 = hours % 12 || 12;
-  return `${hour12}:${m} ${suffix}`;
-};
+// formatTime removed as it's no longer used for endDate
 
 const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, onUpdateTaskStatus, onEditTask, currentUserId, isAdmin }) => {
   const [newComment, setNewComment] = useState('');
@@ -306,7 +298,11 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                   {task.dueDate ? (
                     <>
                       {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                      {task.dueTime && <span className="text-slate-500 dark:text-white/50 ml-1.5 font-medium">{formatTime(task.dueTime)}</span>}
+                      {task.endDate && (
+                        <span className="text-slate-500 dark:text-white/50 ml-1.5 font-medium">
+                           - {new Date(task.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      )}
                     </>
                   ) : 'No deadline'}
                 </p>

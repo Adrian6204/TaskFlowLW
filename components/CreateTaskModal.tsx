@@ -49,7 +49,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const [priority, setPriority] = useState<Priority>(Priority.MEDIUM);
     const [assigneeIds, setAssigneeIds] = useState<string[]>([currentUserId]);
     const [dueDate, setDueDate] = useState<string>('');
-    const [dueTime, setDueTime] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
     const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
     const [tags, setTags] = useState<string[]>([]);
     const [subtasks, setSubtasks] = useState<Subtask[]>([]);
@@ -63,6 +63,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const [pendingToggleId, setPendingToggleId] = useState<string | null>(null);
     const [assigneeSearchTerm, setAssigneeSearchTerm] = useState('');
     const [isCalendarOpen, setCalendarOpen] = useState(false);
+    const [isEndCalendarOpen, setEndCalendarOpen] = useState(false);
     const [isRecurrenceSelectorOpen, setRecurrenceSelectorOpen] = useState(false);
 
     const closeAllDropdowns = () => {
@@ -70,6 +71,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         setAssigneeSelectorOpen(false);
         setPrioritySelectorOpen(false);
         setCalendarOpen(false);
+        setEndCalendarOpen(false);
         setRecurrenceSelectorOpen(false);
     };
 
@@ -85,7 +87,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setPriority(taskToEdit.priority || Priority.MEDIUM);
                 setAssigneeIds(taskToEdit.assigneeIds || (taskToEdit.assigneeId ? [taskToEdit.assigneeId] : [currentUserId]));
                 setDueDate(taskToEdit.dueDate || '');
-                setDueTime(taskToEdit.dueTime || '');
+                setEndDate(taskToEdit.endDate || '');
                 setRecurrence(taskToEdit.recurrence || 'none');
                 setTags(taskToEdit.tags || []);
                 setSubtasks(taskToEdit.subtasks || []);
@@ -99,7 +101,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setPriority(Priority.MEDIUM);
                 setAssigneeIds([currentUserId]);
                 setDueDate('');
-                setDueTime('');
+                setEndDate('');
                 setRecurrence('none');
                 setTags([]);
                 setSubtasks([]);
@@ -125,7 +127,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
             assigneeIds,
             creatorId: taskToEdit ? taskToEdit.creatorId : currentUserId,
             dueDate,
-            dueTime,
+            endDate,
             recurrence,
             tags,
             subtasks,
@@ -417,7 +419,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                                     }}
                                     onClear={() => {
                                         setDueDate('');
-                                        setDueTime('');
+                                        setEndDate('');
                                         setCalendarOpen(false);
                                     }}
                                     onClose={() => setCalendarOpen(false)}
@@ -425,19 +427,40 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                             )}
                         </div>
 
-                        {/* Due Time (Only visible if Date is set) - Flattened */}
+                        {/* End Date (Only visible if Start Date is set) */}
                         {dueDate && (
-                            <div
-                                className="flex items-center gap-2 px-3 py-1.5 h-9 bg-white dark:bg-white/5 border border-lime-400/30 dark:border-lime-400/20 rounded-xl hover:border-lime-400 dark:hover:border-lime-400/50 hover:shadow-sm text-slate-800 dark:text-white transition-all duration-200 w-fit"
-                            >
-                                <ClockIcon className="w-4 h-4 text-lime-600 dark:text-lime-400" />
-                                <input
-                                    type="time"
-                                    value={dueTime}
-                                    onChange={(e) => setDueTime(e.target.value)}
-                                    className="bg-transparent border-none text-sm font-bold focus:ring-0 p-0 text-slate-800 dark:text-white cursor-pointer [color-scheme:light] dark:[color-scheme:dark] w-20"
-                                />
-                            </div>
+                             <div className="relative w-fit">
+                             <button
+                                 onClick={() => {
+                                     const wasOpen = isEndCalendarOpen;
+                                     closeAllDropdowns();
+                                     setEndCalendarOpen(!wasOpen);
+                                 }}
+                             className={`flex items-center gap-2 px-3 py-1.5 h-9 bg-white dark:bg-white/5 border rounded-xl hover:shadow-sm text-slate-800 dark:text-white transition-all duration-200 w-fit active:scale-95
+                                     ${endDate ? 'border-lime-400/50 shadow-sm' : 'border-neutral-200 dark:border-white/10 hover:border-lime-400 dark:hover:border-lime-400/50 hover:shadow-sm'}
+                                 `}
+                         >
+                                 <CalendarIcon className={`w-4 h-4 ${endDate ? 'text-lime-600 dark:text-lime-400' : ''}`} />
+                                 <span className="text-sm font-bold whitespace-nowrap">
+                                     {endDate ? format(new Date(endDate), 'MMM d, yyyy') : 'End Date'}
+                                 </span>
+                             </button>
+                             
+                             {isEndCalendarOpen && (
+                                 <CalendarPicker
+                                     selectedDate={endDate}
+                                     onSelect={(date) => {
+                                         setEndDate(date);
+                                         setEndCalendarOpen(false);
+                                     }}
+                                     onClear={() => {
+                                         setEndDate('');
+                                         setEndCalendarOpen(false);
+                                     }}
+                                     onClose={() => setEndCalendarOpen(false)}
+                                 />
+                             )}
+                         </div>
                         )}
 
                         {/* Recurrence Selector - Flattened */}
