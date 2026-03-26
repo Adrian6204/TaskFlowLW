@@ -127,7 +127,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
 
   const handleAddSubtask = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!newSubtaskTitle.trim() || !user) return;
+    if (!newSubtaskTitle.trim() || !user || !canEdit) return;
     const title = newSubtaskTitle.trim();
     setNewSubtaskTitle('');
 
@@ -224,7 +224,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                   <span className="text-sm font-bold tracking-wide">Edit</span>
                 </button>
               )}
-              {onUpdateTaskStatus && task.status !== TaskStatus.DONE && (
+              {onUpdateTaskStatus && task.status !== TaskStatus.DONE && canEdit && (
                 <button
                   onClick={() => setShowCompleteConfirm(true)}
                   className="px-4 py-3 flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white rounded-2xl transition-all duration-300 border border-emerald-500/20 hover:border-emerald-500 shadow-sm group hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"
@@ -359,6 +359,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                           <li key={subtask.id} className="flex items-center bg-white/60 dark:bg-[#1A1A1A] p-3 rounded-[16px] border border-white/60 dark:border-white/5 shadow-sm group">
                             <button
                               onClick={async () => {
+                                if (!canEdit) return;
                                 const currentSubtasks = task.subtasks || [];
                                 const updatedSubtasks = [...currentSubtasks];
                                 updatedSubtasks[index] = { ...updatedSubtasks[index], isCompleted: !updatedSubtasks[index].isCompleted };
@@ -401,7 +402,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                     <div className="flex items-center gap-2 mt-1 pt-3 border-t border-slate-200 dark:border-white/5 text-slate-500 focus-within:text-slate-900 dark:focus-within:text-white transition-colors">
                       <button
                         onClick={() => handleAddSubtask()}
-                        disabled={!newSubtaskTitle.trim()}
+                        disabled={!newSubtaskTitle.trim() || !canEdit}
                         className="p-1 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
                       >
                         <PlusIcon className="w-4 h-4" />
@@ -410,8 +411,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                         type="text"
                         value={newSubtaskTitle}
                         onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                        placeholder="Add a new subtask..."
-                        className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full p-0 placeholder:text-slate-400 dark:placeholder:text-white/30 text-slate-800 dark:text-white"
+                        disabled={!canEdit}
+                        placeholder={canEdit ? "Add a new subtask..." : "Only assignees can add subtasks"}
+                        className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full p-0 placeholder:text-slate-400 dark:placeholder:text-white/30 text-slate-800 dark:text-white disabled:opacity-50"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
