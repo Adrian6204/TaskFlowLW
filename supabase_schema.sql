@@ -13,7 +13,11 @@ DROP FUNCTION IF EXISTS public.join_space_v2(text);
 
 -- Helper: Check if user is a member of a space (Bypasses RLS for checks)
 create or replace function public.is_space_member(_space_id uuid)
-returns boolean language plpgsql security definer as $$
+returns boolean 
+language plpgsql 
+security definer 
+set search_path = public
+as $$
 begin
   return exists (
     select 1
@@ -110,7 +114,7 @@ begin
 
   return new;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = public;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
