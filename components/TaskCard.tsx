@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import { Task, Employee, TaskStatus, Priority } from '../types';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
-import { ChatBubbleIcon } from './icons/ChatBubbleIcon';
 import { LockClosedIcon } from './icons/LockClosedIcon';
 import { ListBulletIcon } from './icons/ListBulletIcon';
 import { ClockIcon } from './icons/ClockIcon';
@@ -148,7 +147,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onE
         <div className="flex items-center gap-4">
           <div className={`w-1.5 h-1.5 rounded-full ${priorityConfig[task.priority].glow} shadow-[0_0_8px]`}></div>
 
-          {(totalSubtasks > 0 || task.comments.length > 0 || (task.recurrence && task.recurrence !== 'none')) && (
+          {(totalSubtasks > 0 || (task.recurrence && task.recurrence !== 'none')) && (
             <div className="h-4 w-px bg-white/5"></div>
           )}
 
@@ -163,12 +162,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onE
             <div className="flex items-center text-slate-400 dark:text-white/20 group-hover:text-slate-900 dark:group-hover:text-white/40 gap-1.5 transition-colors">
               <ListBulletIcon className="w-3.5 h-3.5 stroke-[2.5px]" />
               <span className="text-[10px] font-black font-mono">{progressPercentage}%</span>
-            </div>
-          )}
-          {task.comments.length > 0 && (
-            <div className="flex items-center text-slate-400 dark:text-white/20 group-hover:text-slate-900 dark:group-hover:text-white/40 gap-1.5 transition-colors">
-              <ChatBubbleIcon className="w-3.5 h-3.5 stroke-[2.5px]" />
-              <span className="text-[10px] font-black font-mono">{task.comments.length}</span>
             </div>
           )}
         </div>

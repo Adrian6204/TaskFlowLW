@@ -51,12 +51,7 @@ export interface EmployeeWithRole extends Employee {
   isSuperAdmin: boolean;
 }
 
-export interface Comment {
-  id: number;
-  authorId: string;
-  content: string;
-  timestamp: string; // ISO 8601 string
-}
+
 
 export interface Subtask {
   id: string;
@@ -82,7 +77,6 @@ export interface Task {
   dueDate: string; // YYYY-MM-DD
   status: TaskStatus;
   priority: Priority;
-  comments: Comment[];
   subtasks: Subtask[];
   tags: string[];
   timeLogs: TimeLogEntry[];

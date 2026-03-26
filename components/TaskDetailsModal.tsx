@@ -19,7 +19,6 @@ interface TaskDetailsModalProps {
   task: Task;
   employees: Employee[];
   allTasks: Task[];
-  onAddComment: (taskId: number, content: string) => Promise<void>;
   onDeleteTask?: (taskId: number) => void;
   onUpdateTaskStatus?: (taskId: number, newStatus: TaskStatus) => void;
   onEditTask?: (task: Task) => void;
@@ -44,8 +43,7 @@ const formatDuration = (ms: number) => {
 
 // formatTime removed as it's no longer used for endDate
 
-const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onAddComment, onDeleteTask, onUpdateTaskStatus, onEditTask, currentUserId, isAdmin }) => {
-  const [newComment, setNewComment] = useState('');
+const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onDeleteTask, onUpdateTaskStatus, onEditTask, currentUserId, isAdmin }) => {
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [dummyState, setDummyState] = useState(false); // Used to force re-render for optimistic updates
   const { user } = useAuth();
@@ -97,33 +95,6 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
     return () => clearInterval(interval);
   }, [task.timerStartTime]);
 
-  const handleCommentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim() || !user) return;
-
-    const commentText = newComment.trim();
-    setNewComment('');
-
-    // Optimistic UI Update
-    const optimisticComment = {
-      id: Date.now(), // Temporary ID until the parent component pulls the real one from the DB
-      authorId: user.employeeId,
-      content: commentText,
-      timestamp: new Date().toISOString(),
-    };
-
-    task.comments = [...(task.comments || []), optimisticComment];
-    setDummyState(prev => !prev);
-
-    try {
-      await onAddComment(task.id, commentText);
-    } catch (error) {
-      console.error("Failed to add comment:", error);
-      // Revert if failed
-      task.comments = task.comments.filter(c => c.id !== optimisticComment.id);
-      setDummyState(prev => !prev);
-    }
-  };
 
   const handleAddSubtask = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -150,19 +121,6 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
     }
   };
 
-  const getRelativeTime = (timestamp: string) => {
-    const now = new Date();
-    const commentDate = new Date(timestamp);
-    const diffInSeconds = Math.floor((now.getTime() - commentDate.getTime()) / 1000);
-
-    if (diffInSeconds < 60) return 'Just now';
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays}d ago`;
-  }
 
   const completedSubtasks = (task.subtasks || []).filter(st => st.isCompleted).length;
   const totalSubtasks = (task.subtasks || []).length;
@@ -426,64 +384,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                 </div>
               </div>
             </div>
-
-            {/* Comments Section */}
-            <div className="pt-4 mt-8 border-t border-slate-200 dark:border-white/5">
-              <h3 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em] ml-2 mb-6">Activity & Comments</h3>
-              <div className="space-y-5 mb-6">
-                {task.comments.map(comment => {
-                  const author = employees.find(e => e.id === comment.authorId);
-                  return (
-                    <div key={comment.id} className="flex items-end gap-3 group">
-                      <img src={author?.avatarUrl} alt={author?.name} className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-[#1E1E1E] shadow-sm mb-1" />
-                      <div className="flex-1 bg-white/60 dark:bg-[#1A1A1A] border border-white/60 dark:border-white/5 rounded-2xl rounded-bl-none px-5 py-4 shadow-sm relative group-hover:border-primary-500/20 transition-colors">
-                        <div className="flex justify-between items-center mb-2">
-                          <p className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-wide">{author?.name}</p>
-                          <p className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">{getRelativeTime(comment.timestamp)}</p>
-                        </div>
-                        <p className="text-sm font-medium text-slate-700 dark:text-white/70 leading-relaxed whitespace-pre-wrap">{comment.content}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-                {task.comments.length === 0 && (
-                  <div className="py-10 flex flex-col items-center justify-center bg-white/30 dark:bg-white/[0.02] border border-dashed border-slate-300 dark:border-white/10 rounded-[32px]">
-                    <div className="w-10 h-10 rounded-full bg-white/50 dark:bg-white/5 flex items-center justify-center mb-3">
-                      <span className="text-xl opacity-50">💭</span>
-                    </div>
-                    <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">No comments yet</p>
-                  </div>
-                )}
-              </div>
-            </div>
           </main>
-
-          {/* Comment Input Footer */}
-          <footer className="p-4 sm:p-6 bg-white/60 dark:bg-black/20 border-t border-white/50 dark:border-white/5 backdrop-blur-xl shrink-0">
-            <form onSubmit={handleCommentSubmit} className="flex items-center gap-3 sm:gap-4 max-w-4xl mx-auto">
-              {currentUser && <img src={currentUser.avatarUrl} alt={currentUser.name} className="hidden sm:block w-10 h-10 rounded-full border-2 border-white dark:border-[#1E1E1E] shadow-md object-cover" />}
-              <div className="flex-1 relative group">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Type your comment here..."
-                  className="w-full px-5 py-3.5 sm:py-4 bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[20px] text-slate-900 dark:text-white text-sm font-medium placeholder-slate-400 dark:placeholder-white/20 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/50 transition-all outline-none shadow-sm group-hover:border-slate-300 dark:group-hover:border-white/20"
-                />
-              </div>
-              <button
-                type="submit"
-                className="p-3.5 sm:p-4 bg-primary-600 text-white rounded-[20px] hover:bg-primary-500 disabled:opacity-40 disabled:hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/20 active:scale-95 disabled:active:scale-100 flex-shrink-0"
-                disabled={!newComment.trim()}
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              </button>
-            </form>
-          </footer>
         </div>
-      </div >
+      </div>
 
       {/* Confirmation Modal */}
       {showCompleteConfirm && (

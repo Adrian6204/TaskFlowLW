@@ -343,12 +343,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     };
 
 
-    const handleAddComment = async (taskId: number, content: string) => {
-        try {
-            await dataService.addTaskComment(taskId, user.employeeId, content);
-            loadSpaceTasks(activeSpaceId);
-        } catch (e) { console.error(e); }
-    };
 
     const handleDeleteTask = async (taskId: number) => {
         try {
@@ -651,7 +645,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         task={selectedTask}
                         employees={employees}
                         allTasks={tasks}
-                        onAddComment={handleAddComment}
                         onUpdateTaskStatus={handleUpdateTaskStatus}
                         onDeleteTask={handleDeleteTask}
                         onEditTask={(t) => { setTaskToEdit(t); setTaskDetailsModalOpen(false); setCreateTaskModalOpen(true); }}

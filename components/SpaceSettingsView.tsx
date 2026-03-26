@@ -534,7 +534,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
         onClose={() => setShowDeleteSpaceModal(false)}
         onConfirm={confirmDeleteSpace}
         title="Delete Workspace"
-        message={`Are you sure you want to permanently delete "${space.name}"? This action cannot be undone and will delete all tasks, time logs, comments, and data in this workspace.`}
+        message={`Are you sure you want to permanently delete "${space.name}"? This action cannot be undone and will delete all tasks, time logs, and data in this workspace.`}
         confirmText="Delete Workspace"
         cancelText="Cancel"
       />

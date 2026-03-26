@@ -1,6 +1,6 @@
 
 import { supabase } from '../lib/supabaseClient';
-import { Task, Space, Employee, TaskStatus, Priority, Comment, Subtask, TimeLogEntry, List } from '../types';
+import { Task, Space, Employee, TaskStatus, Priority, Subtask, TimeLogEntry, List } from '../types';
 
 // --- Types for DB Insert/Update ---
 interface DbTask {
@@ -70,18 +70,11 @@ const mapDbTaskToApp = (dbTask: any): Task => ({
   blockedById: dbTask.blocked_by_id,
   listId: dbTask.list_id,
   parent_task_id: dbTask.parent_task_id,
-  comments: dbTask.comments ? dbTask.comments.map(mapDbCommentToApp) : [],
   subtasks: dbTask.subtasks ? dbTask.subtasks.map(mapDbSubtaskToApp) : [],
   timeLogs: dbTask.time_logs ? dbTask.time_logs.map(mapDbTimeLogToApp) : [],
   updated_at: dbTask.updated_at,
 });
 
-const mapDbCommentToApp = (dbComment: any): Comment => ({
-  id: dbComment.id,
-  authorId: dbComment.author_id,
-  content: dbComment.content,
-  timestamp: dbComment.created_at,
-});
 
 const mapDbSubtaskToApp = (dbSubtask: any): Subtask => ({
   id: dbSubtask.id,
@@ -316,7 +309,6 @@ export const getTasks = async (spaceId: string, currentUserId?: string) => {
     .select(`
       *,
       subtasks(*),
-      comments(*),
       time_logs(*)
     `)
     .eq('space_id', spaceId)
@@ -485,15 +477,6 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
   }
 };
 
-export const addTaskComment = async (taskId: number, authorId: string, content: string) => {
-  const { data, error } = await supabase
-    .from('comments')
-    .insert({ task_id: taskId, author_id: authorId, content })
-    .select()
-    .single();
-  if (error) throw error;
-  return mapDbCommentToApp(data);
-};
 
 export const logTaskTime = async (taskId: number, startTime: string, endTime: string, duration: number) => {
   const { error } = await supabase
@@ -663,7 +646,6 @@ export const getAllTasksAcrossSpaces = async () => {
     .select(`
       *,
       subtasks(*),
-      comments(*),
       time_logs(*)
     `)
     .order('created_at', { ascending: false });
