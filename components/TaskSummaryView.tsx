@@ -264,50 +264,87 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
 
                     return isCompact ? (
                         /* Compact Row Layout */
-                        <div key={employee.id} className={`bg-white/40 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 shadow-sm flex items-center gap-4 transition-all group ${isInactive ? 'opacity-50' : 'hover:bg-white/60 dark:hover:bg-white/10'}`}>
-                            <div className="relative shrink-0">
-                                <img src={employee.avatarUrl} alt={employee.name} className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover bg-neutral-200 dark:bg-neutral-800" />
-                                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-[#1a1d23] ${isInactive ? 'bg-slate-400' : userTasks.some(t => isTaskOverdue(t)) ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
-                            </div>
+                        <div key={employee.id} className={`bg-white dark:bg-[#111318] rounded-2xl border flex flex-col overflow-hidden transition-all duration-200 ${isInactive ? 'opacity-50 border-slate-100 dark:border-white/5' : 'border-slate-200 dark:border-white/8 shadow-sm hover:shadow-md hover:-translate-y-0.5'}`}>
+                            {/* Colored top bar */}
+                            <div className={`h-1 w-full shrink-0 ${isInactive ? 'bg-slate-200 dark:bg-white/10' : userTasks.some(t => isTaskOverdue(t)) ? 'bg-red-500' : 'bg-emerald-500'}`} />
 
-                            <div className="min-w-[140px] max-w-[200px]">
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{employee.name}</h3>
-                                <div className="flex items-center gap-1.5 mt-0.5">
-                                    {attendanceBadge ?? (
-                                        <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-tight">
-                                            {userTasks.length} {userTasks.length === 1 ? 'Task' : 'Tasks'}
-                                        </p>
-                                    )}
+                            {/* Employee header row */}
+                            <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-white/5">
+                                <div className="relative shrink-0">
+                                    <img src={employee.avatarUrl} alt={employee.name} className="w-9 h-9 rounded-full border-2 border-white dark:border-zinc-700 shadow object-cover bg-neutral-200 dark:bg-neutral-800" />
+                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#111318] ${isInactive ? 'bg-slate-400' : userTasks.some(t => isTaskOverdue(t)) ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{employee.name}</h3>
+                                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                        {attendanceBadge}
+                                        {!isInactive && (
+                                            <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">
+                                                {userTasks.length} Active {userTasks.length === 1 ? 'Task' : 'Tasks'}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2 flex-1">
+                            {/* Task rows */}
+                            <div className="divide-y divide-slate-50 dark:divide-white/5">
                                 {isInactive ? (
-                                    <p className="text-[11px] font-medium text-slate-400 dark:text-white/30 italic">No tasks shown.</p>
-                                ) : (
-                                    <>
-                                        {userTasks.slice(0, 5).map(task => (
+                                    <p className="text-xs font-medium text-slate-400 dark:text-white/30 italic px-4 py-3">No tasks shown.</p>
+                                ) : userTasks.length > 0 ? (
+                                    userTasks.map(task => {
+                                        const overdue = isTaskOverdue(task) && task.status !== TaskStatus.DONE;
+                                        return (
                                             <div
                                                 key={task.id}
                                                 onClick={() => onViewTask && onViewTask(task)}
-                                                className={`px-3 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-2 cursor-pointer transition-all border ${
-                                                    task.status === TaskStatus.DONE
-                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
-                                                        : isTaskOverdue(task)
-                                                            ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
-                                                            : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-white/5 dark:text-slate-300 dark:border-white/10'
-                                                }`}
+                                                className="flex items-start justify-between gap-4 px-4 py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
                                             >
-                                                <div className={`w-1.5 h-1.5 rounded-full ${task.status === TaskStatus.DONE ? 'bg-emerald-500' : isTaskOverdue(task) ? 'bg-red-500' : 'bg-indigo-400'}`} />
-                                                <span className="truncate max-w-[150px]">{task.title}</span>
+                                                <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                                                    <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
+                                                        task.status === TaskStatus.DONE ? 'bg-emerald-500' :
+                                                        task.status === TaskStatus.IN_PROGRESS ? 'bg-indigo-500' :
+                                                        overdue ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-600'
+                                                    }`} />
+                                                    <div className="flex-1 min-w-0">
+                                                        <span className={`text-sm font-medium leading-snug ${overdue ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                            {task.title}
+                                                        </span>
+                                                        {task.subtasks && task.subtasks.length > 0 && (
+                                                            <ul className="mt-1.5 space-y-1 pl-1">
+                                                                {task.subtasks.map(st => (
+                                                                    <li key={st.id} className="flex items-start gap-2 text-xs">
+                                                                        <div className={`mt-[0.35rem] w-1.5 h-1.5 rounded-full shrink-0 ${st.isCompleted ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                                                                        <span className={`leading-snug ${st.isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                                            {st.title}
+                                                                        </span>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                                                    {overdue && (
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider bg-red-50 text-red-500 border border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">
+                                                            Overdue
+                                                        </span>
+                                                    )}
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${
+                                                        task.status === TaskStatus.DONE
+                                                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
+                                                            : task.status === TaskStatus.IN_PROGRESS
+                                                                ? 'bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
+                                                                : 'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-white/5 dark:text-white/40 dark:border-white/10'
+                                                    }`}>
+                                                        {task.status === TaskStatus.DONE ? 'Done' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'To Do'}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        ))}
-                                        {userTasks.length > 5 && (
-                                            <div className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/30 text-[10px] font-bold">
-                                                +{userTasks.length - 5} more
-                                            </div>
-                                        )}
-                                    </>
+                                        );
+                                    })
+                                ) : (
+                                    <p className="text-xs font-medium text-slate-400 dark:text-white/30 italic px-4 py-3">No tasks assigned.</p>
                                 )}
                             </div>
                         </div>
@@ -350,15 +387,15 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                                 className="flex flex-col justify-between items-start bg-slate-50/50 dark:bg-white/5 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-all border border-transparent hover:border-slate-200 dark:hover:border-white/10 gap-3"
                                             >
                                                 <div className="w-full">
-                                                    <h4 className={`font-semibold text-sm leading-snug line-clamp-2 ${overdue ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                                                    <h4 className={`font-semibold text-sm leading-snug ${overdue ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
                                                         {task.title}
                                                     </h4>
                                                     {task.subtasks && task.subtasks.length > 0 && (
-                                                        <ul className="mt-2.5 space-y-1.5 w-full">
+                                                        <ul className="mt-2.5 space-y-1.5 w-full pl-1">
                                                             {task.subtasks.map(st => (
                                                                 <li key={st.id} className="flex items-start gap-2 text-xs">
                                                                     <div className={`mt-[0.35rem] w-1.5 h-1.5 rounded-full shrink-0 ${st.isCompleted ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
-                                                                    <span className={`leading-tight line-clamp-2 ${st.isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
+                                                                    <span className={`leading-snug ${st.isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
                                                                         {st.title}
                                                                     </span>
                                                                 </li>
@@ -368,17 +405,17 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                                 </div>
                                                 <div className="flex items-center gap-2 w-full mt-1">
                                                     {overdue && (
-                                                        <span className="px-2 py-1 rounded bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-[10px] font-black uppercase tracking-widest border border-red-100 shrink-0">
+                                                        <span className="px-2 py-0.5 rounded-md bg-red-50 text-red-500 border border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20 text-[10px] font-bold uppercase tracking-wider shrink-0">
                                                             Overdue
                                                         </span>
                                                     )}
-                                                    <span className={`text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider shrink-0 ${task.status === TaskStatus.DONE
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider shrink-0 ${task.status === TaskStatus.DONE
                                                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
                                                         : task.status === TaskStatus.IN_PROGRESS
-                                                            ? 'bg-emerald-700/10 text-emerald-800 border border-emerald-300 dark:bg-emerald-700/20 dark:text-emerald-500 dark:border-emerald-700/30'
-                                                            : 'bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20'
+                                                            ? 'bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
+                                                            : 'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-white/5 dark:text-white/40 dark:border-white/10'
                                                         }`}>
-                                                        {task.status === TaskStatus.DONE ? 'Completed' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'To Do'}
+                                                        {task.status === TaskStatus.DONE ? 'Done' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'To Do'}
                                                     </span>
                                                 </div>
                                             </div>
