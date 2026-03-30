@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Employee, Task, TaskStatus, User, Space } from '../types';
 import { useDailyTasks } from '../hooks/useDailyTasks';
 import { PlusIcon } from './icons/PlusIcon';
@@ -196,8 +197,8 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
       )}
 
       {/* Remove Member Confirmation Modal */}
-      {memberToRemove && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setMemberToRemove(null)}>
+      {memberToRemove && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setMemberToRemove(null)}>
           <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] w-full max-w-md p-8 shadow-2xl animate-scale-in border border-white/10" onClick={e => e.stopPropagation()}>
             <div className="text-center">
               <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -224,12 +225,13 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Add Member Modal */}
-      {isAddMemberModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setIsAddMemberModalOpen(false)}>
+      {isAddMemberModalOpen && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setIsAddMemberModalOpen(false)}>
           <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-scale-in border border-white/10" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-black text-zinc-900 dark:text-white">Add Member</h3>
@@ -274,7 +276,8 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>
