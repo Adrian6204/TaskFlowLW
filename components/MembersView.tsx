@@ -132,50 +132,58 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
       {/* Members Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {employees.map((employee, index) => {
-          const stats = getTaskStats(employee.id);
           const isMe = currentUser.employeeId === employee.id;
+          const positions = employee.position
+            ? (employee.position as string).split(',').map(p => p.trim()).filter(Boolean)
+            : ['Member'];
 
           return (
             <div
               key={employee.id}
-              className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] rounded-[32px] border border-white/40 dark:border-white/5 p-8 hover:border-white/60 dark:hover:border-white/20 transition-all duration-300 stagger-children shadow-xl shadow-black/5 dark:shadow-none group relative"
+              className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] rounded-[28px] border border-white/40 dark:border-white/5 hover:border-white/60 dark:hover:border-white/20 transition-all duration-300 shadow-xl shadow-black/5 dark:shadow-none group relative p-5"
               style={{ animationDelay: `${index * 50}ms` }}
             >
+              {/* Remove button */}
               {isAdmin && !isMe && (
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => setMemberToRemove(employee.id)}
-                    className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
-                    title="Remove from Workspace"
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => setMemberToRemove(employee.id)}
+                  className="absolute top-4 right-4 p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                  title="Remove from Workspace"
+                >
+                  <XMarkIcon className="w-3.5 h-3.5" />
+                </button>
               )}
 
-              <div className="flex items-start gap-4">
-                <div className="relative">
+              {/* Avatar + name */}
+              <div className="flex items-center gap-3">
+                <div className="relative shrink-0">
                   <img
                     src={employee.avatarUrl}
                     alt={employee.name}
-                    className="w-14 h-14 rounded-2xl object-cover border border-neutral-200/50 dark:border-neutral-700/50"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-zinc-700 shadow-sm"
                   />
-                  {/* Live presence dot */}
                   <div
                     title={getStatus(employee.id)}
-                    className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white dark:border-neutral-900 rounded-full transition-colors duration-500 ${statusColor(getStatus(employee.id))} ${getStatus(employee.id) === 'online' ? 'animate-pulse' : ''}`}
-                  ></div>
+                    className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-white dark:border-zinc-900 rounded-full transition-colors duration-500 ${statusColor(getStatus(employee.id))} ${getStatus(employee.id) === 'online' ? 'animate-pulse' : ''}`}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-black text-zinc-900 dark:text-white leading-tight mb-1">
+                  <h3 className="text-sm font-black text-zinc-900 dark:text-white leading-tight">
                     {employee.name}
+                    {isMe && <span className="ml-1.5 text-[9px] font-bold text-primary-500 uppercase tracking-widest">You</span>}
                   </h3>
-                  <p className="text-sm font-bold text-zinc-500 dark:text-white/40 leading-snug">
-                    {employee.position || 'Member'}
-                  </p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {positions.slice(0, 2).map(pos => (
+                      <span key={pos} className="text-[10px] font-bold text-zinc-400 dark:text-white/40 bg-zinc-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md">
+                        {pos}
+                      </span>
+                    ))}
+                    {positions.length > 2 && (
+                      <span className="text-[10px] font-bold text-zinc-400 dark:text-white/40">+{positions.length - 2}</span>
+                    )}
+                  </div>
                 </div>
               </div>
-
             </div>
           );
         })}
