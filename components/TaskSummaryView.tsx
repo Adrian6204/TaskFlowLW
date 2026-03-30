@@ -156,33 +156,6 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    {/* Copy Report Button */}
-                    <button
-                        onClick={handleCopyReport}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border shadow-sm whitespace-nowrap ${
-                            copying 
-                                ? 'bg-emerald-500 text-white border-emerald-500' 
-                                : 'bg-white hover:bg-slate-50 text-slate-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white border-slate-200 dark:border-white/10'
-                        }`}
-                    >
-                        {copying ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        {copying ? 'Report Copied!' : 'Copy Report'}
-                    </button>
-
-                    {/* Show Completed Toggle */}
-                    <button
-                        onClick={() => setShowCompleted(!showCompleted)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border shadow-sm whitespace-nowrap ${
-                            showCompleted 
-                                ? 'bg-indigo-500 text-white border-indigo-500 shadow-indigo-200 dark:shadow-none' 
-                                : 'bg-white hover:bg-slate-50 text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/60 border-slate-200 dark:border-white/10'
-                        }`}
-                        title="Include tasks completed today"
-                    >
-                        <CheckCircle2 className={`w-4 h-4 ${showCompleted ? 'text-white' : 'text-slate-400'}`} />
-                        Include Done
-                    </button>
-
                     {/* View mode toggle */}
                     <div className="flex items-center bg-slate-100 dark:bg-white/5 p-1 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
                         <button
