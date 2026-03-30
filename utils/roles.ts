@@ -9,7 +9,6 @@ export const isLeadership = (position?: string | Position): boolean => {
         Position.ADMIN,
         Position.HR_ASSISTANT,
         Position.AI_EXECUTIVE,
-        Position.ADMIN_AND_RESEARCH_ASSISTANT
     ];
 
     return leadershipRoles.includes(position as Position);

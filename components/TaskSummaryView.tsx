@@ -353,7 +353,7 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                         {!isInactive && (
                                             <>
                                                 <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-md">
-                                                    {userTasks.length} ACTIVE
+                                                    {userTasks.length} Active {userTasks.length === 1 ? 'Task' : 'Tasks'}
                                                 </span>
                                                 {userTasks.some(t => isTaskOverdue(t)) && (
                                                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="Has overdue tasks" />
