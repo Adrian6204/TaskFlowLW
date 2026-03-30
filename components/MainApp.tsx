@@ -105,6 +105,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const [isCreateListModalOpen, setCreateListModalOpen] = useState(false);
     const [createListSpaceId, setCreateListSpaceId] = useState<string | null>(null);
     const [isTaskDetailsModalOpen, setTaskDetailsModalOpen] = useState(false);
+    const [isTaskDetailsReadOnly, setTaskDetailsReadOnly] = useState(false);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [taskToEdit, setTaskToEdit] = useState<Task | Partial<Task> | null>(null);
     const [isOverdueModalOpen, setIsOverdueModalOpen] = useState(false);
@@ -511,7 +512,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                     <TaskSummaryView
                                         tasks={availableAllUserTasks.filter(t => t.spaceId === activeSpaceId)}
                                         employees={spaceMembers}
-                                        onViewTask={(t) => { setSelectedTask(t); setTaskDetailsModalOpen(true); }}
+                                        onViewTask={(t) => { setSelectedTask(t); setTaskDetailsReadOnly(true); setTaskDetailsModalOpen(true); }}
                                     />
                                 )}
 
@@ -637,6 +638,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         isOpen={isTaskDetailsModalOpen}
                         onClose={() => {
                             setTaskDetailsModalOpen(false);
+                            setTaskDetailsReadOnly(false);
                             if (returnToOverdueModal) {
                                 setIsOverdueModalOpen(true);
                                 setReturnToOverdueModal(false);
@@ -649,7 +651,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         onDeleteTask={handleDeleteTask}
                         onEditTask={(t) => { setTaskToEdit(t); setTaskDetailsModalOpen(false); setCreateTaskModalOpen(true); }}
                         currentUserId={user.employeeId}
-                        isAdmin={isSuperAdmin || currentSpaceRole === 'admin'}
+                        isAdmin={!isTaskDetailsReadOnly && (isSuperAdmin || currentSpaceRole === 'admin')}
                     />
                 )}
 
