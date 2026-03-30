@@ -272,16 +272,13 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
 
           {/* Tasks Rows */}
           <div className="divide-y divide-zinc-100 dark:divide-white/5">
-            {Object.entries(tasksByAssignee).map(([assigneeId, assigneeTasks]) => (
-              <div key={assigneeId} className="flex group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors">
+            {Object.entries(tasksByAssignee).map(([assigneeId, assigneeTasks], rowIndex) => (
+              <div key={assigneeId} className={`flex group transition-colors hover:bg-zinc-50 dark:hover:bg-white/[0.02] ${rowIndex % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-zinc-50/40 dark:bg-white/[0.01]'}`}>
                 {/* Assignee Identity */}
-                <div className="w-52 flex-shrink-0 p-4 border-r border-zinc-200 dark:border-white/10 flex items-center bg-zinc-50/30 dark:bg-white/[0.01]">
+                <div className="w-52 flex-shrink-0 p-4 border-r border-zinc-200 dark:border-white/10 flex items-center">
                   <div className="flex items-center gap-3">
                     {getEmployee(assigneeId) ? (
-                      <div className="relative">
-                        <img src={getEmployee(assigneeId)?.avatarUrl} className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-white/10 shadow-sm" alt="" />
-                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-zinc-900 shadow-sm"></div>
-                      </div>
+                      <img src={getEmployee(assigneeId)?.avatarUrl} className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-white/10 shadow-sm" alt="" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-black text-zinc-400 dark:text-zinc-500">??</div>
                     )}
@@ -303,35 +300,40 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
                     {days.map((day, idx) => (
                       <div
                         key={idx}
-                        className={`flex-1 border-r border-zinc-200 dark:border-white/10 last:border-r-0 ${isToday(day) ? 'bg-primary-500/10 dark:bg-primary-500/5' : ''
-                          }`}
+                        className={`flex-1 border-r border-zinc-200 dark:border-white/10 last:border-r-0 ${isToday(day) ? 'bg-primary-500/10 dark:bg-primary-500/5' : ''}`}
                       />
                     ))}
                   </div>
 
+
                   {/* Task bars container */}
-                  <div className="relative p-4 min-h-[80px] flex flex-col justify-center gap-2 z-10 w-full overflow-hidden">
-                    {assigneeTasks.map((task, index) => {
+                  <div className="relative p-3 min-h-[80px] flex flex-col justify-center gap-2 z-10 w-full overflow-hidden">
+                    {assigneeTasks.map((task) => {
                       const position = getTaskPosition(task);
                       if (!position) return null;
 
-                      // Exact percentage calculations
                       const widthPercent = (position.span / days.length) * 100;
-                      // Subtly inset the start so bars don't ride exactly on the grid line
                       const leftPercent = (position.start / days.length) * 100;
 
+                      const priorityBarColors = {
+                        [Priority.URGENT]: 'bg-red-500',
+                        [Priority.HIGH]: 'bg-orange-500',
+                        [Priority.MEDIUM]: 'bg-yellow-500',
+                        [Priority.LOW]: 'bg-zinc-400',
+                      };
+
                       return (
-                        <div key={task.id} className="w-full relative h-8 shrink-0">
+                        <div key={task.id} className="w-full relative h-9 shrink-0 group/bar">
                           <div
                             onClick={() => onViewTask(task)}
-                            className={`absolute inset-y-0 rounded-lg ${task.status === TaskStatus.DONE ? completedStyle : priorityColors[task.priority]} cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all flex items-center px-1.5 sm:px-2.5 border shadow-sm group/bar z-10 hover:z-20`}
-                            style={{
-                              left: `${leftPercent}%`,
-                              width: `${widthPercent}%`,
-                              margin: '0 2px'
-                            }}
+                            className={`absolute inset-y-0 rounded-lg ${task.status === TaskStatus.DONE ? completedStyle : priorityColors[task.priority]} cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all flex items-center border shadow-sm overflow-hidden z-10 hover:z-20`}
+                            style={{ left: `${leftPercent}%`, width: `${widthPercent}%`, margin: '0 2px' }}
                           >
-                            <div className="flex items-center gap-1 w-full min-w-0">
+                            {/* Priority left stripe */}
+                            {task.status !== TaskStatus.DONE && (
+                              <div className={`w-1 self-stretch shrink-0 ${priorityBarColors[task.priority]} opacity-60`} />
+                            )}
+                            <div className="flex items-center gap-1.5 px-2 w-full min-w-0">
                               {task.status === TaskStatus.DONE && (
                                 <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -342,6 +344,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
                               </span>
                             </div>
                           </div>
+
                         </div>
                       );
                     })}
