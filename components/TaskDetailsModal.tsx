@@ -143,18 +143,19 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
         aria-hidden="true"
       />
 
-      <div className={`w-full max-w-3xl max-h-[90vh] flex flex-col relative z-10 transform transition-all duration-500 ${show ? 'translate-y-0 scale-100' : 'translate-y-8 scale-95'}`}>
+      <div className={`w-full max-w-5xl max-h-[92vh] flex flex-col relative z-10 transform transition-all duration-500 ${show ? 'translate-y-0 scale-100' : 'translate-y-8 scale-95'}`}>
         {/* Glow effect behind modal */}
         <div className="absolute -inset-4 bg-gradient-to-br from-primary-500/20 via-primary-500/20 to-lime-500/20 rounded-[48px] blur-2xl -z-10 opacity-50 dark:opacity-30"></div>
 
         <div className="bg-white/70 dark:bg-[#0A0A0A]/80 backdrop-blur-3xl rounded-[32px] sm:rounded-[40px] border border-white/50 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col h-full max-h-[90vh]">
           {/* Header */}
-          <header className="p-6 sm:p-8 flex justify-between items-start flex-shrink-0 relative overflow-hidden">
+          <header className="p-6 sm:p-8 flex-shrink-0 relative overflow-hidden">
             {/* Header background gradient */}
             <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-primary-500/10 dark:from-primary-500/5 to-transparent pointer-events-none"></div>
 
-            <div className="flex-1 mr-4 relative z-10">
-              <div className="flex items-center gap-3 mb-3">
+            {/* Top row: status badge + actions */}
+            <div className="relative z-10 flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
                 <div className={`w-2.5 h-2.5 rounded-full ${task.status === TaskStatus.DONE ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]' : 'bg-primary-500 shadow-[0_0_12px_rgba(59,130,246,0.5)]'}`}></div>
                 <p className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-[0.3em]">{task.status === TaskStatus.DONE ? 'Completed' : 'Task Details'}</p>
                 {isOverdue && (
@@ -163,48 +164,50 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                   </span>
                 )}
               </div>
-              <h2
-                className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-tight"
-                title={task.title}
-              >
-                {task.title}
-              </h2>
+
+              <div className="flex items-center gap-2">
+                {onEditTask && canEdit && (
+                  <button
+                    onClick={() => { onEditTask(task); onClose(); }}
+                    className="px-4 py-2.5 flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-600 dark:text-indigo-400 hover:text-white rounded-2xl transition-all duration-300 border border-indigo-500/20 hover:border-indigo-500 shadow-sm group"
+                    title="Edit Task"
+                  >
+                    <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    <span className="text-sm font-bold tracking-wide">Edit</span>
+                  </button>
+                )}
+                {onUpdateTaskStatus && task.status !== TaskStatus.DONE && canEdit && (
+                  <button
+                    onClick={() => setShowCompleteConfirm(true)}
+                    className="px-4 py-2.5 flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white rounded-2xl transition-all duration-300 border border-emerald-500/20 hover:border-emerald-500 shadow-sm group hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                    title="Mark as Complete"
+                  >
+                    <CheckCircleIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-bold tracking-wide">Mark Complete</span>
+                  </button>
+                )}
+                {onDeleteTask && canDelete && (
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="p-2.5 bg-white/50 dark:bg-white/5 hover:bg-red-500 hover:text-white text-slate-400 dark:text-white/40 rounded-2xl transition-all duration-300 border border-white/50 dark:border-white/5 shadow-sm group"
+                    title="Delete Task"
+                  >
+                    <TrashIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </button>
+                )}
+                <button onClick={onClose} className="p-2.5 bg-white/50 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white rounded-2xl transition-all duration-300 border border-white/50 dark:border-white/5 shadow-sm group">
+                  <XMarkIcon className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-2 relative z-10">
-              {onEditTask && canEdit && (
-                <button
-                  onClick={() => { onEditTask(task); onClose(); }}
-                  className="px-4 py-3 flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-600 dark:text-indigo-400 hover:text-white rounded-2xl transition-all duration-300 border border-indigo-500/20 hover:border-indigo-500 shadow-sm group"
-                  title="Edit Task"
-                >
-                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                  <span className="text-sm font-bold tracking-wide">Edit</span>
-                </button>
-              )}
-              {onUpdateTaskStatus && task.status !== TaskStatus.DONE && canEdit && (
-                <button
-                  onClick={() => setShowCompleteConfirm(true)}
-                  className="px-4 py-3 flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white rounded-2xl transition-all duration-300 border border-emerald-500/20 hover:border-emerald-500 shadow-sm group hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                  title="Mark as Complete"
-                >
-                  <CheckCircleIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm font-bold tracking-wide">Mark Complete</span>
-                </button>
-              )}
-              {onDeleteTask && canDelete && (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="p-3 bg-white/50 dark:bg-white/5 hover:bg-red-500 hover:text-white text-slate-400 dark:text-white/40 rounded-2xl transition-all duration-300 border border-white/50 dark:border-white/5 shadow-sm group"
-                  title="Delete Task"
-                >
-                  <TrashIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                </button>
-              )}
-              <button onClick={onClose} className="p-3 bg-white/50 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white rounded-2xl transition-all duration-300 border border-white/50 dark:border-white/5 shadow-sm group">
-                <XMarkIcon className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-              </button>
-            </div>
+            {/* Title — full width, no competition */}
+            <h2
+              className="relative z-10 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-tight"
+              title={task.title}
+            >
+              {task.title}
+            </h2>
           </header>
 
           {/* Body */}
@@ -224,55 +227,81 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
 
             {/* Grid Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <div 
+              {/* Assignees */}
+              <div
                 onClick={() => assignees.length > 0 && setShowAssigneesList(true)}
-                className={`p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-primary-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-primary-500/5 shadow-sm ${assignees.length > 0 ? 'cursor-pointer' : ''}`}
+                className={`p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-primary-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-primary-500/5 shadow-sm ${assignees.length > 0 ? 'cursor-pointer' : 'cursor-default'}`}
               >
                 <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">
                   {assignees.length > 1 ? 'Assignees' : 'Assignee'}
                 </span>
-                <div className={`flex items-center w-full ${assignees.length > 0 ? 'text-primary-600 dark:text-primary-400' : 'text-slate-500 dark:text-slate-400'}`}>
-                  <span className="text-sm font-black uppercase tracking-wide truncate">
-                    {assignees.length === 0 ? 'Unassigned' : assignees.length === 1 ? assignees[0].name : `${assignees.length} Members`}
-                  </span>
-                </div>
+                {assignees.length === 0 ? (
+                  <span className="text-sm font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Unassigned</span>
+                ) : assignees.length === 1 ? (
+                  <div className="flex flex-col gap-2">
+                    <img src={assignees[0].avatarUrl} alt={assignees[0].name} className="w-9 h-9 rounded-full object-cover border-2 border-white dark:border-zinc-700 shadow-sm" />
+                    <span className="text-sm font-black text-primary-600 dark:text-primary-400 truncate">{assignees[0].name.split(' ')[0]}</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex -space-x-2.5">
+                      {assignees.slice(0, 4).map((emp, i) => (
+                        <img key={emp.id} src={emp.avatarUrl} alt={emp.name} className="w-9 h-9 rounded-full object-cover border-2 border-white dark:border-zinc-700 shadow-sm" style={{ zIndex: 4 - i }} />
+                      ))}
+                      {assignees.length > 4 && (
+                        <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/50 border-2 border-white dark:border-zinc-700 flex items-center justify-center" style={{ zIndex: 0 }}>
+                          <span className="text-[10px] font-black text-primary-600 dark:text-primary-400">+{assignees.length - 4}</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm font-black text-primary-600 dark:text-primary-400">{assignees.length} Members</span>
+                  </div>
+                )}
               </div>
 
+              {/* Priority */}
               <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-orange-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-orange-500/5 shadow-sm">
-                <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Priority:</span>
+                <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Priority</span>
                 <div className={`inline-flex items-center gap-2 ${priorityConfig[task.priority].text}`}>
                   <div className={`p-1.5 rounded-lg ${priorityConfig[task.priority].bg}`}>
                     <FlagIcon className="w-4 h-4" />
                   </div>
-                  <span className="text-sm font-black uppercase tracking-wide">
-                    {task.priority}
-                  </span>
+                  <span className="text-sm font-black uppercase tracking-wide">{task.priority}</span>
                 </div>
               </div>
 
+              {/* Deadline */}
               <div className={`p-5 bg-white/50 dark:bg-white/5 border ${isOverdue ? 'border-red-500/30 shadow-red-500/5' : 'border-white/60 dark:border-white/5'} rounded-[24px] hover:border-rose-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-rose-500/5 shadow-sm`}>
                 <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Deadline</span>
-                <p className={`text-sm font-bold ${isOverdue ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white/90'}`}>
-                  {task.dueDate ? (
-                    <>
-                      {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                      {task.endDate && (
-                        <span className="text-slate-500 dark:text-white/50 ml-1.5 font-medium">
-                           - {new Date(task.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      )}
-                    </>
-                  ) : 'No deadline'}
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <svg className={`w-3.5 h-3.5 flex-shrink-0 ${isOverdue ? 'text-red-500' : 'text-slate-400 dark:text-white/30'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <p className={`text-sm font-bold ${isOverdue ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white/90'}`}>
+                    {task.dueDate ? (
+                      <>
+                        {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {task.endDate && (
+                          <span className="text-slate-500 dark:text-white/50 ml-1 font-medium">
+                            – {new Date(task.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        )}
+                      </>
+                    ) : 'No deadline'}
+                  </p>
+                </div>
               </div>
 
+              {/* Created */}
               <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-emerald-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-emerald-500/5 shadow-sm">
                 <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Created</span>
-                <p className="text-sm font-bold text-slate-800 dark:text-white/90">
-                  {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 flex-shrink-0 text-slate-400 dark:text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <p className="text-sm font-bold text-slate-800 dark:text-white/90">
+                    {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
               </div>
 
+              {/* Recurrence */}
               {task.recurrence && task.recurrence !== 'none' && (
                 <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-primary-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-primary-500/5 shadow-sm">
                   <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Recurrence</span>
@@ -282,7 +311,32 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                   </p>
                 </div>
               )}
+
+              {/* Time Tracked */}
+              {(task.timeLogs?.length > 0 || task.timerStartTime) && (
+                <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-violet-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-violet-500/5 shadow-sm">
+                  <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Time Tracked</span>
+                  <div className="flex items-center gap-1.5">
+                    {task.timerStartTime && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)] animate-pulse flex-shrink-0" />
+                    )}
+                    <span className={`text-sm font-black font-mono tracking-wide ${task.timerStartTime ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-white/90'}`}>
+                      {totalTimeDisplay}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Tags */}
+            {task.tags && task.tags.length > 0 && (
+              <div>
+                <h3 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em] ml-2 mb-3">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {task.tags.map(tag => <TagPill key={tag} tag={tag} />)}
+                </div>
+              </div>
+            )}
 
             {/* Body Sections Grid */}
             <div className="flex flex-col gap-6">
@@ -290,7 +344,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                 {/* Description */}
                 <div>
                   <h3 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em] ml-2 mb-3">Description</h3>
-                  <div className="p-6 bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 rounded-[32px] shadow-sm min-h-[140px]">
+                  <div className="p-6 bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 rounded-[32px] shadow-sm">
                     <p className="text-sm font-medium text-slate-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap">
                       {task.description || <span className="text-slate-400 italic font-normal">No description provided.</span>}
                     </p>
