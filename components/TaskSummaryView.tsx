@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Task, Employee, TaskStatus } from '../types';
+import { Task, Employee, TaskStatus, TaskFlowStatusUser } from '../types';
 import { isTaskOverdue } from '../utils/taskUtils';
+import { isPresent, isLate, isLateFromTimeIn, isAbsent, isTimedOut } from '../utils/statusUtils';
+import { fetchTaskFlowStatus } from '../services/taskflowStatusService';
 import { Clock, Maximize2, Minimize2, ChevronDown, Check, Copy, LayoutGrid, List, CheckCircle2 } from 'lucide-react';
 
 interface TaskSummaryViewProps {
@@ -17,7 +19,29 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
     const [isCompact, setIsCompact] = useState(false);
     const [showCompleted, setShowCompleted] = useState(false);
     const [copying, setCopying] = useState(false);
+    const [attendanceMap, setAttendanceMap] = useState<Map<string, TaskFlowStatusUser>>(new Map());
     const wrapperRef = useRef<HTMLDivElement>(null);
+
+    // Fetch attendance status on mount
+    useEffect(() => {
+        fetchTaskFlowStatus()
+            .then(res => {
+                const map = new Map<string, TaskFlowStatusUser>();
+                res.users.forEach(u => map.set(u.full_name.trim().toLowerCase(), { ...u, status: u.status?.toLowerCase() }));
+                setAttendanceMap(map);
+            })
+            .catch(() => {/* non-critical — renders without attendance data */});
+    }, []);
+
+    type AttendanceState = 'present' | 'late' | 'absent' | 'unknown';
+
+    const getAttendanceState = (empName: string): AttendanceState => {
+        const record = attendanceMap.get(empName.trim().toLowerCase());
+        if (!record) return 'unknown';
+        if (isPresent(record.status) || isLate(record.status)) return isLateFromTimeIn(record.time_in) ? 'late' : 'present';
+        if (isAbsent(record.status) || isTimedOut(record.status)) return 'absent';
+        return 'unknown';
+    };
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -38,9 +62,6 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
 
     const formattedDate = currentTime.toLocaleDateString('en-US', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
-    const formattedTime = currentTime.toLocaleTimeString('en-US', {
-        hour: 'numeric', minute: '2-digit', hour12: true
     });
 
     // Unique sorted positions — split comma-separated DB values into individual entries
@@ -259,68 +280,93 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                 className={`flex-1 ${isCompact ? 'flex flex-col gap-3' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'} pr-4 pb-4 -mx-4 px-4 pt-2 ${isFullscreen ? '' : 'overflow-y-auto scrollbar-none'}`}
                 style={{ scrollBehavior: 'smooth' }}
             >
-                {tasksByUser.map(({ employee, userTasks }) => (
-                    isCompact ? (
+                {tasksByUser.map(({ employee, userTasks }) => {
+                    const attendance = getAttendanceState(employee.fullName || employee.name);
+                    const isInactive = attendance === 'absent';
+                    const attendanceBadge = attendance === 'late'
+                        ? <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">Late</span>
+                        : attendance === 'absent'
+                            ? <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-red-50 text-red-500 border border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">Absent</span>
+                            : null;
+
+                    return isCompact ? (
                         /* Compact Row Layout */
-                        <div key={employee.id} className="bg-white/40 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 shadow-sm flex items-center gap-4 hover:bg-white/60 dark:hover:bg-white/10 transition-all group">
+                        <div key={employee.id} className={`bg-white/40 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 shadow-sm flex items-center gap-4 transition-all group ${isInactive ? 'opacity-50' : 'hover:bg-white/60 dark:hover:bg-white/10'}`}>
                             <div className="relative shrink-0">
                                 <img src={employee.avatarUrl} alt={employee.name} className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover bg-neutral-200 dark:bg-neutral-800" />
-                                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-[#1a1d23] ${userTasks.some(t => isTaskOverdue(t)) ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
+                                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-[#1a1d23] ${isInactive ? 'bg-slate-400' : userTasks.some(t => isTaskOverdue(t)) ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
                             </div>
-                            
+
                             <div className="min-w-[140px] max-w-[200px]">
                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{employee.name}</h3>
-                                <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase uppercase tracking-tight">
-                                    {userTasks.length} {userTasks.length === 1 ? 'Task' : 'Tasks'}
-                                </p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                    {attendanceBadge ?? (
+                                        <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-tight">
+                                            {userTasks.length} {userTasks.length === 1 ? 'Task' : 'Tasks'}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="flex flex-wrap gap-2 flex-1">
-                                {userTasks.slice(0, 5).map(task => (
-                                    <div 
-                                        key={task.id} 
-                                        onClick={() => onViewTask && onViewTask(task)}
-                                        className={`px-3 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-2 cursor-pointer transition-all border ${
-                                            task.status === TaskStatus.DONE
-                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
-                                                : isTaskOverdue(task)
-                                                    ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
-                                                    : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-white/5 dark:text-slate-300 dark:border-white/10'
-                                        }`}
-                                    >
-                                        <div className={`w-1.5 h-1.5 rounded-full ${task.status === TaskStatus.DONE ? 'bg-emerald-500' : isTaskOverdue(task) ? 'bg-red-500' : 'bg-indigo-400'}`} />
-                                        <span className="truncate max-w-[150px]">{task.title}</span>
-                                    </div>
-                                ))}
-                                {userTasks.length > 5 && (
-                                    <div className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/30 text-[10px] font-bold">
-                                        +{userTasks.length - 5} more
-                                    </div>
+                                {isInactive ? (
+                                    <p className="text-[11px] font-medium text-slate-400 dark:text-white/30 italic">No tasks shown.</p>
+                                ) : (
+                                    <>
+                                        {userTasks.slice(0, 5).map(task => (
+                                            <div
+                                                key={task.id}
+                                                onClick={() => onViewTask && onViewTask(task)}
+                                                className={`px-3 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-2 cursor-pointer transition-all border ${
+                                                    task.status === TaskStatus.DONE
+                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
+                                                        : isTaskOverdue(task)
+                                                            ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
+                                                            : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-white/5 dark:text-slate-300 dark:border-white/10'
+                                                }`}
+                                            >
+                                                <div className={`w-1.5 h-1.5 rounded-full ${task.status === TaskStatus.DONE ? 'bg-emerald-500' : isTaskOverdue(task) ? 'bg-red-500' : 'bg-indigo-400'}`} />
+                                                <span className="truncate max-w-[150px]">{task.title}</span>
+                                            </div>
+                                        ))}
+                                        {userTasks.length > 5 && (
+                                            <div className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/30 text-[10px] font-bold">
+                                                +{userTasks.length - 5} more
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
                     ) : (
                         /* Standard Card Layout */
-                        <div key={employee.id} className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/5 shadow-sm flex flex-col relative overflow-hidden group">
+                        <div key={employee.id} className={`bg-white dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/5 shadow-sm flex flex-col relative overflow-hidden group ${isInactive ? 'opacity-50' : ''}`}>
                             {/* Status bar top edge */}
-                            <div className={`absolute top-0 left-0 right-0 h-1 transition-all ${userTasks.some(t => isTaskOverdue(t)) ? 'bg-red-500' : 'bg-emerald-500 opacity-0 group-hover:opacity-100'}`} />
+                            <div className={`absolute top-0 left-0 right-0 h-1 transition-all ${isInactive ? 'bg-slate-300 dark:bg-white/10' : userTasks.some(t => isTaskOverdue(t)) ? 'bg-red-500' : 'bg-emerald-500 opacity-0 group-hover:opacity-100'}`} />
 
                             <div className="flex items-center gap-4 mb-6">
                                 <img src={employee.avatarUrl} alt={employee.name} className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover bg-neutral-200 dark:bg-neutral-800" />
                                 <div>
                                     <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight mb-0.5">{employee.name}</h3>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-md">
-                                            {userTasks.length} {userTasks.length === 1 ? 'ACTIVE' : 'ACTIVE'}
-                                        </span>
-                                        {userTasks.some(t => isTaskOverdue(t)) && (
-                                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="Has overdue tasks" />
+                                        {attendanceBadge}
+                                        {!isInactive && (
+                                            <>
+                                                <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-md">
+                                                    {userTasks.length} ACTIVE
+                                                </span>
+                                                {userTasks.some(t => isTaskOverdue(t)) && (
+                                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="Has overdue tasks" />
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
-                            {userTasks.length > 0 ? (
+                            {isInactive ? (
+                                <p className="text-sm font-medium text-slate-400 dark:text-white/40 italic">No tasks shown.</p>
+                            ) : userTasks.length > 0 ? (
                                 <div className="space-y-3">
                                     {userTasks.map(task => {
                                         const overdue = isTaskOverdue(task);
@@ -370,8 +416,8 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                 <p className="text-sm font-medium text-slate-400 dark:text-white/40 italic">No tasks assigned.</p>
                             )}
                         </div>
-                    )
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

@@ -140,6 +140,28 @@ export interface ActivityLog {
   }
 }
 
+export type AttendanceStatus = 'present' | 'late' | 'absent' | 'timed_out';
+
+export interface TaskFlowStatusUser {
+  id: string;
+  employee_id: string;
+  full_name: string;
+  email: string;
+  department: string;
+  position: string;
+  avatar_url: string | null;
+  status: AttendanceStatus | string;
+  time_in: string | null;
+  time_out: string | null;
+  dtr_id: string | null;
+}
+
+export interface TaskFlowStatusResponse {
+  success: boolean;
+  date: string;
+  users: TaskFlowStatusUser[];
+}
+
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
