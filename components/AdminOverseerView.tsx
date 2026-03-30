@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Task, Space, Employee, TaskStatus, Priority } from '../types';
 import { isTaskOverdue } from '../utils/taskUtils';
 
@@ -18,6 +18,13 @@ interface MemberWithTasks {
     tasks: Task[];
 }
 
+const PRIORITY_CONFIG: Record<Priority, { dot: string }> = {
+    [Priority.URGENT]: { dot: 'bg-red-500' },
+    [Priority.HIGH]:   { dot: 'bg-orange-500' },
+    [Priority.MEDIUM]: { dot: 'bg-yellow-500' },
+    [Priority.LOW]:    { dot: 'bg-emerald-500' },
+};
+
 const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
     spaces,
     tasks,
@@ -25,276 +32,289 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
     searchTerm,
     onViewTask,
     onAddTask,
-    userName,
     activeSpaceId,
 }) => {
-    // Get time-based greeting
-    const getGreeting = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return 'Good morning';
-        if (hour < 18) return 'Good afternoon';
-        return 'Good evening';
-    };
-    // Get today's date range
-    const today = useMemo(() => {
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
-        return now;
-    }, []);
+    const [activeTab, setActiveTab] = useState<string>(activeSpaceId ?? spaces[0]?.id ?? '');
+    const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
 
-    const tomorrow = useMemo(() => {
-        const date = new Date(today);
-        date.setDate(date.getDate() + 1);
-        return date;
-    }, [today]);
-
-    // Filter tasks for today (due today or currently in progress) 
-    // AND apply global search if present
-    const filteredBaseTasks = useMemo(() => {
-        let base = tasks;
-        if (searchTerm) {
-            const term = searchTerm.toLowerCase();
-            base = base.filter(task =>
-                task.title.toLowerCase().includes(term) ||
-                (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term))) ||
-                (task.description && task.description.toLowerCase().includes(term))
-            );
-        }
-
-        return base.filter(task => {
-            const dueDate = new Date(task.dueDate);
-            dueDate.setHours(0, 0, 0, 0);
-
-            // Include if due today OR if in progress
-            // But if we're searching, maybe we want to show EVERYTHING that matches?
-            // But if we're searching, maybe we want to show EVERYTHING that matches?
-            // The user said "search isn't working/showing output".
-            // If they search, they probably expect to see matching tasks regardless of today/in-progress/done status.
-            const isDoneToday = task.status === TaskStatus.DONE && (() => {
-                const completedTimestamp = task.completedAt || task.updated_at;
-                if (!completedTimestamp) return false;
-                const completedTime = new Date(completedTimestamp).getTime();
-                const nowTime = new Date().getTime();
-                const twentyFourHoursMs = 24 * 60 * 60 * 1000;
-                return (nowTime - completedTime) <= twentyFourHoursMs;
-            })();
-
-            return (
-                (dueDate.getTime() === today.getTime()) ||
-                (task.status === TaskStatus.IN_PROGRESS) ||
-                isDoneToday
-            );
+    const toggleExpanded = (memberId: string) => {
+        setExpandedMembers(prev => {
+            const next = new Set(prev);
+            next.has(memberId) ? next.delete(memberId) : next.add(memberId);
+            return next;
         });
-    }, [tasks, today, searchTerm]);
+    };
 
-    // Group tasks by workspace and member
-    const workspaceData = useMemo(() => {
-        const filteredSpaces = activeSpaceId ? spaces.filter(s => s.id === activeSpaceId) : spaces;
-        const data = filteredSpaces.map(space => {
-            const spaceTasks = filteredBaseTasks.filter(t => t.spaceId === space.id);
-            const spaceMembers = employees.filter(e => space.members.includes(e.id));
+    const filteredTasks = useMemo(() => {
+        if (!searchTerm) return tasks;
+        const term = searchTerm.toLowerCase();
+        return tasks.filter(t =>
+            t.title.toLowerCase().includes(term) ||
+            (t.tags && t.tags.some(tag => tag.toLowerCase().includes(term))) ||
+            (t.description && t.description.toLowerCase().includes(term))
+        );
+    }, [tasks, searchTerm]);
 
-            const membersWithTasks: MemberWithTasks[] = spaceMembers.map(employee => ({
+    const currentSpace = useMemo(
+        () => spaces.find(s => s.id === activeTab) ?? spaces[0],
+        [spaces, activeTab]
+    );
+
+    const memberData = useMemo((): MemberWithTasks[] => {
+        if (!currentSpace) return [];
+        const spaceMembers = employees.filter(e => currentSpace.members.includes(e.id));
+        return spaceMembers
+            .map(employee => ({
                 employee,
-                tasks: spaceTasks.filter(t => t.assigneeIds?.includes(employee.id) || t.assigneeId === employee.id),
-            }));
+                tasks: filteredTasks.filter(
+                    t => t.spaceId === currentSpace.id &&
+                    (t.assigneeIds?.includes(employee.id) || t.assigneeId === employee.id)
+                ),
+            }))
+            .filter(({ employee, tasks: mt }) => {
+                if (!searchTerm) return true;
+                return (
+                    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    mt.length > 0
+                );
+            });
+    }, [currentSpace, employees, filteredTasks, searchTerm]);
 
-            // Only return space if it has tasks or if member names match search
-            const hasVisibleTasks = spaceTasks.length > 0;
-            const hasMatchingMember = searchTerm && spaceMembers.some(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-            if (searchTerm && !hasVisibleTasks && !hasMatchingMember) return null;
-
-            return {
-                space,
-                members: membersWithTasks,
-                totalTasks: spaceTasks.length,
-            };
-        }).filter(Boolean) as { space: Space; members: MemberWithTasks[]; totalTasks: number }[];
-
-        return data;
-    }, [spaces, filteredBaseTasks, employees, searchTerm, activeSpaceId]);
-
-    const getPriorityColor = (priority: Priority) => {
-        switch (priority) {
-            case Priority.URGENT: return 'text-red-400';
-            case Priority.HIGH: return 'text-orange-400';
-            case Priority.MEDIUM: return 'text-yellow-400';
-            case Priority.LOW: return 'text-green-400';
-            default: return 'text-neutral-400';
-        }
-    };
-
-    const getStatusIcon = (status: TaskStatus) => {
-        switch (status) {
-            case TaskStatus.TODO: return '○';
-            case TaskStatus.IN_PROGRESS: return '◐';
-            case TaskStatus.DONE: return '●';
-            default: return '○';
-        }
-    };
-
-    const getStatusColor = (status: TaskStatus) => {
-        switch (status) {
-            case TaskStatus.TODO: return 'text-neutral-400';
-            case TaskStatus.IN_PROGRESS: return 'text-[#CEFD4A]';
-            case TaskStatus.DONE: return 'text-green-500';
-            default: return 'text-neutral-400';
-        }
-    };
+    const totalActive = useMemo(
+        () => filteredTasks.filter(t => t.status !== TaskStatus.DONE).length,
+        [filteredTasks]
+    );
+    const totalDone = useMemo(
+        () => filteredTasks.filter(t => t.status === TaskStatus.DONE).length,
+        [filteredTasks]
+    );
 
     return (
-        <div className="space-y-6 pb-8">
-            {/* Header */}
-            <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-8 shadow-xl shadow-black/5 dark:shadow-none">
-                {/* Greeting */}
-                <h2 className="text-2xl font-bold text-slate-600 dark:text-white/60 mb-1">
-                    {getGreeting()}{userName ? `, ${userName}` : ''} 👋
-                </h2>
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-lime-500 dark:bg-[#CEFD4A]"></div>
-                    <h1 className="text-4xl font-black text-slate-900 dark:text-white">Daily Overview</h1>
+        <div className="space-y-6 pb-10">
+
+            {/* ── Page Header ── */}
+            <div className="relative overflow-hidden bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-8 shadow-xl shadow-black/5 dark:shadow-none">
+                <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-lime-400/10 dark:bg-[#CEFD4A]/5 blur-3xl pointer-events-none" />
+
+                <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="w-2 h-2 rounded-full bg-lime-500 dark:bg-[#CEFD4A] animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-600 dark:text-[#CEFD4A]">
+                                Admin Panel
+                            </span>
+                        </div>
+                        <h1 className="text-4xl font-black text-slate-900 dark:text-white leading-tight">
+                            Assign Tasks
+                        </h1>
+                        <p className="mt-1 text-sm text-slate-500 dark:text-white/40 font-medium">
+                            Distribute and manage tasks across your team
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="text-center px-4 py-2 bg-black/5 dark:bg-white/5 rounded-2xl">
+                            <p className="text-xl font-black text-slate-900 dark:text-white">{employees.length}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">Members</p>
+                        </div>
+                        <div className="text-center px-4 py-2 bg-lime-500/10 dark:bg-[#CEFD4A]/10 rounded-2xl border border-lime-500/20 dark:border-[#CEFD4A]/20">
+                            <p className="text-xl font-black text-lime-600 dark:text-[#CEFD4A]">{totalActive}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-lime-600/70 dark:text-[#CEFD4A]/60">Active</p>
+                        </div>
+                        <div className="text-center px-4 py-2 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+                            <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{totalDone}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-600/70 dark:text-emerald-400/60">Done</p>
+                        </div>
+                    </div>
                 </div>
-                <p className="text-slate-500 dark:text-white/40 text-sm font-bold uppercase tracking-widest">
-                    {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
             </div>
 
-            {/* Workspace Cards */}
-            <div className={`grid grid-cols-1 ${workspaceData.length > 1 ? 'xl:grid-cols-2' : ''} gap-6`}>
-                {workspaceData.length === 0 ? (
-                    <div className="col-span-full bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-12 text-center shadow-xl shadow-black/5 dark:shadow-none">
-                        <p className="text-slate-500 dark:text-white/40 text-lg font-bold">No workspaces found</p>
-                    </div>
-                ) : (
-                    workspaceData.map(({ space, members, totalTasks }) => (
-                        <div
+            {/* ── Workspace Tabs ── */}
+            {spaces.length > 1 && (
+                <div className="flex gap-2 flex-wrap">
+                    {spaces.map(space => (
+                        <button
                             key={space.id}
-                            className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-8 hover:border-white/60 dark:hover:border-white/20 transition-all duration-300 shadow-xl shadow-black/5 dark:shadow-none"
+                            onClick={() => setActiveTab(space.id)}
+                            className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border ${
+                                activeTab === space.id
+                                    ? 'bg-lime-500 dark:bg-[#CEFD4A] text-white dark:text-black border-transparent shadow-lg shadow-lime-500/20'
+                                    : 'bg-white/60 dark:bg-white/5 text-slate-600 dark:text-white/50 border-black/10 dark:border-white/10 hover:border-lime-500/40 dark:hover:border-[#CEFD4A]/30'
+                            }`}
                         >
-                            {/* Workspace Header */}
-                            <div className="mb-6 pb-6 border-b border-black/5 dark:border-white/5">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white">{space.name}</h2>
-                                    <div className="flex items-center gap-3 text-sm">
-                                        <span className="text-slate-500 dark:text-white/40 font-bold text-[10px] uppercase tracking-wider">
-                                            {members.length} member{members.length !== 1 ? 's' : ''}
-                                        </span>
-                                        <span className="px-3 py-1.5 bg-lime-500/10 dark:bg-[#CEFD4A]/10 border border-lime-500/20 dark:border-[#CEFD4A]/20 rounded-full text-lime-600 dark:text-[#CEFD4A] font-bold text-xs">
-                                            {totalTasks} task{totalTasks !== 1 ? 's' : ''}
-                                        </span>
-                                    </div>
-                                </div>
-                                {space.description && (
-                                    <p className="text-slate-500 dark:text-white/40 text-sm">{space.description}</p>
-                                )}
-                            </div>
+                            {space.name}
+                        </button>
+                    ))}
+                </div>
+            )}
 
-                            {/* Members and Their Tasks */}
-                            <div className="space-y-4">
-                                {members.length === 0 ? (
-                                    <p className="text-slate-400 dark:text-white/30 text-center py-8 font-bold">No members in this workspace</p>
-                                ) : (
-                                    members.map(({ employee, tasks: memberTasks }) => (
-                                        <div
-                                            key={employee.id}
-                                            className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-[20px] p-5"
-                                        >
-                                            {/* Member Header */}
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <img
-                                                    src={employee.avatarUrl}
-                                                    alt={employee.name}
-                                                    className="w-10 h-10 rounded-full border-2 border-transparent hover:border-lime-500 dark:hover:border-[#CEFD4A] transition-all object-cover bg-neutral-200 dark:bg-neutral-800"
-                                                />
-                                                <div className="flex-1">
-                                                    <h3 className="text-slate-900 dark:text-white font-bold">{employee.name}</h3>
-                                                    <p className="text-slate-400 dark:text-white/40 text-xs font-bold uppercase tracking-wider">
-                                                        {memberTasks.length} task{memberTasks.length !== 1 ? 's' : ''}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => onAddTask(employee.id, space.id)}
-                                                    className="p-2 text-lime-600 dark:text-[#CEFD4A] hover:bg-lime-500/10 dark:hover:bg-[#CEFD4A]/10 rounded-xl transition-all border border-lime-500/20 dark:border-[#CEFD4A]/20"
-                                                    title="Assign Task"
-                                                >
-                                                    <span className="text-xs font-black uppercase tracking-widest">+ Assign</span>
-                                                </button>
-                                            </div>
+            {/* ── Member Grid ── */}
+            {!currentSpace ? (
+                <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-16 text-center">
+                    <p className="text-slate-400 dark:text-white/30 font-bold">No workspace found</p>
+                </div>
+            ) : memberData.length === 0 ? (
+                <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-16 text-center">
+                    <p className="text-slate-400 dark:text-white/30 font-bold">No members match your search</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {memberData.map(({ employee, tasks: memberTasks }) => {
+                        const todo        = memberTasks.filter(t => t.status === TaskStatus.TODO).length;
+                        const inProg      = memberTasks.filter(t => t.status === TaskStatus.IN_PROGRESS).length;
+                        const done        = memberTasks.filter(t => t.status === TaskStatus.DONE).length;
+                        const total       = memberTasks.length;
+                        const overdue     = memberTasks.filter(t => isTaskOverdue(t)).length;
+                        const activeTasks = memberTasks.filter(t => t.status !== TaskStatus.DONE);
+                        const isExpanded  = expandedMembers.has(employee.id);
+                        const visibleTasks = isExpanded ? activeTasks : activeTasks.slice(0, 4);
+                        const hiddenCount  = activeTasks.length - 4;
 
-                                            {/* Member's Tasks */}
-                                            {memberTasks.length === 0 ? (
-                                                <div className="text-slate-400 dark:text-white/30 text-sm ml-13 py-3 font-medium">
-                                                    No tasks for today
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-2">
-                                                    {memberTasks.map(task => {
-                                                        const isOverdue = isTaskOverdue(task);
+                        return (
+                            <div
+                                key={employee.id}
+                                className="flex flex-col bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[28px] overflow-hidden transition-all duration-300 shadow-xl shadow-black/5 dark:shadow-none hover:border-white/60 dark:hover:border-white/15"
+                            >
+                                {/* Accent bar */}
+                                <div className={`h-1 w-full ${
+                                    overdue > 0
+                                        ? 'bg-gradient-to-r from-red-500 to-orange-400'
+                                        : inProg > 0
+                                        ? 'bg-gradient-to-r from-lime-500 to-emerald-400'
+                                        : 'bg-gradient-to-r from-slate-300 to-slate-200 dark:from-white/10 dark:to-white/5'
+                                }`} />
 
-                                                        return (
-                                                            <button
-                                                                key={task.id}
-                                                                onClick={() => onViewTask(task)}
-                                                                className="w-full text-left bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 hover:border-lime-500/30 dark:hover:border-[#CEFD4A]/30 rounded-[20px] p-4 transition-all duration-200 group"
-                                                            >
-                                                                <div className="flex items-start gap-3">
-                                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === TaskStatus.DONE
-                                                                        ? 'bg-lime-500 dark:bg-[#CEFD4A] border-lime-500 dark:border-[#CEFD4A] text-white dark:text-black'
-                                                                        : task.status === TaskStatus.IN_PROGRESS
-                                                                            ? 'border-lime-500 dark:border-[#CEFD4A] text-transparent'
-                                                                            : 'border-slate-300 dark:border-white/20 text-transparent group-hover:border-slate-400 dark:group-hover:border-white/40'
-                                                                        }`}>
-                                                                        {task.status === TaskStatus.DONE && <span className="text-sm">✓</span>}
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <h4 className={`font-bold transition-all ${task.status === TaskStatus.DONE
-                                                                            ? 'text-slate-400 dark:text-white/30 line-through'
-                                                                            : 'text-slate-900 dark:text-white group-hover:text-lime-600 dark:group-hover:text-[#CEFD4A]'
-                                                                            }`}>
-                                                                            {task.title}
-                                                                        </h4>
-                                                                        <div className="flex items-center gap-2 mt-1.5">
-                                                                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${task.priority === Priority.URGENT ? 'bg-red-500/10 text-red-600 dark:text-red-500 dark:bg-red-500/20' :
-                                                                                task.priority === Priority.HIGH ? 'bg-orange-500/10 text-orange-600 dark:text-orange-500 dark:bg-orange-500/20' :
-                                                                                    task.priority === Priority.MEDIUM ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 dark:bg-yellow-500/20' :
-                                                                                        'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
-                                                                                }`}>
-                                                                                {task.priority}
-                                                                            </span>
-                                                                            <span className="text-slate-400 dark:text-white/30 text-xs">•</span>
-                                                                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${task.status === TaskStatus.DONE
-                                                                                ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                                                                                : task.status === TaskStatus.IN_PROGRESS
-                                                                                    ? 'bg-primary-500/20 text-primary-600 dark:text-primary-400'
-                                                                                    : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
-                                                                                }`}>
-                                                                                {task.status === TaskStatus.DONE ? 'Completed' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'Pending'}
-                                                                            </span>
-                                                                            {isOverdue && (
-                                                                                <>
-                                                                                    <span className="text-slate-400 dark:text-white/30 text-xs">•</span>
-                                                                                    <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-red-500/10 text-red-600 dark:text-red-400">
-                                                                                        Overdue
-                                                                                    </span>
-                                                                                </>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
+                                <div className="flex flex-col flex-1 p-5 gap-4">
+
+                                    {/* Member info */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative shrink-0">
+                                            <img
+                                                src={employee.avatarUrl}
+                                                alt={employee.name}
+                                                className="w-12 h-12 rounded-full object-cover bg-neutral-200 dark:bg-neutral-800 border-2 border-white dark:border-white/10"
+                                            />
+                                            {inProg > 0 && (
+                                                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-lime-500 dark:bg-[#CEFD4A] border-2 border-white dark:border-black rounded-full" />
                                             )}
                                         </div>
-                                    ))
-                                )}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-black text-slate-900 dark:text-white truncate">{employee.name}</h3>
+                                            {employee.position && (
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 truncate">
+                                                    {employee.position}
+                                                </p>
+                                            )}
+                                        </div>
+                                        {overdue > 0 && (
+                                            <span className="shrink-0 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-[9px] font-black uppercase tracking-widest">
+                                                {overdue} overdue
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Task stats */}
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 text-center py-2 rounded-xl bg-black/5 dark:bg-white/5">
+                                            <p className="text-base font-black text-slate-700 dark:text-white/80">{todo}</p>
+                                            <p className="text-[8px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">To Do</p>
+                                        </div>
+                                        <div className="flex-1 text-center py-2 rounded-xl bg-lime-500/10 dark:bg-[#CEFD4A]/10">
+                                            <p className="text-base font-black text-lime-600 dark:text-[#CEFD4A]">{inProg}</p>
+                                            <p className="text-[8px] font-bold uppercase tracking-widest text-lime-600/70 dark:text-[#CEFD4A]/60">Active</p>
+                                        </div>
+                                        <div className="flex-1 text-center py-2 rounded-xl bg-emerald-500/10">
+                                            <p className="text-base font-black text-emerald-600 dark:text-emerald-400">{done}</p>
+                                            <p className="text-[8px] font-bold uppercase tracking-widest text-emerald-600/70 dark:text-emerald-400/60">Done</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Progress bar */}
+                                    {total > 0 && (
+                                        <div className="h-1.5 w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-lime-500 to-emerald-400 rounded-full transition-all duration-500"
+                                                style={{ width: `${Math.round((done / total) * 100)}%` }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Active task list */}
+                                    {activeTasks.length > 0 ? (
+                                        <div className="space-y-1.5">
+                                            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-white/30 px-1">
+                                                Active tasks
+                                            </p>
+                                            {visibleTasks.map(task => {
+                                                const pc = PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG[Priority.MEDIUM];
+                                                const overdueTask = isTaskOverdue(task);
+                                                return (
+                                                    <button
+                                                        key={task.id}
+                                                        onClick={() => onViewTask(task)}
+                                                        className="w-full flex items-center gap-2.5 text-left px-3 py-2.5 rounded-[14px] bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-transparent hover:border-lime-500/20 dark:hover:border-[#CEFD4A]/20 transition-all group"
+                                                    >
+                                                        <span className={`shrink-0 w-2 h-2 rounded-full ${pc.dot}`} />
+                                                        <span className={`flex-1 text-xs font-semibold truncate transition-colors ${
+                                                            task.status === TaskStatus.IN_PROGRESS
+                                                                ? 'text-slate-900 dark:text-white group-hover:text-lime-600 dark:group-hover:text-[#CEFD4A]'
+                                                                : 'text-slate-600 dark:text-white/60 group-hover:text-slate-900 dark:group-hover:text-white'
+                                                        }`}>
+                                                            {task.title}
+                                                        </span>
+                                                        <div className="shrink-0 flex items-center gap-1">
+                                                            {task.status === TaskStatus.IN_PROGRESS && (
+                                                                <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A] font-bold uppercase">
+                                                                    Active
+                                                                </span>
+                                                            )}
+                                                            {overdueTask && (
+                                                                <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 dark:text-red-400 font-bold uppercase">
+                                                                    Late
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                            {hiddenCount > 0 && !isExpanded && (
+                                                <button
+                                                    onClick={() => toggleExpanded(employee.id)}
+                                                    className="w-full text-[9px] text-center text-slate-400 dark:text-white/30 hover:text-lime-600 dark:hover:text-[#CEFD4A] font-bold pt-1 transition-colors"
+                                                >
+                                                    +{hiddenCount} more tasks — click to expand
+                                                </button>
+                                            )}
+                                            {isExpanded && activeTasks.length > 4 && (
+                                                <button
+                                                    onClick={() => toggleExpanded(employee.id)}
+                                                    className="w-full text-[9px] text-center text-slate-400 dark:text-white/30 hover:text-lime-600 dark:hover:text-[#CEFD4A] font-bold pt-1 transition-colors"
+                                                >
+                                                    Show less ↑
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-slate-400 dark:text-white/20 text-center py-2 font-medium">
+                                            No active tasks
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Assign Task button — opens full CreateTaskModal */}
+                                <div className="px-5 pb-5">
+                                    <button
+                                        onClick={() => onAddTask(employee.id, currentSpace.id)}
+                                        className="w-full py-2.5 rounded-[14px] text-xs font-black uppercase tracking-widest transition-all border bg-black/5 dark:bg-white/5 text-slate-500 dark:text-white/40 border-black/5 dark:border-white/10 hover:bg-lime-500 dark:hover:bg-[#CEFD4A] hover:text-white dark:hover:text-black hover:border-transparent hover:shadow-lg hover:shadow-lime-500/20"
+                                    >
+                                        + Assign Task
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ))
-                )}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 };

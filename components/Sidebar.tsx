@@ -371,10 +371,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                         } ${!isOpen && 'justify-center px-0'}`}
                     >
                       <PresentationChartLineIcon className="w-5 h-5 flex-shrink-0" />
-                      {isOpen && <span>Daily Overview</span>}
+                      {isOpen && <span>Assign Task</span>}
                       {!isOpen && (
                         <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-[#1E1E1E] text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-                          Daily Overview
+                          Assign Task
                         </div>
                       )}
                     </button>
