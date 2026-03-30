@@ -6,11 +6,17 @@ import { TrashIcon } from './icons/TrashIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { UserIcon } from './icons/UserIcon';
+import { UsersIcon } from './icons/UsersIcon';
+import { KeyIcon } from './icons/KeyIcon';
+import { PencilIcon } from './icons/PencilIcon';
+import { SearchIcon } from './icons/SearchIcon';
+import { ChevronDownIcon } from './icons/ChevronDownIcon';
+import { CheckCircleIcon } from './icons/CheckCircleIcon';
+import { PhotoIcon } from './icons/PhotoIcon';
 import ConfirmationModal from './ConfirmationModal';
 import { cardAccents } from './WorkspaceHomePage';
 import { getFallbackAvatar, deleteWorkspaceLogo } from '../services/supabaseService';
 import { supabase } from '../lib/supabaseClient';
-import { PhotoIcon } from './icons/PhotoIcon';
 
 interface SpaceSettingsViewProps {
   space: Space;
@@ -39,7 +45,8 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
-  const [selectedNewMember, setSelectedNewMember] = useState('');
+  const [addMemberSearch, setAddMemberSearch] = useState('');
+  const [showDangerZone, setShowDangerZone] = useState(false);
 
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [editName, setEditName] = useState(space.name);
@@ -49,7 +56,6 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Theme support
   const themeIndex = (space.theme && !isNaN(parseInt(space.theme)))
     ? parseInt(space.theme) % cardAccents.length
     : 0;
@@ -65,81 +71,45 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Simple validation
-    if (!file.type.startsWith('image/')) {
-        alert('Please upload an image file');
-        return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        alert('File size exceeds 2MB limit');
-        return;
-    }
-
+    if (!file.type.startsWith('image/')) { alert('Please upload an image file'); return; }
+    if (file.size > 2 * 1024 * 1024) { alert('File size exceeds 2MB limit'); return; }
     try {
-        setIsUploading(true);
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${space.id}/${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-            .from('workspace-logos')
-            .upload(filePath, file, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-            .from('workspace-logos')
-            .getPublicUrl(filePath);
-
-        // Delete old logo if it exists in our storage
-        if (editLogoUrl && editLogoUrl.includes('/workspace-logos/')) {
-            const oldPath = editLogoUrl.split('/workspace-logos/')[1];
-            if (oldPath) {
-                await deleteWorkspaceLogo(oldPath);
-            }
-        }
-
-        setEditLogoUrl(publicUrl);
+      setIsUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${space.id}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('workspace-logos').upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('workspace-logos').getPublicUrl(fileName);
+      if (editLogoUrl && editLogoUrl.includes('/workspace-logos/')) {
+        const oldPath = editLogoUrl.split('/workspace-logos/')[1];
+        if (oldPath) await deleteWorkspaceLogo(oldPath);
+      }
+      setEditLogoUrl(publicUrl);
     } catch (error: any) {
-        console.error('Error uploading logo:', error);
-        alert('Failed to upload logo: ' + error.message);
+      console.error('Error uploading logo:', error);
+      alert('Failed to upload logo: ' + error.message);
     } finally {
-        setIsUploading(false);
+      setIsUploading(false);
     }
   };
 
-  const handleRemoveLogo = () => {
-    setEditLogoUrl('');
-  };
+  const handleRemoveLogo = () => setEditLogoUrl('');
 
   const handleSaveInfo = async () => {
     if (!editName.trim() || !onUpdateSpace) return;
     setIsSaving(true);
     try {
-      // Cleanup old logo from storage if it changed
       if (space.logoUrl && space.logoUrl !== editLogoUrl && space.logoUrl.includes('/workspace-logos/')) {
         const oldPath = space.logoUrl.split('/workspace-logos/')[1];
-        if (oldPath) {
-          await deleteWorkspaceLogo(oldPath);
-        }
+        if (oldPath) await deleteWorkspaceLogo(oldPath);
       }
-
-      await onUpdateSpace(space.id, { 
-        name: editName, 
-        description: editDescription, 
-        theme: editTheme,
-        logoUrl: editLogoUrl || null 
-      });
+      await onUpdateSpace(space.id, { name: editName, description: editDescription, theme: editTheme, logoUrl: editLogoUrl || null });
       setIsEditingInfo(false);
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Confirmation modals state
   const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<Employee | null>(null);
   const [showDeleteSpaceModal, setShowDeleteSpaceModal] = useState(false);
@@ -148,14 +118,6 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
     navigator.clipboard.writeText(space.joinCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleAddMember = () => {
-    if (selectedNewMember) {
-      onAddMember(space.id, selectedNewMember);
-      setSelectedNewMember('');
-      setShowAddMember(false);
-    }
   };
 
   const handleRemoveMemberClick = (member: Employee) => {
@@ -171,316 +133,314 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
     }
   };
 
-  const handleDeleteSpaceClick = () => {
-    setShowDeleteSpaceModal(true);
-  };
-
   const confirmDeleteSpace = () => {
     onDeleteSpace(space.id);
     setShowDeleteSpaceModal(false);
   };
 
-  // Get employees that are not already members
-  const availableEmployees = allEmployees.filter(emp =>
-    !members.some(member => member.id === emp.id)
+  const isOwner = currentUserId === space.ownerId;
+
+  const availableEmployees = allEmployees.filter(emp => !members.some(m => m.id === emp.id));
+  const filteredAvailable = availableEmployees.filter(e =>
+    e.name.toLowerCase().includes(addMemberSearch.toLowerCase()) ||
+    (e.email || '').toLowerCase().includes(addMemberSearch.toLowerCase())
   );
 
-  const isOwner = currentUserId === space.ownerId;
+  // Shared card class
+  const card = 'bg-white/60 dark:bg-white/5 rounded-[24px] p-6 border border-white/30 dark:border-white/5 shadow-sm';
+
+  // Section header row with icon
+  const SectionHeader = ({ icon, label, children }: { icon: React.ReactNode; label: string; children?: React.ReactNode }) => (
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-2.5">
+        <div className="p-1.5 rounded-xl bg-black/5 dark:bg-white/5">
+          {icon}
+        </div>
+        <span className={`text-[11px] font-black uppercase tracking-widest ${accent?.text || 'text-slate-500'} ${accent?.darkText || 'dark:text-white/40'}`}>{label}</span>
+      </div>
+      {children}
+    </div>
+  );
 
   return (
     <div className="h-full flex flex-col bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-none rounded-[32px] overflow-hidden animate-fade-in">
+
       {/* Header */}
-      <div className="p-8 border-b border-black/5 dark:border-white/5 flex items-center gap-4">
-        <div className={`p-3 bg-gradient-to-br ${accent?.from || 'from-slate-900'} ${accent?.to || 'to-slate-800'} dark:${accent?.from || 'from-white'} dark:${accent?.to || 'to-slate-200'} rounded-2xl shadow-lg`}>
-          <Cog6ToothIcon className={`w-6 h-6 ${accent ? 'text-white dark:text-slate-900' : 'text-white dark:text-slate-900'}`} />
+      <div className="px-8 py-6 border-b border-black/5 dark:border-white/5 flex items-center gap-4">
+        <div className={`p-3 bg-gradient-to-br ${accent?.from || 'from-slate-900'} ${accent?.to || 'to-slate-800'} rounded-2xl shadow-lg`}>
+          <Cog6ToothIcon className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-1">Workspace Settings</h2>
-          <p className="text-sm font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">{space.name}</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Workspace Settings</h2>
+          <p className="text-[11px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest mt-0.5">{space.name}</p>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-8 space-y-8">
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
-        {/* Workspace Info */}
-        <div className="bg-white/50 dark:bg-white/5 rounded-[24px] p-6 border border-white/40 dark:border-white/5 shadow-sm">
-          <div className="flex justify-between items-start mb-6">
-            <h3 className={`text-xs font-bold ${accent?.text || 'text-slate-500'} ${accent?.darkText || 'dark:text-white/40'} uppercase tracking-widest`}>Workspace Information</h3>
+        {/* ── Workspace Information ── */}
+        <div className={card}>
+          <SectionHeader
+            icon={<Cog6ToothIcon className={`w-4 h-4 ${accent?.text || 'text-slate-500'}`} />}
+            label="Workspace Information"
+          >
             {(isAdmin || isSuperAdmin || isOwner) && !isEditingInfo && (
               <button
                 onClick={() => setIsEditingInfo(true)}
-                className="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-slate-600 dark:text-white/60 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all"
               >
+                <PencilIcon className="w-3.5 h-3.5" />
                 Edit
               </button>
             )}
-          </div>
+          </SectionHeader>
 
           {isEditingInfo ? (
-            <div className="space-y-6">
-              {/* Logo Upload */}
-              <div className="flex flex-col items-center gap-4 p-6 rounded-2xl bg-slate-100/50 dark:bg-white/5 border border-dashed border-slate-300 dark:border-white/10">
-                <div className="relative group/logo">
-                  <div className={`absolute -inset-1 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} rounded-2xl opacity-0 group-hover/logo:opacity-50 blur transition-all duration-300 ${isUploading ? 'opacity-50 animate-pulse' : ''}`}></div>
+            <div className="space-y-5">
+              {/* Logo upload — compact inline row */}
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/8">
+                <div className="relative group/logo shrink-0">
+                  <div className={`absolute -inset-1 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} rounded-2xl opacity-0 group-hover/logo:opacity-40 blur transition-all duration-300 ${isUploading ? 'opacity-40 animate-pulse' : ''}`} />
                   <div className="relative">
-                    <div className={`w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-white/10 bg-white dark:bg-black/20 flex items-center justify-center transition-all ${isUploading ? 'blur-sm grayscale' : ''}`}>
-                      {editLogoUrl ? (
-                        <img src={editLogoUrl} alt="Workspace Logo" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className={`text-3xl font-black ${accent?.text || 'text-slate-900'} ${accent?.darkText || 'dark:text-white'}`}>
-                          {editName.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                    <div className={`w-14 h-14 rounded-2xl overflow-hidden shadow border-2 border-white dark:border-white/10 bg-white dark:bg-black/20 flex items-center justify-center ${isUploading ? 'blur-sm grayscale' : ''}`}>
+                      {editLogoUrl
+                        ? <img src={editLogoUrl} alt="Logo" className="w-full h-full object-cover" />
+                        : <span className={`text-2xl font-black ${accent?.text || 'text-slate-900'}`}>{editName.charAt(0).toUpperCase()}</span>
+                      }
                     </div>
-                    
-                    <label 
-                      htmlFor="logo-upload"
-                      className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 opacity-0 group-hover/logo:opacity-100 rounded-2xl cursor-pointer transition-all"
-                    >
-                      <PhotoIcon className="w-6 h-6 text-white mb-1" />
-                      <span className="text-[10px] font-bold text-white uppercase tracking-wider">Change</span>
+                    <label htmlFor="logo-upload" className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover/logo:opacity-100 rounded-2xl cursor-pointer transition-all">
+                      <PhotoIcon className="w-4 h-4 text-white" />
                     </label>
-                    <input 
-                      type="file" 
-                      id="logo-upload" 
-                      accept="image/*" 
-                      className="hidden" 
-                      onChange={handleFileChange}
-                      disabled={isUploading}
-                    />
+                    <input type="file" id="logo-upload" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isUploading} />
                   </div>
                 </div>
-                <div className="text-center flex flex-col items-center gap-2">
-                  <div>
-                    <p className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest uppercase">Workspace Logo</p>
-                    <p className="text-[9px] text-slate-400 dark:text-white/20 mt-1">Square image, PNG or JPG (Max 2MB)</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Workspace Logo</p>
+                  <p className="text-[10px] text-slate-400 dark:text-white/20 mt-0.5">Square image, PNG or JPG · Max 2MB</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <label htmlFor="logo-upload" className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/70 text-[10px] font-bold uppercase tracking-wider transition-all">
+                      <PhotoIcon className="w-3 h-3" /> Change Photo
+                    </label>
+                    {editLogoUrl && (
+                      <button onClick={handleRemoveLogo} disabled={isUploading} className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50">
+                        <TrashIcon className="w-3 h-3" /> Remove
+                      </button>
+                    )}
                   </div>
-                  
-                  {editLogoUrl && (
-                    <button
-                      onClick={handleRemoveLogo}
-                      disabled={isUploading}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50"
-                    >
-                      <TrashIcon className="w-3 h-3" />
-                      Remove Logo
-                    </button>
-                  )}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <label className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest block mb-2">Workspace Name</label>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest block mb-2">Workspace Name</label>
                 <input
                   type="text"
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
-                  className={`w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 ${accent ? `focus:ring-${accent.from.split('-')[1]}-500/50` : 'focus:ring-lime-500'} outline-none`}
+                  className="w-full bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/10 rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:outline-none focus:border-black/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-black/30 transition-all font-medium"
                   placeholder="Enter workspace name"
                 />
               </div>
+
               <div>
-                <label className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest block mb-2">Description</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest block mb-2">Description</label>
                 <textarea
                   value={editDescription}
                   onChange={e => setEditDescription(e.target.value)}
-                  className={`w-full bg-slate-100 dark:bg-black/20 border-none rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 ${accent ? `focus:ring-${accent.from.split('-')[1]}-500/50` : 'focus:ring-lime-500'} outline-none min-h-[100px] resize-none`}
+                  className="w-full bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/10 rounded-2xl py-3 px-4 text-slate-900 dark:text-white focus:outline-none focus:border-black/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-black/30 transition-all min-h-[72px] resize-none font-medium"
                   placeholder="Add a description..."
                 />
               </div>
+
               <div>
-                <label className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest block mb-4">Workspace Color Theme</label>
-                <div className="flex flex-wrap gap-4">
-                  {cardAccents.map((accent, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setEditTheme(index.toString())}
-                      className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${accent.from} ${accent.to} transition-all duration-200 relative ${editTheme === index.toString() ? `ring-4 ${accent.text.replace('text-', 'ring-')} ring-offset-4 ring-offset-white dark:ring-offset-slate-900 scale-110` : 'opacity-60 hover:opacity-100'}`}
-                    >
-                      {editTheme === index.toString() && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-2 h-2 rounded-full bg-white shadow-sm" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
+                <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest block mb-3">Color Theme</label>
+                <div className="flex flex-wrap gap-3">
+                  {cardAccents.map((ac, index) => {
+                    const ringColors = ['#046241','#133020','#FFB347','#FFC370','#059669','#d97706'];
+                    const isSelected = editTheme === index.toString();
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => setEditTheme(index.toString())}
+                        className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${ac.from} ${ac.to} transition-all duration-200 relative ${isSelected ? 'scale-110' : 'opacity-50 hover:opacity-90 hover:scale-105'}`}
+                        style={isSelected ? { boxShadow: `0 0 0 2px white, 0 0 0 4px ${ringColors[index]}` } : undefined}
+                      >
+                        {isSelected && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-white shadow" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-              <div className="flex gap-3 pt-4">
+
+              <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleSaveInfo}
                   disabled={isSaving || !editName.trim()}
-                  className={`px-5 py-2 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} text-white font-semibold text-sm rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`px-6 py-2.5 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} text-white font-bold text-sm rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  style={{ boxShadow: `0 4px 14px ${['#046241','#133020','#FFB347','#FFC370','#059669','#d97706'][themeIndex]}40` }}
                 >
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+                  {isSaving ? 'Saving…' : 'Save Changes'}
                 </button>
                 <button
-                  onClick={() => {
-                    setIsEditingInfo(false);
-                    setEditName(space.name);
-                    setEditDescription(space.description || '');
-                    setEditTheme(space.theme || '');
-                    setEditLogoUrl(space.logoUrl || '');
-                  }}
-                  className="px-5 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white font-semibold text-sm rounded-xl transition-colors active:scale-95"
+                  onClick={() => { setIsEditingInfo(false); setEditName(space.name); setEditDescription(space.description || ''); setEditTheme(space.theme || ''); setEditLogoUrl(space.logoUrl || ''); }}
+                  className="px-6 py-2.5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-slate-600 dark:text-white/60 font-bold text-sm rounded-xl transition-colors border-none"
                 >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex items-center gap-6">
-                <div className={`w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-white/10 bg-gradient-to-br ${accent?.from || 'from-slate-200'} ${accent?.to || 'to-slate-300'} flex items-center justify-center shrink-0`}>
-                  {space.logoUrl ? (
-                    <img src={space.logoUrl} alt={space.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-4xl font-black text-white">{space.name.charAt(0).toUpperCase()}</span>
-                  )}
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Name</label>
-                  <p className="text-xl font-black text-slate-900 dark:text-white mt-1">{space.name}</p>
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest mt-2">{members.length} Members • Created {new Date(space.createdAt).toLocaleDateString()}</p>
-                </div>
+            <div className="flex items-center gap-5">
+              <div className={`w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-white/10 bg-gradient-to-br ${accent?.from || 'from-slate-200'} ${accent?.to || 'to-slate-300'} flex items-center justify-center shrink-0`}>
+                {space.logoUrl
+                  ? <img src={space.logoUrl} alt={space.name} className="w-full h-full object-cover" />
+                  : <span className="text-3xl font-black text-white">{space.name.charAt(0).toUpperCase()}</span>
+                }
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-black/5 dark:border-white/5">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Description</label>
-                  <p className="text-sm font-medium text-slate-600 dark:text-white/70 mt-1">{space.description || 'No description provided.'}</p>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Workspace Color</label>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${accent?.from || 'from-slate-200'} ${accent?.to || 'to-slate-300'} shadow-sm`} />
-                    <p className="text-sm font-semibold text-slate-600 dark:text-white/70">
-                      {accent ? `Theme ${themeIndex + 1}` : 'Default Theme'}
-                    </p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xl font-black text-slate-900 dark:text-white truncate">{space.name}</p>
+                <p className="text-[11px] text-slate-400 dark:text-white/30 mt-1">{space.description || 'No description provided.'}</p>
+                <div className="flex items-center gap-4 mt-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${accent?.from} ${accent?.to}`} />
+                    <span className="text-[11px] font-bold text-slate-400 dark:text-white/30">Theme {themeIndex + 1}</span>
                   </div>
+                  <span className="text-[11px] font-bold text-slate-300 dark:text-white/20">·</span>
+                  <span className="text-[11px] font-bold text-slate-400 dark:text-white/30">{members.length} members</span>
+                  <span className="text-[11px] font-bold text-slate-300 dark:text-white/20">·</span>
+                  <span className="text-[11px] font-bold text-slate-400 dark:text-white/30">Created {new Date(space.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Invite Section */}
-        <div className="bg-white/50 dark:bg-white/5 rounded-[24px] p-6 border border-white/40 dark:border-white/5 shadow-sm">
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-white mb-2 uppercase tracking-wider">Invite New Members</h3>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">Share this code with your team. They can enter it after clicking "Join with Code" in the sidebar.</p>
+        {/* ── Invite / Join Code ── */}
+        <div className={card}>
+          <SectionHeader
+            icon={<KeyIcon className={`w-4 h-4 ${accent?.text || 'text-slate-500'}`} />}
+            label="Invite Members"
+          />
+          <p className="text-sm text-slate-500 dark:text-white/40 mb-5 -mt-2">Share this code with your team. They enter it via "Join with Code" in the sidebar.</p>
 
-          <div className="bg-white dark:bg-neutral-900 border-2 border-neutral-200 dark:border-neutral-700 rounded-xl p-5 flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Join Code</p>
-              <code className="text-3xl font-mono font-bold text-neutral-900 dark:text-white tracking-widest">{space.joinCode}</code>
+          <div className="flex items-center gap-4 p-5 bg-black/5 dark:bg-black/20 rounded-2xl border border-black/5 dark:border-white/5">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest mb-1.5">Join Code</p>
+              <code className="text-3xl font-mono font-black text-slate-900 dark:text-white tracking-[0.25em]">{space.joinCode}</code>
             </div>
             <button
               onClick={handleCopy}
-              className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${copied
-                ? 'bg-green-500 text-white'
-                : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100 active:scale-95'
-                }`}
+              className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-bold transition-all duration-300 shrink-0 ${
+                copied
+                  ? 'bg-lime-500 text-white shadow-lg shadow-lime-500/20'
+                  : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-95'
+              }`}
             >
+              {copied ? <CheckCircleIcon className="w-4 h-4" /> : <KeyIcon className="w-4 h-4" />}
               {copied ? 'Copied!' : 'Copy Code'}
             </button>
           </div>
         </div>
 
-        {/* Members Section */}
-        <div className="bg-white/50 dark:bg-white/5 rounded-[24px] p-6 border border-white/40 dark:border-white/5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wider">
-              Active Members ({members.length})
-            </h3>
+        {/* ── Members ── */}
+        <div className={card}>
+          <SectionHeader
+            icon={<UsersIcon className={`w-4 h-4 ${accent?.text || 'text-slate-500'}`} />}
+            label={`Members (${members.length})`}
+          >
             {(isAdmin || isSuperAdmin || isOwner) && availableEmployees.length > 0 && (
               <button
-                onClick={() => setShowAddMember(!showAddMember)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all duration-200"
+                onClick={() => { setShowAddMember(!showAddMember); setAddMemberSearch(''); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} text-white text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95`}
               >
-                <PlusIcon className="w-4 h-4" />
+                <PlusIcon className="w-3.5 h-3.5" />
                 Add Member
               </button>
             )}
-          </div>
+          </SectionHeader>
 
-          {/* Add Member Form */}
+          {/* Search-based Add Member panel */}
           {showAddMember && (isAdmin || isSuperAdmin || isOwner) && (
-            <div className="mb-4 p-4 bg-white dark:bg-neutral-900 rounded-xl border-2 border-primary-200 dark:border-primary-800">
-              <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2 block">
-                Select Member to Add
-              </label>
-              <div className="flex gap-2">
-                <select
-                  value={selectedNewMember}
-                  onChange={(e) => setSelectedNewMember(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:bg-neutral-800 dark:text-white transition-all duration-200"
-                >
-                  <option value="">Select a member...</option>
-                  {availableEmployees.map(emp => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.email})
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={handleAddMember}
-                  disabled={!selectedNewMember}
-                  className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-neutral-400 text-white rounded-xl font-medium transition-all duration-200 disabled:cursor-not-allowed"
-                >
-                  Add
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAddMember(false);
-                    setSelectedNewMember('');
-                  }}
-                  className="px-4 py-2 bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-neutral-900 dark:text-white rounded-xl transition-all duration-200"
-                >
-                  Cancel
-                </button>
+            <div className="mb-4 p-4 bg-black/5 dark:bg-black/20 rounded-2xl border border-black/5 dark:border-white/5">
+              <div className="relative mb-3">
+                <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-white/30" />
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="Search by name or email…"
+                  value={addMemberSearch}
+                  onChange={e => setAddMemberSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-black/20 rounded-xl border border-black/5 dark:border-white/5 text-sm font-medium text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-lime-500/50"
+                />
+              </div>
+              <div className="space-y-0.5 max-h-[200px] overflow-y-auto">
+                {filteredAvailable.length === 0 && (
+                  <p className="text-center text-[12px] text-slate-400 dark:text-white/30 py-4">
+                    {addMemberSearch.length > 0 ? 'No matching users found.' : 'All employees are already members.'}
+                  </p>
+                )}
+                {filteredAvailable.map(emp => (
+                  <button
+                    key={emp.id}
+                    onClick={() => { onAddMember(space.id, emp.id); setShowAddMember(false); setAddMemberSearch(''); }}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-white dark:hover:bg-white/5 transition-colors text-left group"
+                  >
+                    <img src={emp.avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover border border-black/5 dark:border-white/10 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{emp.name}</p>
+                      <p className="text-[11px] text-slate-400 dark:text-white/30 truncate">{emp.email}</p>
+                    </div>
+                    <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${accent?.text || 'text-lime-600'} bg-lime-500/10 opacity-0 group-hover:opacity-100 transition-opacity`}>Add</span>
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
-          {/* Members List */}
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+          {/* Members list */}
+          <div className="space-y-1 max-h-80 overflow-y-auto">
             {members.map(member => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-white dark:hover:bg-neutral-900/50 transition-all duration-200 border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700"
+                className="flex items-center justify-between px-3 py-2.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <img
                     src={member.avatarUrl}
                     alt=""
-                    className="w-10 h-10 rounded-xl object-cover border border-neutral-200/50 dark:border-neutral-700/50"
+                    className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-white/10 shrink-0"
                   />
-                  <div>
-                    <p className="font-semibold text-neutral-900 dark:text-white">{member.name}</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{member.email}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{member.name}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-white/30 truncate">{member.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {/* Role Tags */}
 
+                <div className="flex items-center gap-2 shrink-0 ml-3">
                   {member.id === space.ownerId ? (
-                    <span className="px-3 py-1 text-xs font-bold uppercase bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg">
+                    <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full">
                       Owner
                     </span>
+                  ) : member.role === 'admin' ? (
+                    <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest ${accent?.text || 'text-lime-600'} bg-lime-500/10 rounded-full`}>
+                      Admin
+                    </span>
                   ) : (
-                    <>
-                      {/* Remove Member for Owner/SuperAdmins */}
-                      {(isOwner || isSuperAdmin) && (
-                        <button
-                          onClick={() => handleRemoveMemberClick(member)}
-                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all duration-200"
-                        >
-                          <XMarkIcon className="w-4 h-4" />
-                          Remove
-                        </button>
-                      )}
-                    </>
+                    <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 bg-black/5 dark:bg-white/5 rounded-full">
+                      Member
+                    </span>
+                  )}
+                  {(isOwner || isSuperAdmin) && member.id !== space.ownerId && (
+                    <button
+                      onClick={() => handleRemoveMemberClick(member)}
+                      className="p-1.5 text-slate-300 dark:text-white/20 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
+                    >
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
               </div>
@@ -488,47 +448,51 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
           </div>
         </div>
 
-        {/* Danger Zone - Delete Workspace */}
+        {/* ── Danger Zone ── */}
         {(isOwner || isSuperAdmin) && (
-          <div className="bg-red-50/80 dark:bg-red-950/30 rounded-[24px] p-6 border border-red-200/50 dark:border-red-900/40 shadow-sm backdrop-blur-md">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-lg">
-                <TrashIcon className="w-6 h-6 text-red-600 dark:text-red-400" />
+          <div className="bg-red-50/60 dark:bg-red-950/20 rounded-[24px] border border-red-200/40 dark:border-red-900/30 overflow-hidden">
+            <button
+              onClick={() => setShowDangerZone(!showDangerZone)}
+              className="w-full flex items-center justify-between px-6 py-5 hover:bg-red-50/60 dark:hover:bg-red-950/20 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-xl bg-red-500/10">
+                  <TrashIcon className="w-4 h-4 text-red-500" />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-red-500">Danger Zone</span>
               </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-bold text-red-900 dark:text-red-200 mb-2 uppercase tracking-wider">Danger Zone</h3>
-                <p className="text-sm text-red-800 dark:text-red-300 mb-4">
-                  Deleting this workspace will permanently remove all tasks, time logs, and data. This action cannot be undone.
+              <ChevronDownIcon className={`w-4 h-4 text-red-400 transition-transform duration-200 ${showDangerZone ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showDangerZone && (
+              <div className="px-6 pb-6 border-t border-red-200/40 dark:border-red-900/30">
+                <p className="text-sm text-red-700/80 dark:text-red-300/70 mt-5 mb-5 leading-relaxed">
+                  Deleting this workspace will permanently remove all tasks, time logs, and data. <strong>This action cannot be undone.</strong>
                 </p>
                 <button
-                  onClick={handleDeleteSpaceClick}
-                  className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all duration-200 active:scale-95"
+                  onClick={() => setShowDeleteSpaceModal(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all active:scale-95 shadow-lg shadow-red-600/20"
                 >
-                  <TrashIcon className="w-5 h-5" />
+                  <TrashIcon className="w-4 h-4" />
                   Delete Workspace
                 </button>
               </div>
-            </div>
+            )}
           </div>
         )}
 
       </div>
 
-      {/* Remove Member Confirmation Modal */}
+      {/* Confirmation Modals */}
       <ConfirmationModal
         isOpen={showRemoveMemberModal}
-        onClose={() => {
-          setShowRemoveMemberModal(false);
-          setMemberToRemove(null);
-        }}
+        onClose={() => { setShowRemoveMemberModal(false); setMemberToRemove(null); }}
         onConfirm={confirmRemoveMember}
         title="Remove Member"
         message={memberToRemove ? `Are you sure you want to remove ${memberToRemove.name} from "${space.name}"? They will lose access to all tasks and data in this workspace.` : ''}
         confirmText="Remove Member"
         cancelText="Cancel"
       />
-
-      {/* Delete Workspace Confirmation Modal */}
       <ConfirmationModal
         isOpen={showDeleteSpaceModal}
         onClose={() => setShowDeleteSpaceModal(false)}

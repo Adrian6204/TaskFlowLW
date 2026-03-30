@@ -34,7 +34,7 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
     onAddTask,
     activeSpaceId,
 }) => {
-    const [activeTab, setActiveTab] = useState<string>(activeSpaceId ?? spaces[0]?.id ?? '');
+    const activeTab = activeSpaceId ?? spaces[0]?.id ?? '';
     const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
 
     const toggleExpanded = (memberId: string) => {
@@ -129,24 +129,6 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
                 </div>
             </div>
 
-            {/* ── Workspace Tabs ── */}
-            {spaces.length > 1 && (
-                <div className="flex gap-2 flex-wrap">
-                    {spaces.map(space => (
-                        <button
-                            key={space.id}
-                            onClick={() => setActiveTab(space.id)}
-                            className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border ${
-                                activeTab === space.id
-                                    ? 'bg-lime-500 dark:bg-[#CEFD4A] text-white dark:text-black border-transparent shadow-lg shadow-lime-500/20'
-                                    : 'bg-white/60 dark:bg-white/5 text-slate-600 dark:text-white/50 border-black/10 dark:border-white/10 hover:border-lime-500/40 dark:hover:border-[#CEFD4A]/30'
-                            }`}
-                        >
-                            {space.name}
-                        </button>
-                    ))}
-                </div>
-            )}
 
             {/* ── Member Grid ── */}
             {!currentSpace ? (
@@ -175,15 +157,6 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
                                 key={employee.id}
                                 className="flex flex-col bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[28px] overflow-hidden transition-all duration-300 shadow-xl shadow-black/5 dark:shadow-none hover:border-white/60 dark:hover:border-white/15"
                             >
-                                {/* Accent bar */}
-                                <div className={`h-1 w-full ${
-                                    overdue > 0
-                                        ? 'bg-gradient-to-r from-red-500 to-orange-400'
-                                        : inProg > 0
-                                        ? 'bg-gradient-to-r from-lime-500 to-emerald-400'
-                                        : 'bg-gradient-to-r from-slate-300 to-slate-200 dark:from-white/10 dark:to-white/5'
-                                }`} />
-
                                 <div className="flex flex-col flex-1 p-5 gap-4">
 
                                     {/* Member info */}
@@ -229,15 +202,6 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
                                         </div>
                                     </div>
 
-                                    {/* Progress bar */}
-                                    {total > 0 && (
-                                        <div className="h-1.5 w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-lime-500 to-emerald-400 rounded-full transition-all duration-500"
-                                                style={{ width: `${Math.round((done / total) * 100)}%` }}
-                                            />
-                                        </div>
-                                    )}
 
                                     {/* Active task list */}
                                     {activeTasks.length > 0 ? (
