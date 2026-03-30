@@ -272,7 +272,6 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                             <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-white/5">
                                 <div className="relative shrink-0">
                                     <img src={employee.avatarUrl} alt={employee.name} className="w-9 h-9 rounded-full border-2 border-white dark:border-zinc-700 shadow object-cover bg-neutral-200 dark:bg-neutral-800" />
-                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#111318] ${isInactive ? 'bg-slate-400' : userTasks.some(t => isTaskOverdue(t)) ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">{employee.name}</h3>
