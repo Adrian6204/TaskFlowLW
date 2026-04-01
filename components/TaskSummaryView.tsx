@@ -4,6 +4,7 @@ import { isTaskOverdue } from '../utils/taskUtils';
 import { isPresent, isLate, isLateFromTimeIn, isAbsent, isTimedOut } from '../utils/statusUtils';
 import { fetchTaskFlowStatus } from '../services/taskflowStatusService';
 import { Clock, Maximize2, Minimize2, ChevronDown, Check, Copy, LayoutGrid, List, CheckCircle2 } from 'lucide-react';
+import { usePreferences } from './hooks/usePreferences';
 
 interface TaskSummaryViewProps {
     tasks: Task[];
@@ -13,6 +14,7 @@ interface TaskSummaryViewProps {
 
 const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onViewTask }) => {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [preferences] = usePreferences();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
     const [filterOpen, setFilterOpen] = useState(false);
@@ -21,6 +23,9 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
     const [copying, setCopying] = useState(false);
     const [attendanceMap, setAttendanceMap] = useState<Map<string, TaskFlowStatusUser>>(new Map());
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+    const [memberFilterOpen, setMemberFilterOpen] = useState(false);
+    const memberWrapperRef = useRef<HTMLDivElement>(null);
 
     // Fetch attendance status on mount
     useEffect(() => {
@@ -39,7 +44,7 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
         const record = attendanceMap.get(empName.trim().toLowerCase());
         if (!record) return 'unknown';
         if (isPresent(record.status) || isLate(record.status)) return isLateFromTimeIn(record.time_in) ? 'late' : 'present';
-        if (isAbsent(record.status) || isTimedOut(record.status)) return 'absent';
+        if (isAbsent(record.status) || isTimedOut(record.status)) return preferences.ignoreAbsentStatus ? 'unknown' : 'absent';
         return 'unknown';
     };
 
@@ -48,6 +53,9 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
         const handler = (e: MouseEvent) => {
             if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
                 setFilterOpen(false);
+            }
+            if (memberWrapperRef.current && !memberWrapperRef.current.contains(e.target as Node)) {
+                setMemberFilterOpen(false);
             }
         };
         document.addEventListener('mousedown', handler);
@@ -78,6 +86,16 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
     const togglePosition = (pos: string) => {
         setSelectedPositions(prev =>
             prev.includes(pos) ? prev.filter(p => p !== pos) : [...prev, pos]
+        );
+    };
+
+    const uniqueMembers = useMemo(() => {
+        return employees.map(e => ({ id: e.id, name: e.name })).sort((a, b) => a.name.localeCompare(b.name));
+    }, [employees]);
+
+    const toggleMember = (memberId: string) => {
+        setSelectedMembers(prev =>
+            prev.includes(memberId) ? prev.filter(m => m !== memberId) : [...prev, memberId]
         );
     };
 
@@ -129,13 +147,17 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
         setTimeout(() => setCopying(false), 2000);
     };
 
-    const tasksByUser = selectedPositions.length === 0
-        ? allTasksByUser
-        : allTasksByUser.filter(({ employee }) => {
+    const tasksByUser = allTasksByUser.filter(({ employee }) => {
+        const passPosition = selectedPositions.length === 0 || (() => {
             if (!employee.position) return false;
             const parts = (employee.position as string).split(',').map(p => p.trim());
             return parts.some(p => selectedPositions.includes(p));
-          });
+        })();
+
+        const passMember = selectedMembers.length === 0 || selectedMembers.includes(employee.id);
+
+        return passPosition && passMember;
+    });
 
     return (
         <div className={`flex flex-col backdrop-blur-[40px] border border-white/40 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-none animate-fade-in transition-all duration-300 ${isFullscreen
@@ -197,6 +219,21 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                             {filterOpen && (
                                 <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-[#1a1d23] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl shadow-black/10 dark:shadow-black/40 z-50">
                                     <div className="p-2 max-h-72 overflow-y-auto">
+                                        <button
+                                            onClick={() => {
+                                                if (selectedPositions.length === uniquePositions.length) {
+                                                    setSelectedPositions([]);
+                                                } else {
+                                                    setSelectedPositions(uniquePositions);
+                                                }
+                                            }}
+                                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-slate-50 dark:hover:bg-white/5 text-left mb-1"
+                                        >
+                                            <span className="text-indigo-600 dark:text-indigo-400">
+                                                {selectedPositions.length === uniquePositions.length ? 'Deselect All' : 'Select All'}
+                                            </span>
+                                        </button>
+                                        <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
                                         {uniquePositions.map(pos => {
                                             const active = selectedPositions.includes(pos);
                                             return (
@@ -217,6 +254,75 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                         <div className="border-t border-slate-100 dark:border-white/5 p-2">
                                             <button
                                                 onClick={() => { setSelectedPositions([]); setFilterOpen(false); }}
+                                                className="w-full text-center text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 py-2 rounded-xl transition-all"
+                                            >
+                                                Clear all filters
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Member Filter Dropdown */}
+                    {uniqueMembers.length > 0 && (
+                        <div ref={memberWrapperRef} className="relative">
+                            <button
+                                onClick={() => setMemberFilterOpen(o => !o)}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border shadow-sm whitespace-nowrap ${
+                                    selectedMembers.length > 0
+                                        ? 'bg-indigo-500 text-white border-indigo-500'
+                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/60 border-slate-200 dark:border-white/10'
+                                }`}
+                            >
+                                {selectedMembers.length > 0 ? 'Filtered' : 'Filter by Member'}
+                                {selectedMembers.length > 0 && (
+                                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/30 text-white text-[10px] font-black">
+                                        {selectedMembers.length}
+                                    </span>
+                                )}
+                                <ChevronDown className={`w-4 h-4 transition-transform ${memberFilterOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {memberFilterOpen && (
+                                <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-[#1a1d23] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl shadow-black/10 dark:shadow-black/40 z-50">
+                                    <div className="p-2 max-h-72 overflow-y-auto">
+                                        <button
+                                            onClick={() => {
+                                                if (selectedMembers.length === uniqueMembers.length) {
+                                                    setSelectedMembers([]);
+                                                } else {
+                                                    setSelectedMembers(uniqueMembers.map(m => m.id));
+                                                }
+                                            }}
+                                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-slate-50 dark:hover:bg-white/5 text-left mb-1"
+                                        >
+                                            <span className="text-indigo-600 dark:text-indigo-400">
+                                                {selectedMembers.length === uniqueMembers.length ? 'Deselect All' : 'Select All'}
+                                            </span>
+                                        </button>
+                                        <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
+                                        {uniqueMembers.map(member => {
+                                            const active = selectedMembers.includes(member.id);
+                                            return (
+                                                <button
+                                                    key={member.id}
+                                                    onClick={() => toggleMember(member.id)}
+                                                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-slate-50 dark:hover:bg-white/5 text-left"
+                                                >
+                                                    <span className={active ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-white/70'}>
+                                                        {member.name}
+                                                    </span>
+                                                    {active && <Check className="w-4 h-4 text-indigo-500 shrink-0" />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {selectedMembers.length > 0 && (
+                                        <div className="border-t border-slate-100 dark:border-white/5 p-2">
+                                            <button
+                                                onClick={() => { setSelectedMembers([]); setMemberFilterOpen(false); }}
                                                 className="w-full text-center text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 py-2 rounded-xl transition-all"
                                             >
                                                 Clear all filters

@@ -12,6 +12,7 @@ export interface Preferences {
     showCompletedTasks: TaskVisibility;
     performanceMode: boolean;
     autoCompleteRecurring: boolean;
+    ignoreAbsentStatus: boolean;
 }
 
 const DEFAULT_PREFERENCES: Preferences = {
@@ -21,6 +22,7 @@ const DEFAULT_PREFERENCES: Preferences = {
     showCompletedTasks: 'recent',
     performanceMode: false,
     autoCompleteRecurring: false,
+    ignoreAbsentStatus: false,
 };
 
 export const usePreferences = (): [Preferences, (key: keyof Preferences, value: any) => void] => {
