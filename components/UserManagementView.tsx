@@ -339,7 +339,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                             </div>
 
                                             {positionDropdownOpen && (
-                                                <div className="absolute z-[100] w-64 mt-2 bg-white dark:bg-[#1E1E20] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto left-0 animate-in fade-in zoom-in-95 duration-200">
+                                                <div className="absolute z-[100] w-64 mt-2 bg-white dark:bg-black/80 dark:backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto left-0 animate-in fade-in zoom-in-95 duration-200">
                                                     {Array.from(new Set([...Object.values(Position), ...editingPositionValue])).map((pos) => {
                                                         const isSelected = editingPositionValue.includes(pos);
                                                         return (
@@ -487,7 +487,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
             {/* Enroll Modal */}
             {isEnrollModalOpen && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setIsEnrollModalOpen(false)}>
-                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-scale-in border border-white/10" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-black/60 dark:backdrop-blur-xl rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-scale-in border border-white/10" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-2xl font-black text-slate-900 dark:text-white">Enroll Member to Workspace</h3>
                             <button onClick={() => setIsEnrollModalOpen(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors">

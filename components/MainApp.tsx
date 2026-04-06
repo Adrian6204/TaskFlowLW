@@ -28,6 +28,7 @@ import CreateListModal from './CreateListModal';
 import Sidebar from './Sidebar';
 import TopNav from './TopNav';
 import Background from './Background';
+import MobileBottomNav from './MobileBottomNav';
 
 // Hooks
 import { useAuth } from '../auth/AuthContext';
@@ -93,7 +94,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const [activeListId, setActiveListId] = useState<number | null>(null);
 
     // ─── UI State ─────────────────────────────────────────────────────────
-    const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
     const [searchTerm, setSearchTerm] = useState('');
     const [timelineViewMode, setTimelineViewMode] = useState<'calendar' | 'gantt'>('calendar');
 
@@ -138,6 +139,13 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     }, [isSuperAdmin, activeSpaceId, memberships, user.employeeId]);
 
     // ─── Initial Redirect & Access Control ──────────────────────────────────
+    useEffect(() => {
+        // Close sidebar on mobile when navigating
+        if (window.innerWidth < 768) {
+            setSidebarOpen(false);
+        }
+    }, [location.pathname]);
+
     useEffect(() => {
         if (!isDataLoaded) return;
 
@@ -283,11 +291,13 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
         const space = spaces.find(s => s.id === spaceId);
         const slug = space ? toSlug(space.name) : spaceId;
         navigate(`/app/workspace/${slug}/dashboard`);
+        if (window.innerWidth < 768) setSidebarOpen(false);
     };
 
     const handleViewChange = (view: string) => {
         if (view === 'user-management') {
             navigate('/app/user-management');
+            if (window.innerWidth < 768) setSidebarOpen(false);
             return;
         }
         if (activeSpaceId) {
@@ -300,6 +310,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
             // On the global home page
             navigate('/app/home');
         }
+        if (window.innerWidth < 768) setSidebarOpen(false);
     };
 
     const handleUpdateTaskStatus = async (id: number, status: TaskStatus, skipRefresh: boolean = false) => {
@@ -435,7 +446,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         currentSpace={currentSpace}
                     />
 
-                    <div className="flex-1 flex overflow-hidden pt-20 md:pt-24">
+                    <div className="flex-1 flex overflow-hidden pt-16 md:pt-24 border-none">
                         <Sidebar
                             isOpen={isSidebarOpen}
                             onToggle={() => setSidebarOpen(!isSidebarOpen)}
@@ -460,7 +471,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                             allUserTasks={allUserTasks}
                         />
 
-                        <main className="flex-1 overflow-y-auto p-4 sm:p-8">
+                        <main className="flex-1 overflow-y-auto p-4 sm:p-8 md:pb-8 pb-safe">
                             <div className="max-w-[1800px] mx-auto animate-in fade-in duration-500">
 
                                 {/* ── Home: Workspace Cards ── */}
@@ -694,6 +705,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         onCreate={handleCreateList}
                     />
                 )}
+
             </div>
         </>
     );

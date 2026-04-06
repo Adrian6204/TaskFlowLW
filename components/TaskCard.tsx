@@ -180,7 +180,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onE
       {showCompleteConfirm && createPortal(
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={(e) => { e.stopPropagation(); setShowCompleteConfirm(false); }} />
-          <div className="relative bg-white dark:bg-[#1A1A1A] rounded-[32px] p-8 max-w-sm w-full border border-slate-200 dark:border-white/10 shadow-2xl animate-in fade-in zoom-in duration-300" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-white dark:bg-black/80 dark:backdrop-blur-xl rounded-[32px] p-8 max-w-sm w-full border border-slate-200 dark:border-white/10 shadow-2xl animate-in fade-in zoom-in duration-300" onClick={(e) => e.stopPropagation()}>
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-500/20 mb-6">
               <CheckCircleIcon className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
             </div>

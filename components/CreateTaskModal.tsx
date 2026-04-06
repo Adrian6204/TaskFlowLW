@@ -181,18 +181,18 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     };
 
     return (
-        <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 transition-all duration-300 ${show ? 'visible' : 'invisible'}`}>
+        <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300 ${show ? 'visible' : 'invisible'}`}>
             <div
                 className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}
                 onClick={onClose}
             />
 
-            <div className={`bg-white dark:bg-[#1E1E1E] w-full max-w-5xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[95vh] transition-all duration-300 transform border border-neutral-200/80 dark:border-white/5 overflow-hidden ${show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+            <div className={`bg-white dark:bg-black/80 dark:backdrop-blur-2xl w-full sm:max-w-5xl h-full sm:h-auto sm:max-h-[95vh] rounded-t-2xl sm:rounded-2xl shadow-2xl relative z-10 flex flex-col transition-all duration-300 transform border-t sm:border border-neutral-200/80 dark:border-white/10 overflow-hidden ${show ? 'opacity-100 translate-y-0 sm:scale-100' : 'opacity-0 translate-y-full sm:scale-95'}`}>
                 {/* Gradient accent strip */}
                 <div className="h-1 w-full bg-gradient-to-r from-lime-400 via-emerald-400 to-lime-400" />
 
                 {/* Header / Breadcrumb */}
-                <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between bg-neutral-50/50 dark:bg-white/[0.02]">
+                <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between bg-neutral-50/50 dark:bg-white/[0.02] pt-safe-top">
                     <div className="flex items-center gap-2 text-sm">
                         {/* Space Selector Trigger */}
                         <div className="relative">
@@ -209,7 +209,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                             </button>
 
                             {isSpaceSelectorOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-[#2A2A2D] border border-neutral-200 dark:border-white/10 rounded-xl shadow-xl z-50 py-1">
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-black/80 dark:backdrop-blur-xl border border-neutral-200 dark:border-white/10 rounded-xl shadow-xl z-50 py-1">
                                     {spaces.map(s => (
                                         <button
                                             key={s.id}
@@ -230,7 +230,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-700">
+                <div className="flex-1 overflow-y-auto p-6 sm:p-8 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-700 pb-safe">
                     {/* Title */}
                     <div className="mb-6 group">
                         <input
@@ -578,7 +578,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 </div >
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between bg-neutral-50/50 dark:bg-white/[0.02]">
+                <div className="px-6 py-4 sm:py-4 border-t border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between bg-neutral-50/50 dark:bg-white/[0.02] pb-safe">
                     <div className="text-xs text-neutral-400 dark:text-white/20">
                     </div>
                     <div className="flex items-center gap-3">

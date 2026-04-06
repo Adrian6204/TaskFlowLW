@@ -11,7 +11,7 @@ import PWABadge from './components/PWA/PWABadge';
 
 // Setup Required Screen Component
 const SetupRequiredScreen: React.FC = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-[#111] p-4">
+  <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-black p-4">
     <div className="max-w-md w-full bg-white dark:bg-white/5 backdrop-blur-xl rounded-xl shadow-xl p-8 border border-slate-200 dark:border-white/10">
       <div className="flex items-center gap-4 mb-6">
         <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
@@ -26,7 +26,7 @@ const SetupRequiredScreen: React.FC = () => (
       </div>
 
       <div className="space-y-4">
-        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700">
+        <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10">
           <p className="text-sm text-slate-600 dark:text-white/60 mb-2 font-medium">
             To connect the database, add these variables to Vercel:
           </p>
@@ -51,7 +51,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-[#111]">
+      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-black">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
       </div>
     );

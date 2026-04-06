@@ -161,7 +161,7 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
 
     return (
         <div className={`flex flex-col backdrop-blur-[40px] border border-white/40 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-none animate-fade-in transition-all duration-300 ${isFullscreen
-            ? 'fixed inset-0 z-[100] overflow-y-auto bg-[#FAFAFA] dark:bg-[#0f1115] p-8 md:p-12 rounded-none'
+            ? 'fixed inset-0 z-[100] overflow-y-auto bg-[#FAFAFA] dark:bg-black/95 p-8 md:p-12 rounded-none'
             : 'h-full relative bg-white/60 dark:bg-black/40 rounded-[32px] p-8'
             }`}>
 
@@ -217,7 +217,7 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                             </button>
 
                             {filterOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-[#1a1d23] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl shadow-black/10 dark:shadow-black/40 z-50">
+                                <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-black/80 dark:backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl shadow-black/10 dark:shadow-black/40 z-50">
                                     <div className="p-2 max-h-72 overflow-y-auto">
                                         <button
                                             onClick={() => {
@@ -286,7 +286,7 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                             </button>
 
                             {memberFilterOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-[#1a1d23] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl shadow-black/10 dark:shadow-black/40 z-50">
+                                <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-black/80 dark:backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl shadow-black/10 dark:shadow-black/40 z-50">
                                     <div className="p-2 max-h-72 overflow-y-auto">
                                         <button
                                             onClick={() => {
@@ -370,7 +370,7 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
 
                     return isCompact ? (
                         /* Compact Row Layout */
-                        <div key={employee.id} className={`bg-white dark:bg-[#111318] rounded-2xl border flex flex-col overflow-hidden transition-all duration-200 ${isInactive ? 'opacity-50 border-slate-100 dark:border-white/5' : 'border-slate-200 dark:border-white/8 shadow-sm hover:shadow-md hover:-translate-y-0.5'}`}>
+                        <div key={employee.id} className={`bg-white dark:bg-white/5 rounded-2xl border flex flex-col overflow-hidden transition-all duration-200 ${isInactive ? 'opacity-50 border-slate-100 dark:border-white/5' : 'border-slate-200 dark:border-white/8 shadow-sm hover:shadow-md hover:-translate-y-0.5'}`}>
                             {/* Colored top bar */}
                             <div className={`h-1 w-full shrink-0 ${isInactive ? 'bg-slate-200 dark:bg-white/10' : userTasks.some(t => isTaskOverdue(t)) ? 'bg-red-500' : 'bg-emerald-500'}`} />
 

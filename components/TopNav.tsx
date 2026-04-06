@@ -46,29 +46,45 @@ const TopNav: React.FC<TopNavProps> = ({
     const accent = themeIndex >= 0 ? cardAccents[themeIndex] : null;
 
     return (
-        <header className="fixed top-0 left-0 right-0 h-20 md:h-24 px-4 md:px-8 flex-none z-50 flex items-center justify-between pointer-events-none">
+        <header className="fixed top-0 left-0 right-0 h-20 md:h-24 px-4 md:px-8 flex-none z-50 flex items-center justify-between pointer-events-none pt-safe-top">
             {/* Ambient background blur for the header area */}
-            <div className="absolute inset-0 bg-white/5 dark:bg-black/5 backdrop-blur-[2px] border-b border-black/[0.03] dark:border-white/[0.03] pointer-events-none"></div>
+            <div className="absolute inset-0 bg-white/5 dark:bg-black/5 backdrop-blur-[10px] border-b border-black/[0.03] dark:border-white/[0.03] pointer-events-none"></div>
 
             {/* Brand & Context */}
-            <div className="flex items-center gap-4 md:gap-8 pointer-events-auto relative">
-                <Link to="/app/home" className={`flex items-center gap-4 group cursor-pointer ${hideBrandOnDesktop ? 'md:hidden' : ''}`}>
-                    <div className="relative flex items-center gap-3">
-                        <div className="transition-all duration-500 group-hover:scale-105 group-hover:drop-shadow-[0_0_20px_rgba(206,253,74,0.3)] flex items-center gap-3">
-                            <img src="/lifewood.png" alt="Lifewood" className="h-5 md:h-7 object-contain opacity-90 group-hover:opacity-100 transition-opacity" />
-                            <div className="w-px h-6 bg-slate-900/10 dark:bg-white/10"></div>
-                            <Logo className="w-6 h-6 md:w-8 md:h-8" />
+            <div className="flex items-center gap-2 md:gap-8 pointer-events-auto relative">
+                {/* Mobile Menu Toggle (Hamburger) */}
+                <button
+                    onClick={onToggleSidebar}
+                    className="md:hidden flex items-center justify-center p-2 rounded-xl text-slate-500 dark:text-white/50 hover:bg-black/5 dark:hover:bg-white/8 transition-all"
+                >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <Link to="/app/home" className={`hidden md:flex items-center gap-4 group cursor-pointer ${hideBrandOnDesktop ? 'md:hidden' : ''}`}>
+                    <div className="relative flex items-center gap-2 md:gap-3">
+                        <div className="transition-all duration-500 group-hover:scale-105 group-hover:drop-shadow-[0_0_20px_rgba(206,253,74,0.3)] flex items-center gap-2 md:gap-3">
+                            <img src="/lifewood.png" alt="Lifewood" className="h-4 md:h-7 object-contain opacity-90 group-hover:opacity-100 transition-opacity hidden sm:block" />
+                            <div className="w-px h-5 md:h-6 bg-slate-900/10 dark:bg-white/10 hidden sm:block"></div>
+                            <Logo className="w-5 h-5 md:w-8 md:h-8" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-slate-900 dark:text-white font-black text-xl md:text-2xl tracking-tighter leading-none">TaskFlow</span>
-                            <span className="text-[8px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-[0.15em] mt-0.5 ml-0.5">Powered by Lifewood PH</span>
+                            <span className="text-slate-900 dark:text-white font-black text-lg md:text-2xl tracking-tighter leading-none">TaskFlow</span>
+                            <span className="text-[7px] md:text-[8px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-[0.12em] mt-0.5 ml-0.5">Powered by Lifewood PH</span>
                         </div>
                     </div>
                 </Link>
 
+                {/* Mobile Title View */}
+                <div className="md:hidden flex flex-col items-start pl-0">
+                    <span className="text-slate-900 dark:text-white font-black text-xl tracking-tight leading-none">
+                        {activeSpaceName === 'TaskFlow' ? 'Home' : activeSpaceName}
+                    </span>
+                    <span className="text-[8px] font-extrabold text-primary-500 uppercase tracking-widest mt-1">TaskFlow</span>
+                </div>
+
                 <div className={`h-8 w-px bg-black/5 dark:bg-white/5 hidden lg:block ${hideBrandOnDesktop ? 'md:hidden' : ''}`}></div>
-
-
             </div>
 
             {/* Right Actions */}
@@ -95,7 +111,7 @@ const TopNav: React.FC<TopNavProps> = ({
                     {/* Profile */}
                     <button
                         onClick={onOpenProfile}
-                        className="flex items-center gap-2.5 px-2 py-1.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/8 transition-all duration-300 group"
+                        className="hidden md:flex items-center gap-2.5 px-2 py-1.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/8 transition-all duration-300 group"
                     >
                         <div className="relative">
                             <img
@@ -119,6 +135,18 @@ const TopNav: React.FC<TopNavProps> = ({
                                 {statusLabel(myStatus)}
                             </span>
                         </div>
+                    </button>
+
+                    {/* Minimal Mobile Avatar (Fallback if Bottom Nav Profile isn't satisfying) */}
+                    <button 
+                        onClick={onOpenProfile}
+                        className="md:hidden flex items-center justify-center p-1 rounded-full overflow-hidden border-2 border-white/20 dark:border-white/10"
+                    >
+                         <img
+                            src={currentUserEmployee?.avatarUrl || user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`}
+                            alt=""
+                            className="w-8 h-8 rounded-full object-cover"
+                        />
                     </button>
                 </div>
 

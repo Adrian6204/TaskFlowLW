@@ -34,7 +34,7 @@ const ToggleSwitch: React.FC<{ enabled: boolean; onChange: (val: boolean) => voi
     <button
         type="button"
         onClick={() => onChange(!enabled)}
-        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${enabled ? 'bg-primary-600' : 'bg-slate-200 dark:bg-slate-700'}`}
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${enabled ? 'bg-primary-600' : 'bg-slate-200 dark:bg-white/10'}`}
     >
         <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />
     </button>
@@ -53,7 +53,7 @@ const ColorOption: React.FC<{ color: ColorScheme; selected: boolean; onSelect: (
     return (
         <button
             onClick={onSelect}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${bgClasses[color]} ${selected ? 'ring-4 ring-offset-2 ring-slate-300 dark:ring-slate-600 scale-110' : 'hover:scale-105'}`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${bgClasses[color]} ${selected ? 'ring-4 ring-offset-2 ring-slate-300 dark:ring-white/20 scale-110' : 'hover:scale-105'}`}
             title={color.charAt(0).toUpperCase() + color.slice(1)}
         >
             {selected && (
@@ -322,22 +322,32 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                 aria-hidden="true"
             />
 
-            <div className={`bg-white/90 dark:bg-[#1E1E20]/95 backdrop-blur-3xl rounded-3xl shadow-2xl w-full max-w-4xl h-[600px] flex overflow-hidden relative z-10 transition-all duration-300 border border-white/20 dark:border-white/5 transform ${show ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}>
+            <div className={`bg-white dark:bg-black/60 md:bg-white/90 md:dark:bg-black/40 backdrop-blur-3xl md:rounded-3xl shadow-2xl w-full md:max-w-4xl h-full md:h-[600px] flex flex-col md:flex-row overflow-hidden relative z-10 transition-all duration-300 border-none md:border md:border-white/20 md:dark:border-white/5 transform ${show ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}>
 
-                {/* Sidebar */}
-                <div className="w-64 flex flex-col border-r border-slate-200/50 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
-                    <div className="p-6">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center text-primary-600 dark:text-primary-400">
-                                <UserIcon className="w-5 h-5" />
+                {/* Sidebar (Desktop) / Top Nav (Mobile) */}
+                <div className="md:w-64 flex flex-col border-b md:border-b-0 md:border-r border-slate-200/50 dark:border-white/5 bg-slate-50/50 dark:bg-transparent shrink-0">
+                    <div className="p-4 md:p-6 pt-safe-top">
+                        <div className="flex items-center justify-between md:justify-start gap-3 mb-4 md:mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                                    <UserIcon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h2 className="text-sm font-bold text-slate-900 dark:text-white">My Account</h2>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Settings</p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-sm font-bold text-slate-900 dark:text-white">My Account</h2>
-                                <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Settings</p>
-                            </div>
+                            
+                            {/* Mobile Close Button */}
+                            <button
+                                onClick={onClose}
+                                className="md:hidden w-8 h-8 flex items-center justify-center rounded-full bg-slate-200/50 dark:bg-white/10 text-slate-500 dark:text-white/50"
+                            >
+                                <XMarkIcon className="w-4 h-4" />
+                            </button>
                         </div>
 
-                        <nav className="space-y-1">
+                        <nav className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible scrollbar-none pb-2 md:pb-0">
                             {menuItems.map(item => {
                                 const Icon = item.icon;
                                 const isActive = activeTab === item.id;
@@ -345,7 +355,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                     <button
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id as Tab)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-200 ${isActive
+                                        className={`flex items-center gap-2 md:gap-3 px-4 py-2.5 md:py-3 rounded-xl text-[11px] md:text-xs font-bold transition-all duration-200 whitespace-nowrap ${isActive
                                             ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/5'
                                             : 'text-slate-500 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                                             }`}
@@ -358,7 +368,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                         </nav>
                     </div>
 
-                    <div className="mt-auto p-6 border-t border-slate-200/50 dark:border-white/5">
+                    <div className="mt-auto p-6 border-t border-slate-200/50 dark:border-white/5 hidden md:block">
                         {onLogout && (
                             <button
                                 onClick={onLogout}
@@ -373,7 +383,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
 
                 {/* Content Area */}
                 <div className="flex-1 flex flex-col bg-slate-50/30 dark:bg-black/20 overflow-hidden">
-                    <div className="flex items-center justify-between px-8 py-6 border-b border-slate-200/50 dark:border-white/5 bg-white/50 dark:bg-[#1E1E20]/50 backdrop-blur-xl sticky top-0 z-20">
+                    <div className="hidden md:flex items-center justify-between px-8 py-6 border-b border-slate-200/50 dark:border-white/5 bg-white/50 dark:bg-[#1E1E20]/50 backdrop-blur-xl sticky top-0 z-20">
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{menuItems.find(i => i.id === activeTab)?.label}</h3>
                             <p className="text-xs text-slate-500 dark:text-white/40 font-medium">Manage your {activeTab} preferences</p>
@@ -386,7 +396,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
+                    <div className="flex-1 overflow-y-auto p-6 md:p-8 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10 pb-safe">
+                        {/* Mobile active view title */}
+                        <div className="md:hidden mb-6">
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white">{menuItems.find(i => i.id === activeTab)?.label}</h3>
+                            <p className="text-xs text-slate-500 dark:text-white/40 font-medium mt-1">Manage your {activeTab} preferences</p>
+                        </div>
                         {activeTab === 'profile' && (
                             <form onSubmit={handleSaveProfile} className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                                 {/* Avatar Section — centered card */}
@@ -596,8 +611,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                             <form onSubmit={handleUpdatePassword} className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                                 <div>
                                     <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Change Password</h4>
-                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 p-5 space-y-6">
-                                        <p className="text-xs text-slate-500 dark:text-white/40">Secure your account by updating your password regularly.</p>
+                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 p-4 md:p-5 space-y-6">
+                                        <p className="text-[11px] md:text-xs text-slate-500 dark:text-white/40">Secure your account by updating your password regularly.</p>
 
                                         <div className="space-y-4">
                                             <div className="relative group">
@@ -789,7 +804,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
             {/* Default Password Warning Modal */}
             {showDefaultPasswordWarning && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-3xl">
-                    <div className="bg-white dark:bg-[#1E1E20] rounded-2xl shadow-2xl border border-amber-500/30 p-6 mx-6 max-w-sm w-full animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-black/80 dark:backdrop-blur-xl rounded-2xl shadow-2xl border border-amber-500/30 p-6 mx-6 max-w-sm w-full animate-in zoom-in-95 duration-200">
                         <div className="flex items-start gap-4">
                             <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
                                 <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

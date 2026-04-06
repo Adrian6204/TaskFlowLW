@@ -37,7 +37,7 @@ const JoinSpaceModal: React.FC<JoinSpaceModalProps> = ({ isOpen, onClose, onJoin
         className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
-      <div className={`bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md p-6 relative z-10 transition-all duration-300 transform border border-transparent dark:border-slate-700 ${show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+      <div className={`bg-white dark:bg-black/60 dark:backdrop-blur-xl rounded-xl shadow-2xl w-full max-w-md p-6 relative z-10 transition-all duration-300 transform border border-transparent dark:border-white/10 ${show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Join a Space</h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Enter the Join Code provided by the space administrator (found in Space Settings).</p>
 
@@ -50,7 +50,7 @@ const JoinSpaceModal: React.FC<JoinSpaceModalProps> = ({ isOpen, onClose, onJoin
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[\s-]/g, ''))}
               placeholder="e.g. ABC123"
-              className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest uppercase bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200"
+              className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest uppercase bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200"
             />
           </div>
 

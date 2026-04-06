@@ -37,7 +37,7 @@ const CreateListModal: React.FC<CreateListModalProps> = ({ isOpen, onClose, onCr
                 className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}
                 onClick={onClose}
             />
-            <div className={`bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-sm p-6 relative z-10 transition-all duration-300 transform ${show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+            <div className={`bg-white dark:bg-black/60 dark:backdrop-blur-xl rounded-xl shadow-2xl w-full max-w-sm p-6 relative z-10 transition-all duration-300 transform border border-transparent dark:border-white/10 ${show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Create New List</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Lists help you organize tasks within a space.</p>
 
@@ -52,7 +52,7 @@ const CreateListModal: React.FC<CreateListModalProps> = ({ isOpen, onClose, onCr
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g. Backlog, In Progress..."
-                            className="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white focus:border-neutral-900 dark:focus:border-white dark:bg-neutral-800 dark:text-white transition-all duration-200"
+                            className="w-full px-4 py-2.5 border border-neutral-300 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white focus:border-neutral-900 dark:focus:border-white bg-white dark:bg-white/5 dark:text-white transition-all duration-200"
                         />
                     </div>
 

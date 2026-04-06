@@ -50,7 +50,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-6 border border-white/10 animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-md bg-white dark:bg-black/60 dark:backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-white/50 dark:border-white/10 animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4">

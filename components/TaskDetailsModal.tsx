@@ -133,7 +133,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex justify-center items-center p-4 sm:p-6 transition-all duration-500 ${show ? 'opacity-100' : 'opacity-0'}`}
+      className={`fixed inset-0 z-[100] flex justify-center items-end sm:items-center p-0 sm:p-6 transition-all duration-500 ${show ? 'opacity-100' : 'opacity-0'}`}
       role="dialog"
       aria-modal="true"
     >
@@ -143,13 +143,13 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
         aria-hidden="true"
       />
 
-      <div className={`w-full max-w-5xl max-h-[92vh] flex flex-col relative z-10 transform transition-all duration-500 ${show ? 'translate-y-0 scale-100' : 'translate-y-8 scale-95'}`}>
-        {/* Glow effect behind modal */}
-        <div className="absolute -inset-4 bg-gradient-to-br from-primary-500/20 via-primary-500/20 to-lime-500/20 rounded-[48px] blur-2xl -z-10 opacity-50 dark:opacity-30"></div>
+      <div className={`w-full sm:max-w-5xl h-full sm:h-auto sm:max-h-[92vh] flex flex-col relative z-10 transform transition-all duration-500 ${show ? 'translate-y-0 scale-100' : 'translate-y-full sm:translate-y-8 sm:scale-95'}`}>
+        {/* Glow effect behind modal (Desktop only) */}
+        <div className="absolute -inset-4 bg-gradient-to-br from-primary-500/20 via-primary-500/20 to-lime-500/20 rounded-[48px] blur-2xl -z-10 opacity-50 dark:opacity-30 hidden sm:block"></div>
 
-        <div className="bg-white/70 dark:bg-[#0A0A0A]/80 backdrop-blur-3xl rounded-[32px] sm:rounded-[40px] border border-white/50 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col h-full max-h-[90vh]">
+        <div className="bg-white dark:bg-black/60 sm:bg-white/70 sm:dark:bg-black/40 sm:backdrop-blur-3xl rounded-t-[32px] sm:rounded-[40px] border-t sm:border border-white/50 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col h-full">
           {/* Header */}
-          <header className="p-6 sm:p-8 flex-shrink-0 relative overflow-hidden">
+          <header className="p-6 sm:p-8 flex-shrink-0 relative overflow-hidden pt-safe-top">
             {/* Header background gradient */}
             <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-primary-500/10 dark:from-primary-500/5 to-transparent pointer-events-none"></div>
 
@@ -211,7 +211,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
           </header>
 
           {/* Body */}
-          <main className="px-6 sm:px-8 pb-8 overflow-y-auto flex-grow scrollbar-none space-y-6 sm:space-y-8">
+          <main className="px-6 sm:px-8 pb-10 sm:pb-8 overflow-y-auto flex-grow scrollbar-none space-y-6 sm:space-y-8 pb-safe">
 
             {blockingTask && (
               <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/10 border border-amber-500/30 rounded-[24px] p-5 flex items-center gap-4 animate-pulse shadow-lg shadow-amber-500/5">
@@ -333,7 +333,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               <div>
                 <h3 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em] ml-2 mb-3">Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {task.tags.map(tag => <TagPill key={tag} tag={tag} />)}
+                  {task.tags.map(tag => <TagPill key={tag} text={tag} />)}
                 </div>
               </div>
             )}

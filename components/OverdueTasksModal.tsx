@@ -50,7 +50,7 @@ const OverdueTasksModal: React.FC<OverdueTasksModalProps> = ({
             onClick={onClose}
         >
             <div
-                className="w-full max-w-4xl bg-white dark:bg-[#1A1A1A] border border-black/10 dark:border-white/10 rounded-[40px] overflow-hidden shadow-2xl animate-scale-in flex flex-col max-h-[85vh]"
+                className="w-full max-w-4xl bg-white dark:bg-black/80 dark:backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-[40px] overflow-hidden shadow-2xl animate-scale-in flex flex-col max-h-[85vh]"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header Section */}

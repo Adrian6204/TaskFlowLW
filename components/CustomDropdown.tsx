@@ -188,7 +188,7 @@ const CustomDropdown = <T extends string | number>({
                         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                         className={`
                             absolute left-0 right-0 top-full mt-2 z-[100] p-2
-                            bg-white/95 dark:bg-[#151515]/95 backdrop-blur-2xl
+                            bg-white/95 dark:bg-black/90 backdrop-blur-2xl
                             border border-slate-200 dark:border-white/10 rounded-2xl
                             shadow-2xl shadow-black/10 dark:shadow-none overflow-hidden flex flex-col
                             ${menuClassName}

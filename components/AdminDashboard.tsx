@@ -117,10 +117,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const avgCompletionTime = "2.5 Days";
 
     return (
-        <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-1000 pt-safe-top">
 
             {/* Top Row — 4 Quick Metric Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                 <BentoCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-xl">
@@ -186,7 +186,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
 
                         {/* Time Range Selector */}
-                        <div className="flex items-center gap-1 mb-6 bg-black/10 dark:bg-white/5 p-1 rounded-xl w-fit">
+                        <div className="flex flex-wrap items-center gap-1 mb-6 bg-black/10 dark:bg-white/5 p-1 rounded-xl w-fit">
                             {(['today', 'weekly', 'monthly', 'yearly', 'all'] as TimeRange[]).map((range) => (
                                 <button
                                     key={range}
@@ -202,7 +202,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             ))}
                         </div>
 
-                        <h1 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.9] mb-3">
+                        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.9] mb-3">
                             Project{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-600">Velocity</span>
                         </h1>

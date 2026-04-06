@@ -114,7 +114,7 @@ const LoginPage: React.FC = () => {
             <div className="space-y-6">
               <div className="flex flex-col items-center lg:items-start gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-md p-2 rounded-xl border border-black/[0.03] dark:border-white/10">
+                  <div className="bg-white/5 dark:bg-white/5 backdrop-blur-md p-2 rounded-xl border border-black/[0.03] dark:border-white/10">
                     <Logo className="w-8 h-8 text-slate-900 dark:text-white" />
                   </div>
                   <span className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Task Flow</span>
@@ -200,7 +200,7 @@ const LoginPage: React.FC = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 px-6 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-900 dark:text-white font-bold rounded-2xl border border-black/5 dark:border-white/10 transition-all duration-300 flex items-center justify-center"
+                  className="w-full py-3 px-6 bg-white/10 dark:bg-white/10 hover:bg-white/15 dark:hover:bg-white/15 text-slate-900 dark:text-white font-bold rounded-2xl border border-black/5 dark:border-white/10 transition-all duration-300 flex items-center justify-center"
                   disabled={isLoading}
                 >
                   {isLoading ? "Processing..." : "Sign In"}

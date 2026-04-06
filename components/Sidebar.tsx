@@ -98,12 +98,24 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside
-      className={`${isOpen ? 'w-72' : 'w-24'} h-[calc(100%-2rem)] m-4 rounded-[32px] ${preferences.performanceMode ? 'bg-white/80 dark:bg-black/70 backdrop-blur-none border-white/40 dark:border-white/10' : 'bg-white/10 dark:bg-black/40 backdrop-blur-[40px] border-white/20 dark:border-white/5'} border flex flex-col transition-all duration-500 ease-out relative z-30 shadow-2xl shadow-black/10 dark:shadow-black/50`}
-    >
-      <div className="mt-4" />
+    <>
+      {/* Mobile Backdrop */}
+      <div 
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] transition-opacity duration-300 md:hidden ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={onToggle}
+      />
 
-      <div className="flex-1 py-2 px-4 overflow-y-auto scrollbar-none flex flex-col gap-2">
+      <aside
+        className={`fixed md:relative inset-y-0 left-0 z-[60] md:z-30 
+          ${isOpen ? 'w-72 translate-x-0' : 'w-24 -translate-x-full md:translate-x-0'} 
+          h-[calc(100%-1rem)] md:h-[calc(100%-2rem)] 
+          m-2 md:m-4 rounded-[24px] md:rounded-[32px] 
+          ${preferences.performanceMode ? 'bg-white/95 dark:bg-black/95 backdrop-blur-none border-slate-200 dark:border-white/10' : 'bg-white/80 dark:bg-black/40 backdrop-blur-[40px] border-white/20 dark:border-white/5'} 
+          border flex flex-col transition-all duration-500 ease-out shadow-2xl shadow-black/10 dark:shadow-black/50 overflow-hidden`}
+      >
+        <div className="mt-4" />
+
+      <div className="flex-1 py-2 px-4 overflow-y-auto scrollbar-none flex flex-col gap-2 pt-safe-top pb-safe">
 
         {/* ── New Task button ─────────────────────────────── */}
         {isInsideWorkspace && (
@@ -480,8 +492,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </button>
       </div>
-
-    </aside>
+  </aside>
+</>
   );
 };
 

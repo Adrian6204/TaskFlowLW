@@ -163,16 +163,16 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
   );
 
   return (
-    <div className="h-full flex flex-col bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-none rounded-[32px] overflow-hidden animate-fade-in">
+    <div className="h-full flex flex-col bg-white/60 dark:bg-black/40 backdrop-blur-[40px] md:border border-white/40 dark:border-white/5 md:shadow-xl shadow-black/5 dark:shadow-none md:rounded-[32px] overflow-hidden animate-fade-in">
 
       {/* Header */}
-      <div className="px-8 py-6 border-b border-black/5 dark:border-white/5 flex items-center gap-4">
-        <div className={`p-3 bg-gradient-to-br ${accent?.from || 'from-slate-900'} ${accent?.to || 'to-slate-800'} rounded-2xl shadow-lg`}>
-          <Cog6ToothIcon className="w-6 h-6 text-white" />
+      <div className="px-6 md:px-8 py-4 md:py-6 border-b border-black/5 dark:border-white/5 flex items-center gap-4">
+        <div className={`p-2.5 md:p-3 bg-gradient-to-br ${accent?.from || 'from-slate-900'} ${accent?.to || 'to-slate-800'} rounded-xl md:rounded-2xl shadow-lg shrink-0`}>
+          <Cog6ToothIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </div>
-        <div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Workspace Settings</h2>
-          <p className="text-[11px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest mt-0.5">{space.name}</p>
+        <div className="min-w-0">
+          <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white truncate">Workspace Settings</h2>
+          <p className="text-[10px] md:text-[11px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest mt-0.5 truncate">{space.name}</p>
         </div>
       </div>
 
@@ -199,7 +199,7 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
           {isEditingInfo ? (
             <div className="space-y-5">
               {/* Logo upload — compact inline row */}
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/8">
+              <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/8">
                 <div className="relative group/logo shrink-0">
                   <div className={`absolute -inset-1 bg-gradient-to-r ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} rounded-2xl opacity-0 group-hover/logo:opacity-40 blur transition-all duration-300 ${isUploading ? 'opacity-40 animate-pulse' : ''}`} />
                   <div className="relative">
@@ -294,25 +294,25 @@ const SpaceSettingsView: React.FC<SpaceSettingsViewProps> = ({
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-5">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-5">
               <div className={`w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-white/10 bg-gradient-to-br ${accent?.from || 'from-slate-200'} ${accent?.to || 'to-slate-300'} flex items-center justify-center shrink-0`}>
                 {space.logoUrl
                   ? <img src={space.logoUrl} alt={space.name} className="w-full h-full object-cover" />
                   : <span className="text-3xl font-black text-white">{space.name.charAt(0).toUpperCase()}</span>
                 }
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 text-center md:text-left">
                 <p className="text-xl font-black text-slate-900 dark:text-white truncate">{space.name}</p>
                 <p className="text-[11px] text-slate-400 dark:text-white/30 mt-1">{space.description || 'No description provided.'}</p>
-                <div className="flex items-center gap-4 mt-3">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4 mt-3">
                   <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${accent?.from} ${accent?.to}`} />
-                    <span className="text-[11px] font-bold text-slate-400 dark:text-white/30">Theme {themeIndex + 1}</span>
+                    <div className={`w-5 h-5 md:w-6 md:h-6 rounded-lg bg-gradient-to-br ${accent?.from} ${accent?.to}`} />
+                    <span className="text-[10px] md:text-[11px] font-bold text-slate-400 dark:text-white/30">Theme {themeIndex + 1}</span>
                   </div>
                   <span className="text-[11px] font-bold text-slate-300 dark:text-white/20">·</span>
-                  <span className="text-[11px] font-bold text-slate-400 dark:text-white/30">{members.length} members</span>
-                  <span className="text-[11px] font-bold text-slate-300 dark:text-white/20">·</span>
-                  <span className="text-[11px] font-bold text-slate-400 dark:text-white/30">Created {new Date(space.createdAt).toLocaleDateString()}</span>
+                  <span className="text-[10px] md:text-[11px] font-bold text-slate-400 dark:text-white/30">{members.length} members</span>
+                  <span className="text-[11px] font-bold text-slate-300 dark:text-white/20 hidden md:inline">·</span>
+                  <span className="text-[10px] md:text-[11px] font-bold text-slate-400 dark:text-white/30 hidden md:inline">Created {new Date(space.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>

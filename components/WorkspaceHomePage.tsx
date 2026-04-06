@@ -64,10 +64,10 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
     const fullName = user.fullName || user.username;
 
     return (
-        <div className="min-h-full px-6 py-10 max-w-7xl mx-auto">
+        <div className="min-h-full px-4 md:px-6 py-6 md:py-10 max-w-7xl mx-auto pb-32">
 
             {/* ── Hero Header ────────────────────────────────────────────── */}
-            <div className="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+            <div className="mb-8 md:mb-10 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                 <div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mb-4">
                         <p className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400 dark:text-white/30">
@@ -78,8 +78,8 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
                             {formatDateTime(now)}
                         </p>
                     </div>
-                    <h1 className="text-6xl font-black leading-none tracking-tight mb-3">
-                        <span className="text-lifewood-castleton dark:text-lifewood-paper">
+                    <h1 className="text-4xl md:text-6xl font-black leading-none tracking-tight mb-3">
+                        <span className="text-slate-900 dark:text-lifewood-paper">
                             {fullName}
                         </span>
                     </h1>
@@ -91,22 +91,24 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex flex-wrap gap-3 flex-shrink-0">
+                <div className="flex flex-row md:flex-wrap gap-2 md:gap-3 flex-shrink-0">
                     {isSuperAdmin && (
                         <button
                             onClick={onCreateSpace}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-lime-500 to-emerald-500 text-black text-sm font-black shadow-lg shadow-lime-500/25 hover:shadow-lime-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-5 py-3 md:py-2.5 rounded-2xl bg-gradient-to-r from-lime-500 to-emerald-500 text-black text-xs md:text-sm font-black shadow-lg shadow-lime-500/25 hover:shadow-lime-500/40 transition-all duration-200"
                         >
                             <PlusIcon className="w-4 h-4" />
-                            Create Workspace
+                            <span className="hidden sm:inline">Create Workspace</span>
+                            <span className="sm:hidden">Create</span>
                         </button>
                     )}
                     <button
                         onClick={onJoinSpace}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-surface border border-subtle text-primary text-sm font-bold hover:bg-slate-50 dark:hover:bg-white/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 shadow-sm"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-5 py-3 md:py-2.5 rounded-2xl bg-white/10 md:bg-surface border border-white/10 md:border-subtle text-slate-900 dark:text-white md:text-primary text-xs md:text-sm font-bold hover:bg-slate-50 dark:hover:bg-white/20 transition-all duration-200 shadow-sm"
                     >
                         <UserIcon className="w-4 h-4" />
-                        Join with Code
+                        <span className="hidden sm:inline">Join with Code</span>
+                        <span className="sm:hidden">Join</span>
                     </button>
                 </div>
             </div>
