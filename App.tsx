@@ -7,6 +7,7 @@ import MainApp from './components/MainApp';
 import SplashScreen from './components/SplashScreen';
 import ForceChangePasswordPage from './components/ForceChangePasswordPage';
 import { PresenceProvider } from './context/PresenceContext';
+import PWABadge from './components/PWA/PWABadge';
 
 // Setup Required Screen Component
 const SetupRequiredScreen: React.FC = () => (
@@ -114,6 +115,7 @@ const AppWithSplash: React.FC = () => {
 
   return (
     <>
+      <PWABadge />
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <Routes>
         {/* Auth Routes */}
