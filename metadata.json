@@ -1,5 +1,0 @@
-{
-  "name": "TaskFlow",
-  "description": "TaskFlow is a modern, responsive web application for tracking and managing daily employee tasks. Features a Kanban-style board, task creation/editing, and real-time time tracking.",
-  "requestFramePermissions": []
-}
