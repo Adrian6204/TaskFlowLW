@@ -90,9 +90,12 @@ const Select: React.FC<{ options: { label: string; value: string }[], value: str
     />
 );
 
+import { usePwa } from './hooks/usePwa';
+
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, currentUserEmployee, onSave, onLogout }) => {
     const navigate = useNavigate();
     const { updatePassword, logout, markPasswordChanged } = useAuth();
+    const { canInstall, install, isInstalled } = usePwa();
     const [activeTab, setActiveTab] = useState<Tab>('profile');
     const [show, setShow] = useState(false);
     const [showDefaultPasswordWarning, setShowDefaultPasswordWarning] = useState(false);
@@ -794,6 +797,54 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                         </div>
                                     </section>
                                 )}
+
+                                {/* Mobile Application */}
+                                <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Mobile Application</h4>
+                                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 p-5">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white text-sm">
+                                                    {isInstalled ? 'App Installed' : 'Install TaskFlow Mobile'}
+                                                </p>
+                                                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5 max-w-[320px]">
+                                                    {isInstalled 
+                                                        ? 'You are currently using the native application version of TaskFlow.' 
+                                                        : 'Install TaskFlow to your device for a native app experience, offline access, and easier access from your home screen.'}
+                                                </p>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-3 shrink-0">
+                                                {isInstalled ? (
+                                                    <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-xl flex items-center gap-2">
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Installed
+                                                    </div>
+                                                ) : canInstall ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => install()}
+                                                        className="px-5 py-2.5 bg-primary-600 text-white text-xs font-bold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-500/30 transition-all active:scale-95 whitespace-nowrap"
+                                                    >
+                                                        Install App
+                                                    </button>
+                                                ) : (
+                                                    <div className="px-4 py-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/30 text-[10px] font-bold rounded-xl italic">
+                                                        Waiting for browser compatibility…
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        {!isInstalled && !canInstall && (
+                                            <p className="text-[10px] text-slate-400 dark:text-white/20 mt-3 border-t border-slate-100 dark:border-white/5 pt-3">
+                                                Tip: If you're on iPhone/iPad, use the <span className="font-bold text-slate-500 dark:text-white/40">Share</span> menu and select <span className="font-bold text-slate-500 dark:text-white/40">"Add to Home Screen"</span>.
+                                            </p>
+                                        )}
+                                    </div>
+                                </section>
                             </div>
                         )}
 

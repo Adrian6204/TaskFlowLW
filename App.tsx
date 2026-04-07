@@ -8,6 +8,7 @@ import SplashScreen from './components/SplashScreen';
 import ForceChangePasswordPage from './components/ForceChangePasswordPage';
 import { PresenceProvider } from './context/PresenceContext';
 import PWABadge from './components/PWA/PWABadge';
+import { PWAProvider } from './context/PWAContext';
 
 // Setup Required Screen Component
 const SetupRequiredScreen: React.FC = () => (
@@ -150,7 +151,11 @@ const App: React.FC = () => {
     return <SetupRequiredScreen />;
   }
 
-  return <AppWithSplash />;
+  return (
+    <PWAProvider>
+      <AppWithSplash />
+    </PWAProvider>
+  );
 };
 
 export default App;

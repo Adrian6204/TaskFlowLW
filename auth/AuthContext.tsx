@@ -70,7 +70,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         mapSupabaseUser(session.user);
         setupRealtime(session.user.id);
       } else {
-        setUser(null);
+        sessionStorage.removeItem('pwa_prompt_session_hidden');
+      setUser(null);
         setLoading(false);
         if (profileSubscription) profileSubscription.unsubscribe();
       }
@@ -170,6 +171,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!isSupabaseConfigured) return;
     await supabase.auth.signOut();
     setUser(null);
+    sessionStorage.removeItem('pwa_prompt_hidden');
   };
 
   const updateUser = async (updates: Partial<User>) => {
