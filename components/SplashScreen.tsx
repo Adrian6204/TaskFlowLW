@@ -33,7 +33,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: '#f5eedb', // Lifewood Paper
+                background: '#133020', // Lifewood Dark Serpent (Matches PWA Manifest)
                 opacity: phase === 'exit' ? 0 : 1,
                 transition: phase === 'exit' ? 'opacity 0.7s cubic-bezier(0.4,0,0.2,1)' : 'none',
                 pointerEvents: phase === 'exit' ? 'none' : 'all',
@@ -45,23 +45,11 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 width: '500px',
                 height: '500px',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(4,98,65,0.06) 0%, transparent 70%)', // Castleton Green glow
+                background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)', 
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
                 animation: 'splashPulse 3s ease-in-out infinite',
-                pointerEvents: 'none',
-            }} />
-            <div style={{
-                position: 'absolute',
-                width: '300px',
-                height: '300px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(255,179,71,0.08) 0%, transparent 70%)', // Saffaron glow
-                top: 'calc(50% - 80px)',
-                left: 'calc(50% - 120px)',
-                transform: 'translate(-50%, -50%)',
-                animation: 'splashPulse 3s ease-in-out infinite 0.5s',
                 pointerEvents: 'none',
             }} />
 
@@ -78,13 +66,13 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
 
                 {/* Logo with subtle pulsing border */}
                 <div style={{ position: 'relative' }}>
-                    {/* Spinning ring - tailored to Lifewood colors */}
+                    {/* Spinning ring */}
                     <div style={{
                         position: 'absolute',
                         inset: '-5px',
                         borderRadius: '36px',
                         padding: '2px',
-                        background: 'conic-gradient(from 0deg, rgba(4,98,65,0.1), rgba(4,98,65,0.6), rgba(255,179,71,0.4), rgba(4,98,65,0.1))',
+                        background: 'conic-gradient(from 0deg, rgba(255,255,255,0.1), rgba(4,152,98,0.8), rgba(255,179,71,0.4), rgba(255,255,255,0.1))',
                         animation: 'splashSpin 4s linear infinite',
                         WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 2px), black calc(100% - 2px))',
                         mask: 'radial-gradient(farthest-side, transparent calc(100% - 2px), black calc(100% - 2px))',
@@ -96,12 +84,13 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                         width: '100px',
                         height: '100px',
                         borderRadius: '32px',
-                        background: '#ffffff', // Lifewood White
-                        border: '1px solid rgba(19,48,32,0.05)',
+                        background: 'rgba(255,255,255,0.05)', 
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255,255,255,0.1)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 10px 40px -10px rgba(19,48,32,0.1), 0 0 20px rgba(4,98,65,0.08)',
+                        boxShadow: '0 20px 40px -10px rgba(0,0,0,0.3)',
                         position: 'relative',
                         zIndex: 2,
                     }}>
@@ -120,19 +109,19 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                         fontSize: '38px',
                         fontWeight: 800,
                         letterSpacing: '-0.02em',
-                        color: '#133020', /* Lifewood Dark Serpent */
+                        color: '#ffffff', 
                         fontFamily: "'Inter', sans-serif",
                         animation: phase === 'enter' ? 'splashTextIn 0.8s 0.15s cubic-bezier(0.16,1,0.3,1) both' : 'none',
                         lineHeight: '1.2'
                     }}>
-                        Task<span style={{ color: '#046241' }}>Flow</span> {/* Castleton Green */}
+                        Task<span style={{ color: '#4ade80' }}>Flow</span> 
                     </h1>
                     <p style={{
                         margin: '4px 0 0',
                         fontSize: '12px',
                         letterSpacing: '0.24em',
                         textTransform: 'uppercase',
-                        color: 'rgba(19,48,32,0.6)', /* Dark Serpent faded */
+                        color: 'rgba(255,255,255,0.5)', 
                         fontFamily: "'Inter', sans-serif",
                         fontWeight: 600,
                         animation: phase === 'enter' ? 'splashTextIn 0.8s 0.3s cubic-bezier(0.16,1,0.3,1) both' : 'none',

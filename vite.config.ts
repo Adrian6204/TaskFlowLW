@@ -19,8 +19,8 @@ export default defineConfig(({ mode }) => {
           short_name: 'TaskFlow',
           id: '/',
           description: 'Elevating Your Workspace',
-          theme_color: '#ffffff',
-          background_color: '#ffffff',
+          theme_color: '#133020',
+          background_color: '#133020',
           display: 'standalone',
           icons: [
             {
