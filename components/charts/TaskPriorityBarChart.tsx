@@ -1,49 +1,32 @@
 
 import React from 'react';
 import { Task, Priority, TaskStatus } from '../../types';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip
+);
 
 interface TaskPriorityBarChartProps {
   tasks: Task[];
 }
 
-const priorityConfig = [
-  {
-    key: Priority.URGENT,
-    label: 'Urgent',
-    bar: 'bg-red-500',
-    bg: 'bg-white/40 dark:bg-white/5 border border-red-500/10',
-    badge: 'text-red-600 dark:text-red-400 font-black',
-    track: 'bg-black/5 dark:bg-white/5',
-    dot: 'bg-red-500',
-  },
-  {
-    key: Priority.HIGH,
-    label: 'High',
-    bar: 'bg-orange-500',
-    bg: 'bg-white/40 dark:bg-white/5 border border-orange-500/10',
-    badge: 'text-orange-600 dark:text-orange-400 font-black',
-    track: 'bg-black/5 dark:bg-white/5',
-    dot: 'bg-orange-500',
-  },
-  {
-    key: Priority.MEDIUM,
-    label: 'Medium',
-    bar: 'bg-yellow-500',
-    bg: 'bg-white/40 dark:bg-white/5 border border-yellow-500/10',
-    badge: 'text-yellow-600 dark:text-yellow-400 font-black',
-    track: 'bg-black/5 dark:bg-white/5',
-    dot: 'bg-yellow-500',
-  },
-  {
-    key: Priority.LOW,
-    label: 'Low',
-    bar: 'bg-slate-400',
-    bg: 'bg-white/40 dark:bg-white/5 border border-slate-500/10',
-    badge: 'text-slate-600 dark:text-slate-400 font-black',
-    track: 'bg-black/5 dark:bg-white/5',
-    dot: 'bg-slate-400',
-  },
-];
+const priorityConfig = {
+  [Priority.URGENT]: { label: 'Urgent', color: '#ef4444' },
+  [Priority.HIGH]: { label: 'High', color: '#f97316' },
+  [Priority.MEDIUM]: { label: 'Medium', color: '#eab308' },
+  [Priority.LOW]: { label: 'Low', color: '#94a3b8' },
+};
 
 const TaskPriorityBarChart: React.FC<TaskPriorityBarChartProps> = ({ tasks }) => {
   const activeTasks = tasks.filter(t => t.status !== TaskStatus.DONE);
@@ -56,8 +39,6 @@ const TaskPriorityBarChart: React.FC<TaskPriorityBarChartProps> = ({ tasks }) =>
     [Priority.LOW]: activeTasks.filter(t => t.priority === Priority.LOW).length,
   };
 
-  const maxCount = Math.max(...Object.values(counts), 1);
-
   if (total === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-slate-400 text-xs gap-2">
@@ -66,41 +47,62 @@ const TaskPriorityBarChart: React.FC<TaskPriorityBarChartProps> = ({ tasks }) =>
     );
   }
 
-  return (
-    <div className="flex flex-col justify-center gap-3 h-full">
-      {priorityConfig.map(({ key, label, bar, bg, badge, track, dot }) => {
-        const count = counts[key];
-        const barWidth = (count / maxCount) * 100;
-        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  const data = {
+    labels: Object.values(priorityConfig).map(cfg => cfg.label),
+    datasets: [
+      {
+        data: [
+          counts[Priority.URGENT],
+          counts[Priority.HIGH],
+          counts[Priority.MEDIUM],
+          counts[Priority.LOW],
+        ],
+        backgroundColor: Object.values(priorityConfig).map(cfg => cfg.color),
+        borderRadius: 8,
+        barThickness: 20,
+      },
+    ],
+  };
 
-        return (
-          <div key={key} className={`rounded-xl p-3 ${bg} transition-all`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${dot} shrink-0`} />
-                <span className="text-xs font-bold text-slate-700 dark:text-white/80 uppercase tracking-wider">
-                  {label}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-400 dark:text-white/40 font-medium">{pct}%</span>
-                <span className={`text-sm ${badge}`}>
-                  {count}
-                </span>
-              </div>
-            </div>
-            {/* Bar */}
-            <div className={`w-full h-2 rounded-full ${track} overflow-hidden`}>
-              <div
-                className={`h-full rounded-full ${bar} transition-all duration-700`}
-                style={{ width: `${barWidth}%` }}
-              />
-            </div>
-          </div>
-        );
-      })}
+  const options = {
+    indexAxis: 'y' as const,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        cornerRadius: 8,
+        padding: 10,
+      },
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { display: false },
+        ticks: { color: '#94a3b8', font: { size: 10 } },
+      },
+      y: {
+        grid: { display: false },
+        ticks: {
+          color: '#94a3b8',
+          font: { size: 11, weight: 'bold' as const },
+        },
+      },
+    },
+    animation: {
+      duration: 1500,
+      easing: 'easeOutQuart' as const,
+    },
+  };
+
+  return (
+    <div className="w-full h-full min-h-[200px]">
+      <Bar data={data} options={options} />
     </div>
   );
 };
 
 export default TaskPriorityBarChart;
+

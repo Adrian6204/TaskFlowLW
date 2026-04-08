@@ -4,6 +4,7 @@ import { Task, Employee, TaskStatus, Priority } from '../types';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { usePreferences } from './hooks/usePreferences';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -80,7 +81,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
     [Priority.LOW]: 'bg-zinc-400/10 dark:bg-zinc-400/20 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-400/30',
   };
 
-  const completedStyle = 'bg-emerald-500/20 dark:bg-emerald-500/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/40 shadow-sm shadow-emerald-500/10';
+  const completedStyle = `${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} ${TASK_STATUS_CONFIG[TaskStatus.DONE].text} border-emerald-200 dark:border-emerald-500/40 shadow-sm ${TASK_STATUS_CONFIG[TaskStatus.DONE].glow}`;
 
   const navigateWeek = (direction: number) => {
     const newDate = new Date(currentDate);
@@ -241,8 +242,8 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
           </div>
           <div className="w-px h-3 bg-zinc-200 dark:bg-white/10 mx-1"></div>
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded bg-emerald-500 shadow-sm shadow-emerald-500/20"></div>
-            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Completed</span>
+            <div className={`w-2.5 h-2.5 rounded ${TASK_STATUS_CONFIG[TaskStatus.DONE].bg} shadow-sm ${TASK_STATUS_CONFIG[TaskStatus.DONE].glow}`}></div>
+            <span className={`text-[10px] font-semibold ${TASK_STATUS_CONFIG[TaskStatus.DONE].text}`}>{TASK_STATUS_CONFIG[TaskStatus.DONE].label}</span>
           </div>
         </div>
       </div>

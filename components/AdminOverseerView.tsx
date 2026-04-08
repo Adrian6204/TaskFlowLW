@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Task, Space, Employee, TaskStatus, Priority } from '../types';
 import { isTaskOverdue } from '../utils/taskUtils';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 interface AdminOverseerViewProps {
     spaces: Space[];
@@ -99,8 +100,8 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
                 <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="w-2 h-2 rounded-full bg-lime-500 dark:bg-[#CEFD4A] animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-600 dark:text-[#CEFD4A]">
+                            <span className={`w-2 h-2 rounded-full ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].bg} animate-pulse`} />
+                            <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text}`}>
                                 Admin Panel
                             </span>
                         </div>
@@ -117,17 +118,18 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
                             <p className="text-xl font-black text-slate-900 dark:text-white">{employees.length}</p>
                             <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">Members</p>
                         </div>
-                        <div className="text-center px-4 py-2 bg-lime-500/10 dark:bg-[#CEFD4A]/10 rounded-2xl border border-lime-500/20 dark:border-[#CEFD4A]/20">
-                            <p className="text-xl font-black text-lime-600 dark:text-[#CEFD4A]">{totalActive}</p>
-                            <p className="text-[9px] font-bold uppercase tracking-widest text-lime-600/70 dark:text-[#CEFD4A]/60">Active</p>
+                        <div className={`text-center px-4 py-2 ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].faint} rounded-2xl border ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text} border-current/20`}>
+                            <p className="text-xl font-black">{totalActive}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-widest opacity-70">Active</p>
                         </div>
-                        <div className="text-center px-4 py-2 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-                            <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{totalDone}</p>
-                            <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-600/70 dark:text-emerald-400/60">Done</p>
+                        <div className={`text-center px-4 py-2 ${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} rounded-2xl border ${TASK_STATUS_CONFIG[TaskStatus.DONE].text} border-current/20`}>
+                            <p className="text-xl font-black">{totalDone}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-widest opacity-70">Done</p>
                         </div>
                     </div>
                 </div>
             </div>
+
 
 
             {/* ── Member Grid ── */}
@@ -188,19 +190,20 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
 
                                     {/* Task stats */}
                                     <div className="flex gap-2">
-                                        <div className="flex-1 text-center py-2 rounded-xl bg-black/5 dark:bg-white/5">
-                                            <p className="text-base font-black text-slate-700 dark:text-white/80">{todo}</p>
+                                        <div className={`flex-1 text-center py-2 rounded-xl ${TASK_STATUS_CONFIG[TaskStatus.TODO].faint}`}>
+                                            <p className={`text-base font-black ${TASK_STATUS_CONFIG[TaskStatus.TODO].text}`}>{todo}</p>
                                             <p className="text-[8px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">To Do</p>
                                         </div>
-                                        <div className="flex-1 text-center py-2 rounded-xl bg-lime-500/10 dark:bg-[#CEFD4A]/10">
-                                            <p className="text-base font-black text-lime-600 dark:text-[#CEFD4A]">{inProg}</p>
-                                            <p className="text-[8px] font-bold uppercase tracking-widest text-lime-600/70 dark:text-[#CEFD4A]/60">Active</p>
+                                        <div className={`flex-1 text-center py-2 rounded-xl ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].faint}`}>
+                                            <p className={`text-base font-black ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text}`}>{inProg}</p>
+                                            <p className="text-[8px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">Active</p>
                                         </div>
-                                        <div className="flex-1 text-center py-2 rounded-xl bg-emerald-500/10">
-                                            <p className="text-base font-black text-emerald-600 dark:text-emerald-400">{done}</p>
-                                            <p className="text-[8px] font-bold uppercase tracking-widest text-emerald-600/70 dark:text-emerald-400/60">Done</p>
+                                        <div className={`flex-1 text-center py-2 rounded-xl ${TASK_STATUS_CONFIG[TaskStatus.DONE].faint}`}>
+                                            <p className={`text-base font-black ${TASK_STATUS_CONFIG[TaskStatus.DONE].text}`}>{done}</p>
+                                            <p className="text-[8px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">Done</p>
                                         </div>
                                     </div>
+
 
 
                                     {/* Active task list */}
@@ -228,7 +231,7 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
                                                         </span>
                                                         <div className="shrink-0 flex items-center gap-1">
                                                             {task.status === TaskStatus.IN_PROGRESS && (
-                                                                <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-lime-500/10 text-lime-600 dark:text-[#CEFD4A] font-bold uppercase">
+                                                                <span className={`text-[8px] px-1.5 py-0.5 rounded-full ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].faint} ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text} font-bold uppercase`}>
                                                                     Active
                                                                 </span>
                                                             )}
@@ -269,7 +272,7 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
                                 <div className="px-5 pb-5">
                                     <button
                                         onClick={() => onAddTask(employee.id, currentSpace.id)}
-                                        className="w-full py-2.5 rounded-[14px] text-xs font-black uppercase tracking-widest transition-all border bg-black/5 dark:bg-white/5 text-slate-500 dark:text-white/40 border-black/5 dark:border-white/10 hover:bg-lime-500 dark:hover:bg-[#CEFD4A] hover:text-white dark:hover:text-black hover:border-transparent hover:shadow-lg hover:shadow-lime-500/20"
+                                        className={`w-full py-2.5 rounded-[14px] text-xs font-black uppercase tracking-widest transition-all border bg-black/5 dark:bg-white/5 text-slate-500 dark:text-white/40 border-black/5 dark:border-white/10 hover:${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].bg} hover:text-white dark:hover:text-white hover:border-transparent hover:shadow-lg ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].glow}`}
                                     >
                                         + Assign Task
                                     </button>

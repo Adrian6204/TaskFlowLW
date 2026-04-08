@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Task, Employee, TaskStatus } from '../types';
 import TaskCard from './TaskCard';
-import { PlusIcon } from './icons/PlusIcon';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 interface TaskColumnProps {
   status: TaskStatus;
@@ -17,14 +17,9 @@ interface TaskColumnProps {
   isAdmin?: boolean;
 }
 
-const statusConfig = {
-  [TaskStatus.TODO]: { glow: 'bg-orange-500 shadow-orange-500/50', text: 'text-white', label: 'In Queue' },
-  [TaskStatus.IN_PROGRESS]: { glow: 'bg-emerald-700 shadow-emerald-700/50', text: 'text-white', label: 'Active Tasks' },
-  [TaskStatus.DONE]: { glow: 'bg-emerald-500 shadow-emerald-500/50', text: 'text-white', label: 'Completed' },
-};
-
 const TaskColumn: React.FC<TaskColumnProps> = ({ status, tasks, allTasks, employees, onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, currentUserId, isAdmin }) => {
-  const config = statusConfig[status];
+  const config = TASK_STATUS_CONFIG[status];
+
   const [isOver, setIsOver] = useState(false);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {

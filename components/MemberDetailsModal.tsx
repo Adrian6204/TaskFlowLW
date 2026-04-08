@@ -6,6 +6,7 @@ import { cardAccents } from './WorkspaceHomePage';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 interface MemberDetailsModalProps {
     isOpen: boolean;
@@ -96,12 +97,12 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                             <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Total</p>
                         </div>
                         <div className="text-center">
-                            <p className={`text-2xl font-black ${accent ? `${accent.text} ${accent.darkText}` : 'text-lime-600 dark:text-[#CEFD4A]'}`}>{stats.completed}</p>
-                            <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Done</p>
+                            <p className={`text-2xl font-black ${TASK_STATUS_CONFIG[TaskStatus.DONE].text}`}>{stats.completed}</p>
+                            <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">{TASK_STATUS_CONFIG[TaskStatus.DONE].label}</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-2xl font-black text-primary-500 dark:text-primary-400">{stats.inProgress}</p>
-                            <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Active</p>
+                            <p className={`text-2xl font-black ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text}`}>{stats.inProgress}</p>
+                            <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">{TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].label}</p>
                         </div>
                     </div>
                 </div>
@@ -125,13 +126,13 @@ const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                                         className={`group flex items-center gap-4 p-4 bg-white dark:bg-black/20 border border-slate-100 dark:border-white/5 hover:border-${accent ? accent.from.split('-')[1] : 'lime'}-500/30 dark:hover:border-${accent ? accent.darkText.split('-')[1].replace('#', '') : '[#CEFD4A]'}/30 rounded-[20px] transition-all cursor-pointer shadow-sm hover:shadow-md`}
                                     >
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${task.status === TaskStatus.DONE
-                                            ? 'bg-lime-500/20 border-lime-500 text-lime-600 dark:bg-[#CEFD4A]/20 dark:border-[#CEFD4A] dark:text-[#CEFD4A]'
+                                            ? `${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} border-emerald-500 ${TASK_STATUS_CONFIG[TaskStatus.DONE].text}`
                                             : task.status === TaskStatus.IN_PROGRESS
-                                                ? 'border-primary-500 text-primary-500'
+                                                ? `${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].bg.replace('bg-', 'border-')} ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text}`
                                                 : 'border-slate-200 dark:border-white/10 text-transparent'
                                             }`}>
                                             {task.status === TaskStatus.DONE && <CheckCircleIcon className="w-5 h-5" />}
-                                            {task.status === TaskStatus.IN_PROGRESS && <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" />}
+                                            {task.status === TaskStatus.IN_PROGRESS && <div className={`w-2 h-2 ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].bg} rounded-full animate-pulse`} />}
                                         </div>
 
                                         <div className="flex-1 min-w-0">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Task, Priority, TaskStatus } from '../types';
 import { usePreferences } from './hooks/usePreferences';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 
@@ -176,7 +177,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onViewTask }) => {
                              border border-transparent hover:scale-[1.02] active:scale-95
                              flex items-center gap-2 group/task
                              ${task.status === TaskStatus.DONE
-                          ? 'bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-white/20 line-through'
+                          ? `${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} ${TASK_STATUS_CONFIG[TaskStatus.DONE].text} line-through opacity-60`
                           : 'bg-white dark:bg-white/10 text-slate-600 dark:text-white/70 shadow-sm hover:shadow-md hover:bg-slate-50 dark:hover:bg-white/20 dark:hover:text-white'}
                           `}
                     >
@@ -187,13 +188,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onViewTask }) => {
                           {preferences.timeFormat === '24h'
                             ? task.dueTime
                             : (() => {
-                              const [h, m] = task.dueTime.split(':');
-                              const hours = parseInt(h, 10);
-                              const suffix = hours >= 12 ? 'pm' : 'am';
-                              const hour12 = hours % 12 || 12;
-                              return `${hour12}:${m}${suffix}`;
-                            })()
-                          }
+                               const [h, m] = task.dueTime.split(':');
+                               const hours = parseInt(h, 10);
+                               const suffix = hours >= 12 ? 'pm' : 'am';
+                               const hour12 = hours % 12 || 12;
+                               return `${hour12}:${m}${suffix}`;
+                             })()
+                           }
                         </span>
                       )}
                     </button>

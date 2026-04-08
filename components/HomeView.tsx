@@ -6,6 +6,7 @@ import { ClockIcon } from './icons/ClockIcon';
 import { FlagIcon } from './icons/FlagIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
 import { BoltIcon } from './icons/BoltIcon';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 import { useDailyTasks, DailyTaskPriority } from '../hooks/useDailyTasks';
 import { usePreferences } from './hooks/usePreferences';
@@ -372,10 +373,10 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                     : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10'
                     }`}
                 >
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === TaskStatus.DONE ? 'bg-lime-500 dark:bg-[#CEFD4A] border-lime-500 dark:border-[#CEFD4A] text-white dark:text-black' :
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === TaskStatus.DONE ? `${TASK_STATUS_CONFIG[TaskStatus.DONE].bg} border-emerald-500 text-white dark:text-black` :
                     task.isUnplanned ? 'border-red-500 text-transparent' :
-                      task.isDaily ? 'border-lime-500 dark:border-[#CEFD4A] text-transparent' :
-                        task.status === TaskStatus.IN_PROGRESS ? 'border-lime-500 dark:border-[#CEFD4A] text-transparent' :
+                      task.isDaily ? `${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].bg.replace('bg-', 'border-')} text-transparent` :
+                        task.status === TaskStatus.IN_PROGRESS ? `${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].bg.replace('bg-', 'border-')} text-transparent` :
                           'border-slate-300 dark:border-white/20 text-transparent group-hover:border-slate-400 dark:group-hover:border-white/40'
                     }`}>
                     {task.status === TaskStatus.DONE && <CheckCircleIcon className="w-4 h-4" />}
@@ -429,14 +430,9 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                       {/* Status Badge */}
                       <button
                         onClick={(e) => handleTaskClick(e, task)}
-                        className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 ${task.status === TaskStatus.DONE
-                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                          : task.status === TaskStatus.IN_PROGRESS
-                            ? 'bg-primary-500/20 text-primary-600 dark:text-primary-400'
-                            : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
-                          }`}
+                        className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 ${TASK_STATUS_CONFIG[task.status as TaskStatus].faint} ${TASK_STATUS_CONFIG[task.status as TaskStatus].text}`}
                       >
-                        {task.status === TaskStatus.DONE ? 'Completed' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'Pending'}
+                        {TASK_STATUS_CONFIG[task.status as TaskStatus].label}
                       </button>
 
                       {!task.isDaily && (
@@ -531,9 +527,9 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
 
               <div className="space-y-2">
                 {[
-                  { id: TaskStatus.TODO, label: 'Pending', desc: 'Task waiting', color: 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 hover:border-slate-300 dark:hover:border-white/20' },
-                  { id: TaskStatus.IN_PROGRESS, label: 'In Progress', desc: 'Working now', color: 'bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:border-primary-500/30' },
-                  { id: TaskStatus.DONE, label: 'Completed', desc: 'Finished', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500/30' }
+                  { id: TaskStatus.TODO, label: 'Pending', desc: 'Task waiting', config: TASK_STATUS_CONFIG[TaskStatus.TODO] },
+                  { id: TaskStatus.IN_PROGRESS, label: 'In Progress', desc: 'Working now', config: TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS] },
+                  { id: TaskStatus.DONE, label: 'Completed', desc: 'Finished', config: TASK_STATUS_CONFIG[TaskStatus.DONE] }
                 ].map(status => (
                   <button
                     key={status.id}
@@ -546,7 +542,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                       setStatusPickerTask(null);
                       setPickerPosition(null);
                     }}
-                    className={`w-full text-left p-3 rounded-xl border border-transparent transition-all flex flex-col gap-0.5 group ${status.color}`}
+                    className={`w-full text-left p-3 rounded-xl border border-transparent transition-all flex flex-col gap-0.5 group ${status.config.faint} ${status.config.text} hover:scale-[1.02] active:scale-[0.98] border-black/5 dark:border-white/5`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-sm">{status.label}</span>
@@ -660,11 +656,11 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                             : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/10 hover:bg-black/10 dark:hover:bg-white/10 shadow-sm hover:shadow-md'
                           }`}
                       >
-                        <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${task.status === TaskStatus.DONE ? 'bg-lime-500 dark:bg-[#CEFD4A] border-lime-500 dark:border-[#CEFD4A] text-white dark:text-black shadow-[0_0_15px_rgba(206,253,74,0.3)]' :
+                        <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${task.status === TaskStatus.DONE ? `${TASK_STATUS_CONFIG[TaskStatus.DONE].bg} border-emerald-500 text-white dark:text-black shadow-[0_0_15px_rgba(206,253,74,0.3)]` :
                           // @ts-ignore
                           task.isUnplanned ? 'border-red-500 text-transparent' :
-                            task.isDaily ? 'border-lime-500 dark:border-[#CEFD4A] text-transparent' :
-                              task.status === TaskStatus.IN_PROGRESS ? 'border-lime-500 dark:border-[#CEFD4A] text-transparent shadow-[0_0_10px_rgba(206,253,74,0.1)]' :
+                            task.isDaily ? `${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].bg.replace('bg-', 'border-')} text-transparent` :
+                              task.status === TaskStatus.IN_PROGRESS ? `${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].bg.replace('bg-', 'border-')} text-transparent shadow-[0_0_10px_rgba(206,253,74,0.1)]` :
                                 'border-slate-300 dark:border-white/20 text-transparent group-hover:border-slate-400 dark:group-hover:border-white/40'
                           }`}>
                           {task.status === TaskStatus.DONE && <CheckCircleIcon className="w-6 h-6" />}
@@ -730,14 +726,9 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                             {/* Status Badge */}
                             <button
                               onClick={(e) => handleTaskClick(e, task)}
-                              className={`text-[9px] px-2 py-1 rounded-lg font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 ${task.status === TaskStatus.DONE
-                                ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                                : task.status === TaskStatus.IN_PROGRESS
-                                  ? 'bg-primary-500/20 text-primary-600 dark:text-primary-400'
-                                  : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-white/40'
-                                }`}
+                              className={`text-[9px] px-2 py-1 rounded-lg font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 ${TASK_STATUS_CONFIG[task.status as TaskStatus].faint} ${TASK_STATUS_CONFIG[task.status as TaskStatus].text}`}
                             >
-                              {task.status === TaskStatus.DONE ? 'Completed' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'Pending'}
+                              {TASK_STATUS_CONFIG[task.status as TaskStatus].label}
                             </button>
                           </div>
                         </div>

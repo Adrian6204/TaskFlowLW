@@ -21,7 +21,7 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, allTasks, employees, onEdi
   const [preferences] = usePreferences();
 
   const filteredTasks = tasks.filter(task => {
-    if (task.status !== 'Done') return true;
+    if (task.status !== TaskStatus.DONE) return true;
     if (preferences.showCompletedTasks === 'always') return true;
     if (preferences.showCompletedTasks === 'never') return false;
     

@@ -5,6 +5,7 @@ import { isPresent, isLate, isLateFromTimeIn, isAbsent, isTimedOut } from '../ut
 import { fetchTaskFlowStatus } from '../services/taskflowStatusService';
 import { Clock, Maximize2, Minimize2, ChevronDown, Check, Copy, LayoutGrid, List, CheckCircle2 } from 'lucide-react';
 import { usePreferences } from './hooks/usePreferences';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 interface TaskSummaryViewProps {
     tasks: Task[];
@@ -406,11 +407,7 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                                 className="flex items-start justify-between gap-4 px-4 py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
                                             >
                                                 <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                                                    <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
-                                                        task.status === TaskStatus.DONE ? 'bg-emerald-500' :
-                                                        task.status === TaskStatus.IN_PROGRESS ? 'bg-indigo-500' :
-                                                        overdue ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-600'
-                                                    }`} />
+                                                    <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${TASK_STATUS_CONFIG[task.status as TaskStatus].bg} ${TASK_STATUS_CONFIG[task.status as TaskStatus].glow}`} />
                                                     <div className="flex-1 min-w-0">
                                                         <span className={`text-sm font-medium leading-snug ${overdue ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-200'}`}>
                                                             {task.title}
@@ -419,7 +416,7 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                                             <ul className="mt-1.5 space-y-1 pl-1">
                                                                 {task.subtasks.map(st => (
                                                                     <li key={st.id} className="flex items-start gap-2 text-xs">
-                                                                        <div className={`mt-[0.35rem] w-1.5 h-1.5 rounded-full shrink-0 ${st.isCompleted ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                                                                        <div className={`mt-[0.35rem] w-1.5 h-1.5 rounded-full shrink-0 ${st.isCompleted ? TASK_STATUS_CONFIG[TaskStatus.DONE].bg : 'bg-slate-300 dark:bg-slate-600'}`} />
                                                                         <span className={`leading-snug ${st.isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>
                                                                             {st.title}
                                                                         </span>
@@ -435,14 +432,8 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                                             Overdue
                                                         </span>
                                                     )}
-                                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${
-                                                        task.status === TaskStatus.DONE
-                                                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
-                                                            : task.status === TaskStatus.IN_PROGRESS
-                                                                ? 'bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
-                                                                : 'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-white/5 dark:text-white/40 dark:border-white/10'
-                                                    }`}>
-                                                        {task.status === TaskStatus.DONE ? 'Done' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'To Do'}
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${TASK_STATUS_CONFIG[task.status as TaskStatus].faint} ${TASK_STATUS_CONFIG[task.status as TaskStatus].text} border ${TASK_STATUS_CONFIG[task.status as TaskStatus].bg.replace('bg-', 'border-')}/20`}>
+                                                        {TASK_STATUS_CONFIG[task.status as TaskStatus].label}
                                                     </span>
                                                 </div>
                                             </div>
@@ -499,7 +490,6 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                                         <ul className="mt-2.5 space-y-1.5 w-full pl-1">
                                                             {task.subtasks.map(st => (
                                                                 <li key={st.id} className="flex items-start gap-2 text-xs">
-                                                                    <div className={`mt-[0.35rem] w-1.5 h-1.5 rounded-full shrink-0 ${st.isCompleted ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
                                                                     <span className={`leading-snug ${st.isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
                                                                         {st.title}
                                                                     </span>
@@ -514,13 +504,8 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                                                             Overdue
                                                         </span>
                                                     )}
-                                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider shrink-0 ${task.status === TaskStatus.DONE
-                                                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
-                                                        : task.status === TaskStatus.IN_PROGRESS
-                                                            ? 'bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
-                                                            : 'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-white/5 dark:text-white/40 dark:border-white/10'
-                                                        }`}>
-                                                        {task.status === TaskStatus.DONE ? 'Done' : task.status === TaskStatus.IN_PROGRESS ? 'In Progress' : 'To Do'}
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider shrink-0 ${TASK_STATUS_CONFIG[task.status as TaskStatus].faint} ${TASK_STATUS_CONFIG[task.status as TaskStatus].text} border ${TASK_STATUS_CONFIG[task.status as TaskStatus].bg.replace('bg-', 'border-')}/20`}>
+                                                        {TASK_STATUS_CONFIG[task.status as TaskStatus].label}
                                                     </span>
                                                 </div>
                                             </div>

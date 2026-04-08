@@ -51,8 +51,6 @@ export interface EmployeeWithRole extends Employee {
   isSuperAdmin: boolean;
 }
 
-
-
 export interface Subtask {
   id: string;
   title: string;
@@ -75,6 +73,7 @@ export interface Task {
   assigneeIds?: string[]; // New array for multiple assignees
   creatorId?: string; // Adding tracking for task creator
   dueDate: string; // YYYY-MM-DD
+  dueTime?: string; // HH:mm
   status: TaskStatus;
   priority: Priority;
   subtasks: Subtask[];

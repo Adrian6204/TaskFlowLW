@@ -1,6 +1,21 @@
 
 import React from 'react';
 import { Task, Employee } from '../../types';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip
+);
 
 interface TasksPerEmployeeBarChartProps {
   tasks: Task[];
@@ -9,29 +24,63 @@ interface TasksPerEmployeeBarChartProps {
 
 const TasksPerEmployeeBarChart: React.FC<TasksPerEmployeeBarChartProps> = ({ tasks, employees }) => {
   const employeeTaskCounts = employees.map(employee => ({
-    ...employee,
+    name: employee.name,
+    avatarUrl: employee.avatarUrl,
     taskCount: tasks.filter(task => task.assigneeId === employee.id).length,
   }));
 
-  const maxTasks = Math.max(...employeeTaskCounts.map(e => e.taskCount), 1);
+  const data = {
+    labels: employeeTaskCounts.map(e => e.name),
+    datasets: [
+      {
+        label: 'Tasks',
+        data: employeeTaskCounts.map(e => e.taskCount),
+        backgroundColor: '#6366f1',
+        borderRadius: 8,
+        barThickness: 20,
+      },
+    ],
+  };
+
+  const options = {
+    indexAxis: 'y' as const,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        cornerRadius: 8,
+        padding: 10,
+      },
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { display: false },
+        ticks: { color: '#94a3b8', font: { size: 10 } },
+      },
+      y: {
+        grid: { display: false },
+        ticks: {
+          color: '#94a3b8',
+          font: { size: 11, weight: 'bold' as const },
+        },
+      },
+    },
+    animation: {
+      duration: 1500,
+      easing: 'easeOutQuart' as const,
+    },
+  };
 
   return (
-    <div className="w-full space-y-3">
-      {employeeTaskCounts.map(emp => (
-        <div key={emp.id} className="flex items-center gap-3">
-          <img src={emp.avatarUrl} alt={emp.name} className="w-8 h-8 rounded-lg border border-slate-200 dark:border-white/10 flex-shrink-0" title={emp.name} />
-          <div className="flex-grow bg-slate-100 dark:bg-slate-800 rounded-full h-6 overflow-hidden">
-            <div
-              className="bg-primary-500 h-6 rounded-full flex items-center justify-end px-2 transition-all duration-500"
-              style={{ width: `${(emp.taskCount / maxTasks) * 100}%` }}
-            >
-              <span className="text-xs font-bold text-white">{emp.taskCount}</span>
-            </div>
-          </div>
-        </div>
-      ))}
+    <div className="w-full h-64">
+      <Bar data={data} options={options} />
     </div>
   );
 };
 
 export default TasksPerEmployeeBarChart;
+

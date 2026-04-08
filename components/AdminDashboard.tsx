@@ -1,8 +1,12 @@
+
 import React, { useState } from 'react';
 import { Task, Employee, TaskStatus, ActivityLog, Priority } from '../types';
 import TaskStatusStackedBar from './charts/TaskStatusStackedBar';
 import TaskPriorityHorizontalBar from './charts/TaskPriorityHorizontalBar';
-import CompletionHistoryChart from './charts/CompletionHistoryChart';
+import ThroughputChart from './charts/ThroughputChart';
+import LeadTimeChart from './charts/LeadTimeChart';
+import MemberEfficiencyChart from './charts/MemberEfficiencyChart';
+import WorkloadHealth from './charts/WorkloadHealth';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
@@ -12,6 +16,7 @@ import { BoltIcon } from './icons/BoltIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { isTaskOverdue } from '../utils/taskUtils';
 import OverdueTasksModal from './OverdueTasksModal';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 interface AdminDashboardProps {
     tasks: Task[];
@@ -79,7 +84,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             const createdAt = new Date(t.createdAt).getTime();
             const completedAt = t.completedAt ? new Date(t.completedAt).getTime() : null;
             
-            // Period includes any task with a significant event (due, created, or completed) in the window
             return (dueDate && dueDate >= start && dueDate < end) ||
                    (createdAt >= start && createdAt < end) ||
                    (completedAt && completedAt >= start && completedAt < end);
@@ -99,7 +103,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const isOverdueModalOpen = externalIsOverdueModalOpen !== undefined ? externalIsOverdueModalOpen : internalIsOverdueModalOpen;
     const setIsOverdueModalOpen = externalSetIsOverdueModalOpen !== undefined ? externalSetIsOverdueModalOpen : setInternalIsOverdueModalOpen;
 
-    // Period-specific metrics (Precise)
+    // Period-specific metrics
     const periodCreated = filteredTasks.filter(t => {
         const createdAt = new Date(t.createdAt).getTime();
         return createdAt >= periodStart && createdAt < periodEnd;
@@ -113,9 +117,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const activeAssignees = new Set(filteredTasks.filter(t => t.status !== TaskStatus.DONE && t.assigneeId).map(t => t.assigneeId)).size;
     const highPriorityActive = filteredTasks.filter(t => (t.priority === Priority.HIGH || t.priority === Priority.URGENT) && t.status !== TaskStatus.DONE).length;
 
-    // Calculate average completion time (mock calculation for demo)
-    const avgCompletionTime = "2.5 Days";
-
     return (
         <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-1000 pt-safe-top">
 
@@ -123,7 +124,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                 <BentoCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-xl">
+                        <div className={`p-2 ${TASK_STATUS_CONFIG[TaskStatus.TODO].faint} ${TASK_STATUS_CONFIG[TaskStatus.TODO].text} rounded-xl`}>
                             <SparklesIcon className="w-5 h-5" />
                         </div>
                         <span className="text-3xl font-black text-slate-900 dark:text-white">{periodCreated}</span>
@@ -135,7 +136,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                 <BentoCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-green-500/10 text-green-500 rounded-xl">
+                        <div className={`p-2 ${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} ${TASK_STATUS_CONFIG[TaskStatus.DONE].text} rounded-xl`}>
                             <CheckCircleIcon className="w-5 h-5" />
                         </div>
                         <span className="text-3xl font-black text-slate-900 dark:text-white">{periodCompleted}</span>
@@ -147,7 +148,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                 <BentoCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl">
+                        <div className={`p-2 ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].faint} ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text} rounded-xl`}>
                             <UsersIcon className="w-5 h-5" />
                         </div>
                         <span className="text-3xl font-black text-slate-900 dark:text-white">{activeAssignees}</span>
@@ -172,7 +173,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* 1. Main Status Card (Span 2) */}
                 <BentoCard className="col-span-1 md:col-span-2 relative overflow-hidden group p-8 flex flex-col gap-4">
                     <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none">
-                        <div className="w-64 h-64 rounded-full bg-gradient-to-br from-orange-400 to-pink-600 blur-[100px]"></div>
+                        <div className={`w-64 h-64 rounded-full bg-gradient-to-br from-[#FFB347] to-[#046241] blur-[100px]`} />
                     </div>
 
                     <div className="relative z-10">
@@ -204,7 +205,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                         <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.9] mb-3">
                             Project{' '}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-600">Velocity</span>
+                            <span className={`text-transparent bg-clip-text bg-gradient-to-r from-[#FFB347] to-[#046241]`}>Velocity</span>
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-white/40 font-medium leading-relaxed max-w-md">
                             Real-time overview of your team's task throughput, progress, and critical bottlenecks across all active workloads.
@@ -215,11 +216,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="relative z-10">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400 dark:text-white/40">Overall Progress</span>
-                            <span className="text-[10px] font-bold text-lime-500 dark:text-[#CEFD4A]">{completionRate}% complete</span>
+                            <span className={`text-[10px] font-bold ${TASK_STATUS_CONFIG[TaskStatus.DONE].text}`}>{completionRate}% complete</span>
                         </div>
                         <div className="h-2 w-full rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
                             <div
-                                className="h-full rounded-full bg-gradient-to-r from-lime-400 to-emerald-500 transition-all duration-1000"
+                                className={`h-full rounded-full bg-gradient-to-r from-[#FFB347] to-[#10b981] transition-all duration-1000`}
                                 style={{ width: `${completionRate}%` }}
                             />
                         </div>
@@ -236,7 +237,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Total Active</p>
                         </div>
                         <div>
-                            <p className="text-4xl font-black text-lime-500 dark:text-[#CEFD4A]">{completionRate}%</p>
+                            <p className={`text-4xl font-black ${TASK_STATUS_CONFIG[TaskStatus.DONE].text}`}>{completionRate}%</p>
                             <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Completion Rate</p>
                         </div>
                         <div>
@@ -282,13 +283,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         const assignee = employees.find(e => e.id === task.assigneeId);
                         const isUrgent = task.priority === Priority.URGENT;
                         const overdue = isTaskOverdue(task);
-                        const priorityColor = isUrgent
-                            ? 'bg-red-500'
-                            : task.priority === Priority.HIGH
-                                ? 'bg-orange-400'
-                                : 'bg-yellow-400';
-                        const priorityLabel = isUrgent ? 'Urgent' : task.priority === Priority.HIGH ? 'High' : 'Medium';
                         const priorityTextColor = isUrgent ? 'text-red-500 bg-red-500/10' : task.priority === Priority.HIGH ? 'text-orange-500 bg-orange-500/10' : 'text-yellow-600 bg-yellow-500/10';
+                        const priorityLabel = isUrgent ? 'Urgent' : task.priority === Priority.HIGH ? 'High' : 'Medium';
 
                         return (
                             <BentoCard
@@ -331,17 +327,64 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
             </div>
 
-            {/* Recommended Analytics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <BentoCard className="p-6 flex flex-col min-h-[200px]">
-                    <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Task Status</h3>
+            {/* Analytics Section — 2x2 Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* 1. Throughput Trend */}
+                <BentoCard className="p-6 flex flex-col min-h-[320px]">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Project Throughput</h3>
+                            <p className="text-[10px] text-slate-500 dark:text-white/20 font-medium">Created vs. Completed (Last 7 Days)</p>
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <ThroughputChart tasks={filteredTasks} />
+                    </div>
+                </BentoCard>
+
+                {/* 2. Workload Health */}
+                <div className="min-h-[320px]">
+                    <WorkloadHealth tasks={filteredTasks} />
+                </div>
+
+                {/* 3. Member Allocation Efficiency */}
+                <BentoCard className="p-6 flex flex-col min-h-[320px]">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Team Workload Balance</h3>
+                            <p className="text-[10px] text-slate-500 dark:text-white/20 font-medium">Active vs. Completed tasks per member</p>
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <MemberEfficiencyChart tasks={filteredTasks} employees={employees} />
+                    </div>
+                </BentoCard>
+
+                {/* 4. Speed & Priority Analysis */}
+                <BentoCard className="p-6 flex flex-col min-h-[320px]">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Priority Turnaround</h3>
+                            <p className="text-[10px] text-slate-500 dark:text-white/20 font-medium">Average days to completion by priority</p>
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <LeadTimeChart tasks={filteredTasks} />
+                    </div>
+                </BentoCard>
+            </div>
+
+            {/* Minor Charts Footer */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-80 hover:opacity-100 transition-opacity">
+                <BentoCard className="p-4 flex flex-col h-32">
+                    <h3 className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Detailed Status</h3>
                     <div className="flex-1">
                         <TaskStatusStackedBar tasks={filteredTasks} />
                     </div>
                 </BentoCard>
-
-                <BentoCard className="p-6 flex flex-col min-h-[200px]">
-                    <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Active Priorities</h3>
+                <BentoCard className="p-4 flex flex-col h-32">
+                    <h3 className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Priority Volume</h3>
                     <div className="flex-1">
                         <TaskPriorityHorizontalBar tasks={filteredTasks} />
                     </div>

@@ -10,6 +10,7 @@ import { ClockIcon } from './icons/ClockIcon';
 import { ArrowPathIcon } from './icons/ArrowPathIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { isTaskOverdue } from '../utils/taskUtils';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 import TagPill from './TagPill';
 
@@ -87,7 +88,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onE
           {canEdit && task.status !== TaskStatus.DONE && (
             <button
               onClick={(e) => { e.stopPropagation(); setShowCompleteConfirm(true); }}
-              className="p-2 text-slate-400 dark:text-white/40 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+              className={`p-2 text-slate-400 dark:text-white/40 hover:${TASK_STATUS_CONFIG[TaskStatus.DONE].text} hover:${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} rounded-lg transition-all`}
               title="Mark as Complete"
             >
               <CheckCircleIcon className="w-3.5 h-3.5" />
@@ -181,14 +182,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onE
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={(e) => { e.stopPropagation(); setShowCompleteConfirm(false); }} />
           <div className="relative bg-white dark:bg-black/80 dark:backdrop-blur-xl rounded-[32px] p-8 max-w-sm w-full border border-slate-200 dark:border-white/10 shadow-2xl animate-in fade-in zoom-in duration-300" onClick={(e) => e.stopPropagation()}>
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-500/20 mb-6">
-              <CheckCircleIcon className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+            <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full ${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} mb-6`}>
+              <CheckCircleIcon className={`h-8 w-8 ${TASK_STATUS_CONFIG[TaskStatus.DONE].text}`} />
             </div>
             <h3 className="text-xl font-black text-center text-slate-900 dark:text-white mb-2 tracking-tight">Complete Task?</h3>
             <p className="text-center text-sm text-slate-500 dark:text-white/60 mb-8 font-medium">
               Are you sure you want to mark "{task.title}" as complete?
               {task.recurrence && task.recurrence !== 'none' && (
-                <span className="block mt-2 text-primary-600 dark:text-primary-400">
+                <span className={`block mt-2 ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text}`}>
                   This will automatically generate the next recurring task.
                 </span>
               )}
@@ -206,7 +207,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onE
                   onUpdateTaskStatus(task.id, TaskStatus.DONE);
                   setShowCompleteConfirm(false);
                 }}
-                className="flex-1 py-3.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[20px] font-bold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all active:scale-95"
+                className={`flex-1 py-3.5 px-4 ${TASK_STATUS_CONFIG[TaskStatus.DONE].bg} hover:brightness-110 text-white rounded-[20px] font-bold shadow-lg ${TASK_STATUS_CONFIG[TaskStatus.DONE].glow} transition-all active:scale-95`}
               >
                 Confirm
               </button>

@@ -13,6 +13,7 @@ import { PhotoIcon } from './icons/PhotoIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { ArrowPathIcon } from './icons/ArrowPathIcon';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 interface CreateTaskModalProps {
     isOpen: boolean;
@@ -247,12 +248,9 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                     {/* Attributes Bar */}
                     <div className="flex flex-wrap items-center gap-3 mb-10 p-4 bg-neutral-50 dark:bg-white/[0.03] rounded-2xl border border-neutral-100 dark:border-white/5">
                         {/* Status badge */}
-                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider h-9 w-fit
-                            ${status === TaskStatus.TODO ? 'bg-slate-100 dark:bg-slate-500/10 text-slate-500 dark:text-slate-400'
-                            : status === TaskStatus.IN_PROGRESS ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400'
-                            : 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400'}`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${status === TaskStatus.TODO ? 'bg-slate-400' : status === TaskStatus.IN_PROGRESS ? 'bg-primary-500' : 'bg-green-500'}`} />
-                            {status}
+                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider h-9 w-fit ${TASK_STATUS_CONFIG[status].faint} ${TASK_STATUS_CONFIG[status].text}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${TASK_STATUS_CONFIG[status].bg}`} />
+                            {TASK_STATUS_CONFIG[status].label}
                         </div>
 
                         {/* Assignee Selector */}
@@ -538,8 +536,8 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                                         }}
                                         className={`w-4 h-4 rounded-full border-2 flex-shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500
                                             ${st.isCompleted
-                                                ? 'bg-green-500 border-green-500'
-                                                : 'border-neutral-300 dark:border-neutral-600 hover:border-green-400 dark:hover:border-green-400 focus:border-green-400'
+                                                ? `${TASK_STATUS_CONFIG[TaskStatus.DONE].bg} border-emerald-500`
+                                                : 'border-neutral-300 dark:border-neutral-600 hover:border-emerald-400 dark:hover:border-emerald-400 focus:border-emerald-400'
                                             }`}
                                     />
                                     <span className={`text-sm ${st.isCompleted ? 'line-through text-neutral-400' : 'text-slate-700 dark:text-slate-300'}`}>{st.title}</span>

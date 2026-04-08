@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Employee, Space, List, Task, TaskStatus } from '../types';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 import { PlusIcon } from './icons/PlusIcon';
 import { UserIcon } from './icons/UserIcon';
 import { HomeIcon } from './icons/HomeIcon';
@@ -178,6 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           const overdue = myTasks.filter(t => t.dueDate && t.dueDate < todayStr);
           const dueToday = myTasks.filter(t => t.dueDate === todayStr);
           const inProg = myTasks.filter(t => t.status === TaskStatus.IN_PROGRESS);
+          const todo = myTasks.filter(t => t.status === TaskStatus.TODO);
           const upcoming = myTasks
             .filter(t => t.dueDate && t.dueDate > todayStr && new Date(t.dueDate) <= weekLater)
             .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''))
@@ -222,22 +224,22 @@ const Sidebar: React.FC<SidebarProps> = ({
               {isOpen ? (
                 <div className="space-y-1.5 mb-5">
                   {[
-                    { label: 'Overdue', count: overdue.length, dot: 'bg-red-500', num: 'text-red-500', row: overdue.length > 0 ? 'bg-red-50   dark:bg-red-500/10   hover:bg-red-100   dark:hover:bg-red-500/20' : 'opacity-50' },
-                    { label: 'Due Today', count: dueToday.length, dot: 'bg-amber-500', num: 'text-amber-500', row: dueToday.length > 0 ? 'bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20' : 'opacity-50' },
-                    { label: 'In Progress', count: inProg.length, dot: 'bg-primary-500', num: 'text-primary-500', row: inProg.length > 0 ? 'bg-primary-50  dark:bg-primary-500/10  hover:bg-primary-100  dark:hover:bg-primary-500/20' : 'opacity-50' },
-                  ].map(({ label, count, dot, num, row }) => (
-                    <div key={label} className={`flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-colors ${row}`}>
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${dot}`} />
+                    { label: 'Overdue', count: overdue.length, config: { bg: 'bg-red-500', text: 'text-red-500', faint: 'bg-red-50 dark:bg-red-500/10' }, isActive: overdue.length > 0 },
+                    { label: TASK_STATUS_CONFIG[TaskStatus.TODO].label, count: todo.length, config: TASK_STATUS_CONFIG[TaskStatus.TODO], isActive: todo.length > 0 },
+                    { label: TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].label, count: inProg.length, config: TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS], isActive: inProg.length > 0 },
+                  ].map(({ label, count, config, isActive }) => (
+                    <div key={label} className={`flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-colors ${isActive ? `${config.faint} hover:brightness-105` : 'opacity-50'}`}>
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${config.bg}`} />
                       <span className="text-xs font-semibold text-slate-600 dark:text-white/60 flex-1">{label}</span>
-                      <span className={`text-sm font-black ${num}`}>{count}</span>
+                      <span className={`text-sm font-black ${config.text}`}>{count}</span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-2 mb-4">
                   {overdue.length > 0 && <div className="w-2 h-2 rounded-full bg-red-500" title={`${overdue.length} overdue`} />}
-                  {dueToday.length > 0 && <div className="w-2 h-2 rounded-full bg-amber-500" title={`${dueToday.length} due today`} />}
-                  {inProg.length > 0 && <div className="w-2 h-2 rounded-full bg-primary-500" title={`${inProg.length} in progress`} />}
+                  {todo.length > 0 && <div className={`w-2 h-2 rounded-full ${TASK_STATUS_CONFIG[TaskStatus.TODO].bg}`} title={`${todo.length} to do`} />}
+                  {inProg.length > 0 && <div className={`w-2 h-2 rounded-full ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].bg}`} title={`${inProg.length} in progress`} />}
                 </div>
               )}
 

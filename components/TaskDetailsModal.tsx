@@ -11,6 +11,7 @@ import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import TagPill from './TagPill';
 import * as dataService from '../services/supabaseService';
 import { isTaskOverdue } from '../utils/taskUtils';
+import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 
 interface TaskDetailsModalProps {
@@ -156,7 +157,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
             {/* Top row: status badge + actions */}
             <div className="relative z-10 flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className={`w-2.5 h-2.5 rounded-full ${task.status === TaskStatus.DONE ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]' : 'bg-primary-500 shadow-[0_0_12px_rgba(59,130,246,0.5)]'}`}></div>
+                <div className={`w-2.5 h-2.5 rounded-full ${TASK_STATUS_CONFIG[task.status as TaskStatus].bg} ${TASK_STATUS_CONFIG[task.status as TaskStatus].glow}`}></div>
                 <p className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-[0.3em]">{task.status === TaskStatus.DONE ? 'Completed' : 'Task Details'}</p>
                 {isOverdue && (
                   <span className="px-2 py-0.5 rounded-md bg-red-500/10 text-red-600 dark:text-red-400 text-[9px] font-black uppercase tracking-widest border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
@@ -179,7 +180,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                 {onUpdateTaskStatus && task.status !== TaskStatus.DONE && canEdit && (
                   <button
                     onClick={() => setShowCompleteConfirm(true)}
-                    className="px-4 py-2.5 flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white rounded-2xl transition-all duration-300 border border-emerald-500/20 hover:border-emerald-500 shadow-sm group hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                    className={`px-4 py-2.5 flex items-center gap-2 ${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} hover:${TASK_STATUS_CONFIG[TaskStatus.DONE].bg} ${TASK_STATUS_CONFIG[TaskStatus.DONE].text} hover:text-white rounded-2xl transition-all duration-300 border border-emerald-500/20 hover:border-emerald-500 shadow-sm group hover:${TASK_STATUS_CONFIG[TaskStatus.DONE].glow}`}
                     title="Mark as Complete"
                   >
                     <CheckCircleIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
@@ -392,7 +393,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                               }}
                               className={`h-4 w-4 rounded-[6px] flex items-center justify-center flex-shrink-0 transition-colors focus:ring-2 focus:ring-offset-1 focus:ring-primary-500 focus:outline-none
                                 ${subtask.isCompleted
-                                  ? 'bg-primary-500 hover:bg-primary-600 border border-primary-500'
+                                  ? `${TASK_STATUS_CONFIG[TaskStatus.DONE].bg} hover:brightness-110 border ${TASK_STATUS_CONFIG[TaskStatus.DONE].bg.replace('bg-', 'border-')}`
                                   : 'bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 border border-transparent'
                                 }`}
                             >
@@ -447,14 +448,14 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCompleteConfirm(false)} />
           <div className="relative bg-white dark:bg-[#1A1A1A] rounded-[32px] p-8 max-w-sm w-full border border-slate-200 dark:border-white/10 shadow-2xl animate-in fade-in zoom-in duration-300">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-500/20 mb-6">
-              <CheckCircleIcon className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+            <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full ${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} mb-6`}>
+              <CheckCircleIcon className={`h-8 w-8 ${TASK_STATUS_CONFIG[TaskStatus.DONE].text}`} />
             </div>
             <h3 className="text-xl font-black text-center text-slate-900 dark:text-white mb-2 tracking-tight">Complete Task?</h3>
             <p className="text-center text-sm text-slate-500 dark:text-white/60 mb-8 font-medium">
               Are you sure you want to mark "{task.title}" as complete?
               {task.recurrence && task.recurrence !== 'none' && (
-                <span className="block mt-2 text-primary-600 dark:text-primary-400">
+                <span className={`block mt-2 ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text}`}>
                   This will automatically generate the next recurring task.
                 </span>
               )}
@@ -474,7 +475,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                   setShowCompleteConfirm(false);
                   onClose();
                 }}
-                className="flex-1 py-3.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[20px] font-bold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all active:scale-95"
+                className={`flex-1 py-3.5 px-4 ${TASK_STATUS_CONFIG[TaskStatus.DONE].bg} hover:brightness-110 text-white rounded-[20px] font-bold shadow-lg ${TASK_STATUS_CONFIG[TaskStatus.DONE].glow} transition-all active:scale-95`}
               >
                 Confirm
               </button>
