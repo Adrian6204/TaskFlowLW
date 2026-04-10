@@ -8,6 +8,7 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import * as dataService from '../services/supabaseService';
 import { usePresenceContext, statusColor } from '../context/PresenceContext';
+import ConfirmationModal from './ConfirmationModal';
 
 interface MembersViewProps {
   employees: Employee[];
@@ -26,6 +27,20 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
   const [searchResults, setSearchResults] = useState<Employee[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'warning' | 'info';
+    requireString?: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'warning',
+    onConfirm: () => { }
+  });
 
   const isAdmin = currentUser.isAdmin || currentUser.role === 'super_admin' || currentUser.position === 'Admin';
   // Check if current user is admin of THIS space specifically? 
@@ -91,22 +106,33 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
     if (e) e.stopPropagation();
 
     if (!currentUser.isAdmin && currentUser.role !== 'super_admin') return;
-    if (!window.confirm('DANGER: Are you sure you want to PERMANENTLY DELETE this user account? This cannot be undone.')) return;
 
-    // Double confirmation
-    const confirmName = prompt('Type "DELETE" to confirm account deletion:');
-    if (confirmName !== 'DELETE') return;
-
-    try {
-      await dataService.deleteUserAccount(userId);
-      if (onMemberUpdate) {
-        console.log('Refreshing members list...');
-        onMemberUpdate();
+    setConfirmModal({
+      isOpen: true,
+      title: 'PERMANENTLY DELETE ACCOUNT?',
+      message: 'DANGER: Are you sure you want to PERMANENTLY DELETE this user account? This cannot be undone and will remove them from all workspaces.',
+      type: 'danger',
+      requireString: 'DELETE',
+      onConfirm: async () => {
+        try {
+          await dataService.deleteUserAccount(userId);
+          if (onMemberUpdate) {
+            onMemberUpdate();
+          }
+        } catch (error) {
+          console.error(error);
+          setConfirmModal({
+            isOpen: true,
+            title: "Error",
+            message: "Failed to delete account. Please try again.",
+            type: "warning",
+            onConfirm: () => setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+          });
+        } finally {
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        }
       }
-    } catch (error) {
-      console.error(error);
-      alert('Failed to delete account');
-    }
+    });
   };
 
   return (
@@ -280,6 +306,16 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
         document.body
       )}
 
+      {/* Global Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        requireString={confirmModal.requireString}
+      />
     </div>
   );
 };

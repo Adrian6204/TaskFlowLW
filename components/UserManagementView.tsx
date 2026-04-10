@@ -59,6 +59,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
         title: string;
         message: string;
         type: 'danger' | 'warning' | 'info';
+        requireString?: string;
         onConfirm: () => void;
     }>({
         isOpen: false,
@@ -153,10 +154,8 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
             title: `PERMANENTLY DELETE ACCOUNT?`,
             message: `DANGER: This will permanently delete ${user.name}'s account and remove them from all workspaces. This action CANNOT be undone.`,
             type: 'danger',
+            requireString: 'DELETE',
             onConfirm: async () => {
-                const confirmName = prompt(`Type "DELETE" to confirm deletion of ${user.name}:`);
-                if (confirmName !== 'DELETE') return;
-
                 try {
                     await dataService.deleteUserAccount(user.id);
                     setUsers(users.filter(u => u.id !== user.id)); // Optimistic remove
@@ -548,6 +547,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                 title={confirmModal.title}
                 message={confirmModal.message}
                 type={confirmModal.type}
+                requireString={confirmModal.requireString}
             />
         </div>
     );
