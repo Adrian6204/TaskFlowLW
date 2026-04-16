@@ -7,6 +7,7 @@ import ThroughputChart from './charts/ThroughputChart';
 import LeadTimeChart from './charts/LeadTimeChart';
 import MemberEfficiencyChart from './charts/MemberEfficiencyChart';
 import WorkloadHealth from './charts/WorkloadHealth';
+import TaskAgingChart from './charts/TaskAgingChart';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
@@ -376,14 +377,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             {/* Minor Charts Footer */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-80 hover:opacity-100 transition-opacity">
-                <BentoCard className="p-4 flex flex-col h-32">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-80 hover:opacity-100 transition-opacity">
+                <BentoCard className="p-4 flex flex-col h-40">
+                    <h3 className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Task Aging (Bottlenecks)</h3>
+                    <div className="flex-1">
+                        <TaskAgingChart tasks={filteredTasks} />
+                    </div>
+                </BentoCard>
+                <BentoCard className="p-4 flex flex-col h-40">
                     <h3 className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Detailed Status</h3>
                     <div className="flex-1">
                         <TaskStatusStackedBar tasks={filteredTasks} />
                     </div>
                 </BentoCard>
-                <BentoCard className="p-4 flex flex-col h-32">
+                <BentoCard className="p-4 flex flex-col h-40">
                     <h3 className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Priority Volume</h3>
                     <div className="flex-1">
                         <TaskPriorityHorizontalBar tasks={filteredTasks} />
