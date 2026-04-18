@@ -23,7 +23,7 @@ A modern, full-stack task management platform built for teams — featuring real
 ## ✨ Features
 
 ### 📋 Task Management
-- **Kanban Board** — drag-free status columns (To Do, In Progress, Done)
+- **Kanban Board** — status columns (To Do, In Progress, Done)
 - **Subtasks** — break down tasks into actionable steps
 - **Task Dependencies** — block tasks until prerequisites are complete
 - **Recurring Tasks** — daily, weekly, and monthly auto-scheduling
@@ -57,8 +57,7 @@ A modern, full-stack task management platform built for teams — featuring real
 - **Super Admin** — full system-wide administrative control
 
 ### 🏠 Personal Productivity
-- **Home Dashboard** — daily tasks, scratchpad, and personal stats
-- **Daily Tasks** — personal to-do list separate from workspace tasks
+- **Home Dashboard** — scratchpad and personal stats
 - **Scratchpad** — persistent quick notes per user
 - **Overdue Alerts** — modal warnings for past-due items
 
@@ -160,7 +159,6 @@ Built on **Supabase PostgreSQL** with the following tables:
 | `space_members` | Workspace membership and roles |
 | `tasks` | All tasks with priority, status, recurrence |
 | `subtasks` | Child tasks under a parent task |
-| `time_logs` | Timer session records per task |
 | `daily_tasks` | Personal daily to-do items per user |
 | `scratchpads` | Per-user persistent note storage |
 
@@ -175,4 +173,3 @@ Built on **Supabase PostgreSQL** with the following tables:
 - Sensitive config stored in `.env.local` — never committed
 
 ---
-
