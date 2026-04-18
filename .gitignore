@@ -50,3 +50,6 @@ lerna-debug.log*
 
 # MCP
 .mcp.json
+
+# Claude Code
+.claude/
