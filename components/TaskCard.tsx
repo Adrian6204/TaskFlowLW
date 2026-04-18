@@ -33,7 +33,6 @@ const priorityConfig = {
   [Priority.LOW]: { glow: 'bg-slate-400 shadow-slate-400/50', border: 'border-slate-500/20' },
 };
 
-// formatTime removed
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, allTasks, assignees = [], onEditTask, onDeleteTask, onUpdateTaskStatus, onViewTask, currentUserId, isAdmin }) => {
   // Use the new centralized helper for overdue check

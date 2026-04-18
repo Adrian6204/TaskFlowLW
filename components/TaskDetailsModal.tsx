@@ -42,7 +42,6 @@ const formatDuration = (ms: number) => {
   return `${hours}h ${minutes}m ${seconds}s`;
 };
 
-// formatTime removed as it's no longer used for endDate
 
 const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, task, employees, allTasks, onDeleteTask, onUpdateTaskStatus, onEditTask, currentUserId, isAdmin }) => {
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
