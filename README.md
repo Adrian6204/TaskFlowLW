@@ -176,8 +176,3 @@ Built on **Supabase PostgreSQL** with the following tables:
 
 ---
 
-<div align="center">
-
-*TaskFlow LW — Built with ❤️ for Lifewood*
-
-</div>
