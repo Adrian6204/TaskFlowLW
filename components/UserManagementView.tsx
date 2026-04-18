@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { LayoutGrid, List } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { EmployeeWithRole, Space, Employee, Position } from '../types';
+import { EmployeeWithRole, Space, Position } from '../types';
 import * as dataService from '../services/supabaseService';
 import BentoCard from './BentoCard';
 import { KeyIcon } from './icons/KeyIcon';
@@ -20,6 +21,7 @@ interface UserManagementViewProps {
 const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, spaces = [] }) => {
     const [users, setUsers] = useState<EmployeeWithRole[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isListView, setIsListView] = useState(true);
 
     // Enroll Modal State
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
@@ -291,12 +293,28 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-lime-500/50 flex-1 md:min-w-[300px]"
                         />
+                        <div className="flex items-center bg-slate-100 dark:bg-white/5 p-1 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm shrink-0">
+                            <button
+                                onClick={() => setIsListView(false)}
+                                className={`p-1.5 rounded-lg transition-all ${!isListView ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:text-white/30 dark:hover:text-white/60'}`}
+                                title="Grid View"
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => setIsListView(true)}
+                                className={`p-1.5 rounded-lg transition-all ${isListView ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:text-white/30 dark:hover:text-white/60'}`}
+                                title="List View"
+                            >
+                                <List className="w-4 h-4" />
+                            </button>
+                        </div>
                         <button
                             onClick={() => {
                                 setSelectedUserToEnroll('');
                                 setIsEnrollModalOpen(true);
                             }}
-                            className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2 shadow-lg shadow-black/5"
+                            className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2 shadow-lg shadow-black/5 shrink-0"
                         >
                             <PlusIcon className="w-5 h-5" />
                             Enroll Member
@@ -305,8 +323,77 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                 </div>
             </div>
 
+            {/* List View */}
+            {isListView && (
+                <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] overflow-hidden shadow-xl shadow-black/5 dark:shadow-none">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b border-slate-100 dark:border-white/5">
+                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Member</th>
+                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Position</th>
+                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Workspaces</th>
+                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 w-32">Role</th>
+                                <th className="text-right px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                            {filteredUsers.map(user => (
+                                <tr key={user.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <img src={user.avatarUrl} alt={user.name} className="w-9 h-9 rounded-full object-cover bg-slate-100 dark:bg-slate-800 shrink-0" />
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
+                                                {user.mustChangePassword && (
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-rose-500">Default Password</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                        {user.position || <span className="text-slate-400 dark:text-white/30 font-normal italic">No position</span>}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-wrap gap-1">
+                                            {user.workspaces.length > 0 ? user.workspaces.map(w => (
+                                                <span key={w.spaceId} className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-white/5 text-xs font-bold text-slate-600 dark:text-white/60 border border-slate-200 dark:border-white/10">
+                                                    {w.spaceName}
+                                                </span>
+                                            )) : <span className="text-xs text-slate-400 dark:text-white/30 italic">Unassigned</span>}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {user.isSuperAdmin ? (
+                                            <span className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[9px] font-black uppercase tracking-widest border border-primary-500/20">System Admin</span>
+                                        ) : (
+                                            <span className="text-xs text-slate-400 dark:text-white/30">Member</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => handleToggleSuperAdmin(user)} disabled={user.id === currentUserId} title={user.isSuperAdmin ? 'Revoke Admin' : 'Grant Admin'} className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 hover:bg-indigo-500 hover:text-white border border-slate-200 dark:border-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none">
+                                                <LayoutGrid className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button onClick={() => { setSelectedUserToEnroll(user.id); setIsEnrollModalOpen(true); }} title="Enroll in workspace" className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all">
+                                                <PlusIcon className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button onClick={() => handleResetPassword(user)} title="Reset Password" className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all">
+                                                <KeyIcon className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button onClick={() => handleDeleteAccount(user)} disabled={user.id === currentUserId} title="Delete Account" className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all disabled:opacity-30 disabled:pointer-events-none">
+                                                <TrashIcon className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
             {/* Users Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {!isListView && <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 {filteredUsers.map(user => (
                     <BentoCard
                         key={user.id}
@@ -475,7 +562,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
 
                     </BentoCard>
                 ))}
-            </div>
+            </div>}
 
             {filteredUsers.length === 0 && (
                 <div className="text-center py-20">

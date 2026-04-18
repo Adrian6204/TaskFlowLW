@@ -73,8 +73,8 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
 
-    // Unique sorted positions — split comma-separated DB values into individual entries
-    const uniquePositions = useMemo(() => {
+    // All positions across all employees
+    const allPositions = useMemo(() => {
         const posSet = new Set<string>();
         employees.forEach(e => {
             if (e.position) {
@@ -84,15 +84,49 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
         return Array.from(posSet).sort();
     }, [employees]);
 
+    // Positions available given the current member selection (cross-filter)
+    const uniquePositions = useMemo(() => {
+        if (selectedMembers.length === 0) return allPositions;
+        const posSet = new Set<string>();
+        employees
+            .filter(e => selectedMembers.includes(e.id))
+            .forEach(e => {
+                if (e.position) {
+                    (e.position as string).split(',').map(p => p.trim()).filter(Boolean).forEach(p => posSet.add(p));
+                }
+            });
+        return Array.from(posSet).sort();
+    }, [allPositions, employees, selectedMembers]);
+
     const togglePosition = (pos: string) => {
         setSelectedPositions(prev =>
             prev.includes(pos) ? prev.filter(p => p !== pos) : [...prev, pos]
         );
     };
 
+    // Members available given the current position selection (cross-filter)
     const uniqueMembers = useMemo(() => {
-        return employees.map(e => ({ id: e.id, name: e.name })).sort((a, b) => a.name.localeCompare(b.name));
-    }, [employees]);
+        const base = employees.map(e => ({ id: e.id, name: e.name, position: e.position as string | undefined }));
+        if (selectedPositions.length === 0) return base.sort((a, b) => a.name.localeCompare(b.name));
+        return base
+            .filter(e => {
+                if (!e.position) return false;
+                const parts = e.position.split(',').map(p => p.trim());
+                return parts.some(p => selectedPositions.includes(p));
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }, [employees, selectedPositions]);
+
+    // When member selection changes, drop any selected positions no longer available
+    useEffect(() => {
+        setSelectedPositions(prev => prev.filter(p => uniquePositions.includes(p)));
+    }, [uniquePositions]);
+
+    // When position selection changes, drop any selected members no longer available
+    useEffect(() => {
+        const availableIds = new Set(uniqueMembers.map(m => m.id));
+        setSelectedMembers(prev => prev.filter(id => availableIds.has(id)));
+    }, [uniqueMembers]);
 
     const toggleMember = (memberId: string) => {
         setSelectedMembers(prev =>

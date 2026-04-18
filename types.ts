@@ -24,7 +24,6 @@ export enum Position {
   PROJECT_COORDINATOR = 'Project Coordinator',
   ADMIN_ACCOUNTING = 'Admin Accounting',
   IT_EXECUTIVE_ASSISTANT = 'IT Executive Assistant',
-  IT_ASSISTANT = 'IT Assistant',
 }
 
 export interface Employee {
