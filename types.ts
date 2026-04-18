@@ -56,12 +56,6 @@ export interface Subtask {
   isCompleted: boolean;
 }
 
-export interface TimeLogEntry {
-  id: string;
-  startTime: string; // ISO 8601 string
-  endTime: string; // ISO 8601 string
-  duration: number; // milliseconds
-}
 
 export interface Task {
   id: number;
@@ -77,7 +71,6 @@ export interface Task {
   priority: Priority;
   subtasks: Subtask[];
   tags: string[];
-  timeLogs: TimeLogEntry[];
   timerStartTime?: string | null;
   createdAt: string;
   completedAt?: string | null;

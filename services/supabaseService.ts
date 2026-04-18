@@ -1,6 +1,6 @@
 
 import { supabase } from '../lib/supabaseClient';
-import { Task, Space, Employee, TaskStatus, Priority, Subtask, TimeLogEntry } from '../types';
+import { Task, Space, Employee, TaskStatus, Priority, Subtask } from '../types';
 
 // --- Types for DB Insert/Update ---
 interface DbTask {
@@ -63,7 +63,6 @@ const mapDbTaskToApp = (dbTask: any): Task => ({
 
   parent_task_id: dbTask.parent_task_id,
   subtasks: dbTask.subtasks ? dbTask.subtasks.map(mapDbSubtaskToApp) : [],
-  timeLogs: dbTask.time_logs ? dbTask.time_logs.map(mapDbTimeLogToApp) : [],
   updated_at: dbTask.updated_at,
 });
 
@@ -74,12 +73,6 @@ const mapDbSubtaskToApp = (dbSubtask: any): Subtask => ({
   isCompleted: dbSubtask.is_completed,
 });
 
-const mapDbTimeLogToApp = (dbLog: any): TimeLogEntry => ({
-  id: dbLog.id,
-  startTime: dbLog.start_time,
-  endTime: dbLog.end_time,
-  duration: dbLog.duration,
-});
 
 const mapDbSpaceToApp = (dbSpace: any): Space => ({
   id: dbSpace.id,
@@ -293,7 +286,6 @@ export const getTasks = async (spaceId: string, currentUserId?: string) => {
     .select(`
       *,
       subtasks(*),
-      time_logs(*)
     `)
     .eq('space_id', spaceId)
     .order('created_at', { ascending: false });

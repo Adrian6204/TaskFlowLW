@@ -126,8 +126,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
   const totalSubtasks = (task.subtasks || []).length;
   const progressPercentage = totalSubtasks === 0 ? 0 : Math.round((completedSubtasks / totalSubtasks) * 100);
 
-  const totalLoggedTime = (task.timeLogs || []).reduce((acc, log) => acc + log.duration, 0);
-  const totalTimeDisplay = formatDuration(totalLoggedTime + (task.timerStartTime ? elapsedTime : 0));
+  const totalTimeDisplay = formatDuration(task.timerStartTime ? elapsedTime : 0);
 
   if (!isOpen && !show) return null;
 
@@ -313,7 +312,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
               )}
 
               {/* Time Tracked */}
-              {(task.timeLogs?.length > 0 || task.timerStartTime) && (
+              {task.timerStartTime && (
                 <div className="p-5 bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/5 rounded-[24px] hover:border-violet-500/30 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-violet-500/5 shadow-sm">
                   <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] block mb-3">Time Tracked</span>
                   <div className="flex items-center gap-1.5">
