@@ -285,7 +285,7 @@ export const getTasks = async (spaceId: string, currentUserId?: string) => {
     .from('tasks')
     .select(`
       *,
-      subtasks(*),
+      subtasks(*)
     `)
     .eq('space_id', spaceId)
     .order('created_at', { ascending: false });
