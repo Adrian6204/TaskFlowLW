@@ -645,7 +645,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         activeSpaceId={activeSpaceId}
                         spaces={spaces}
                         currentUserId={user.employeeId}
-                        isAdmin={user.isAdmin}
                         isSuperAdmin={isSuperAdmin}
                     />
                 )}

@@ -460,12 +460,6 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
 };
 
 
-export const logTaskTime = async (taskId: number, startTime: string, endTime: string, duration: number) => {
-  const { error } = await supabase
-    .from('time_logs')
-    .insert({ task_id: taskId, start_time: startTime, end_time: endTime, duration });
-  if (error) throw error;
-};
 
 export const getAllEmployees = async () => {
   const { data, error } = await supabase.from('profiles').select('*');
@@ -606,36 +600,6 @@ export const getAllSpaces = async () => {
   return spacesWithMembers;
 };
 
-/**
- * Get all tasks across all spaces (admin only)
- * Returns tasks grouped by space for the overseer view
- */
-export const getAllTasksAcrossSpaces = async () => {
-  // First, clean up tasks that have been DONE for > 24 hours
-  const oneDayAgo = new Date();
-  oneDayAgo.setHours(oneDayAgo.getHours() - 24);
-  const oneDayAgoISO = oneDayAgo.toISOString();
-
-  await supabase
-    .from('tasks')
-    .delete()
-    .eq('status', TaskStatus.DONE)
-    .not('completed_at', 'is', null)
-    .lt('completed_at', oneDayAgoISO);
-
-  const { data, error } = await supabase
-    .from('tasks')
-    .select(`
-      *,
-      subtasks(*),
-      time_logs(*)
-    `)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-
-  return data.map(mapDbTaskToApp);
-};
 
 export const getAllUsersWithRoles = async () => {
   // 1. Get all profiles (employees)
@@ -674,15 +638,6 @@ export const getAllUsersWithRoles = async () => {
   return usersWithRoles;
 };
 
-export const updateWorkspaceRole = async (userId: string, spaceId: string, role: 'admin' | 'member') => {
-  const { error } = await supabase
-    .from('space_members')
-    .update({ role })
-    .eq('user_id', userId)
-    .eq('space_id', spaceId);
-
-  if (error) throw error;
-};
 
 export const updateSuperAdminStatus = async (userId: string, isSuperAdmin: boolean) => {
   const { error } = await supabase
@@ -790,39 +745,6 @@ export const syncScratchpad = async (userId: string, content: string) => {
   if (error) throw error;
 };
 
-// --- Notifications ---
-
-export const getNotifications = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('notifications')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(50);
-
-  if (error) {
-    // If table doesn't exist yet, return empty array instead of crashing
-    if (error.code === '42P01') return [];
-    throw error;
-  }
-  return data;
-};
-
-export const markNotificationAsRead = async (id: number) => {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('id', id);
-
-  if (error) {
-    if (error.code === '42P01') return;
-    throw error;
-  }
-};
-
-// --- Notifications - REMOVED
-
-
 
 
 
@@ -850,13 +772,3 @@ export const resetUserPassword = async (userId: string) => {
   return data;
 };
 
-export const getValidUsernames = async () => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('username, full_name');
-  if (error) throw error;
-  return data.map(p => ({
-    username: p.username || '',
-    fullName: p.full_name || ''
-  }));
-};

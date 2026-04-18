@@ -24,7 +24,6 @@ interface CreateTaskModalProps {
     activeSpaceId: string;
     spaces: Space[];
     currentUserId: string;
-    isAdmin?: boolean;
     isSuperAdmin?: boolean;
 }
 
