@@ -125,7 +125,7 @@ const TaskAgingChart: React.FC<TaskAgingChartProps> = ({ tasks }) => {
   };
 
   return (
-    <div className="w-full h-48 mt-2">
+    <div className="w-full h-full min-h-[180px]">
       <Bar data={chartData} options={options} />
     </div>
   );

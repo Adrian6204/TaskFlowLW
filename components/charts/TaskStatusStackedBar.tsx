@@ -115,7 +115,7 @@ export default function TaskStatusStackedBar({ tasks }: Props) {
 
 
       {/* The Chart.js Bar */}
-      <div className="w-full h-8 relative">
+      <div className="w-full h-6 relative">
         <Bar data={data} options={options} />
       </div>
     </div>

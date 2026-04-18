@@ -269,29 +269,42 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
     return (
         <div className="min-h-full space-y-6 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-8 shadow-xl shadow-black/5 dark:shadow-none mb-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-4 mb-2">
-                            <h1 className="text-3xl font-black text-slate-900 dark:text-white">Team Management</h1>
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 shadow-sm animate-in fade-in zoom-in duration-500">
-                                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">
-                                    {users.length} Total Users
-                                </span>
+            <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] p-6 sm:p-8 shadow-xl shadow-black/5 dark:shadow-none mb-6">
+                <div className="flex flex-col gap-4">
+                    {/* Title row */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <div className="flex flex-wrap items-center gap-3 mb-1">
+                                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Team Management</h1>
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 shadow-sm">
+                                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">
+                                        {users.length} Total Users
+                                    </span>
+                                </div>
                             </div>
+                            <p className="text-slate-500 dark:text-white/40 font-bold text-xs uppercase tracking-wide">
+                                Manage access and roles across the organization
+                            </p>
                         </div>
-                        <p className="text-slate-500 dark:text-white/40 font-bold text-sm uppercase tracking-wide">
-                            Manage access and roles across the organization
-                        </p>
+                        {/* Enroll button */}
+                        <button
+                            onClick={() => { setSelectedUserToEnroll(''); setIsEnrollModalOpen(true); }}
+                            className="self-start sm:self-auto px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2 shadow-lg shadow-black/5 shrink-0"
+                        >
+                            <PlusIcon className="w-5 h-5" />
+                            Enroll Member
+                        </button>
                     </div>
-                    <div className="flex items-center gap-3 w-full md:w-auto">
+
+                    {/* Controls row */}
+                    <div className="flex items-center gap-2 w-full">
                         <input
                             type="text"
                             placeholder="Find user..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-lime-500/50 flex-1 md:min-w-[300px]"
+                            className="bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-lime-500/50 flex-1 min-w-0"
                         />
                         <div className="flex items-center bg-slate-100 dark:bg-white/5 p-1 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm shrink-0">
                             <button
@@ -309,51 +322,46 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                 <List className="w-4 h-4" />
                             </button>
                         </div>
-                        <button
-                            onClick={() => {
-                                setSelectedUserToEnroll('');
-                                setIsEnrollModalOpen(true);
-                            }}
-                            className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2 shadow-lg shadow-black/5 shrink-0"
-                        >
-                            <PlusIcon className="w-5 h-5" />
-                            Enroll Member
-                        </button>
                     </div>
                 </div>
             </div>
 
             {/* List View */}
             {isListView && (
-                <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-[32px] overflow-hidden shadow-xl shadow-black/5 dark:shadow-none">
-                    <table className="w-full text-sm">
+                <div className="bg-white/60 dark:bg-black/40 backdrop-blur-[40px] border border-white/40 dark:border-white/5 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-xl shadow-black/5 dark:shadow-none">
+                    <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[600px]">
                         <thead>
                             <tr className="border-b border-slate-100 dark:border-white/5">
-                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Member</th>
-                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Position</th>
-                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Workspaces</th>
-                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 w-32">Role</th>
-                                <th className="text-right px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Actions</th>
+                                <th className="text-left px-4 sm:px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Member</th>
+                                <th className="text-left px-4 sm:px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 hidden sm:table-cell">Position</th>
+                                <th className="text-left px-4 sm:px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 hidden md:table-cell">Workspaces</th>
+                                <th className="text-left px-4 sm:px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 w-28">Role</th>
+                                <th className="text-right px-4 sm:px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                             {filteredUsers.map(user => (
                                 <tr key={user.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group">
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 sm:px-6 py-3">
                                         <div className="flex items-center gap-3">
-                                            <img src={user.avatarUrl} alt={user.name} className="w-9 h-9 rounded-full object-cover bg-slate-100 dark:bg-slate-800 shrink-0" />
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
+                                            <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover bg-slate-100 dark:bg-slate-800 shrink-0" />
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-slate-900 dark:text-white text-sm truncate">{user.name}</p>
                                                 {user.mustChangePassword && (
                                                     <span className="text-[9px] font-black uppercase tracking-widest text-rose-500">Default Password</span>
+                                                )}
+                                                {/* Show position inline on mobile */}
+                                                {user.position && (
+                                                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold sm:hidden truncate">{user.position}</p>
                                                 )}
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                    <td className="px-4 sm:px-6 py-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hidden sm:table-cell">
                                         {user.position || <span className="text-slate-400 dark:text-white/30 font-normal italic">No position</span>}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 sm:px-6 py-3 hidden md:table-cell">
                                         <div className="flex flex-wrap gap-1">
                                             {user.workspaces.length > 0 ? user.workspaces.map(w => (
                                                 <span key={w.spaceId} className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-white/5 text-xs font-bold text-slate-600 dark:text-white/60 border border-slate-200 dark:border-white/10">
@@ -362,15 +370,15 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                             )) : <span className="text-xs text-slate-400 dark:text-white/30 italic">Unassigned</span>}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 sm:px-6 py-3">
                                         {user.isSuperAdmin ? (
-                                            <span className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[9px] font-black uppercase tracking-widest border border-primary-500/20">System Admin</span>
+                                            <span className="whitespace-nowrap px-2 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[9px] font-black uppercase tracking-widest border border-primary-500/20">Admin</span>
                                         ) : (
                                             <span className="text-xs text-slate-400 dark:text-white/30">Member</span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <td className="px-4 sm:px-6 py-3">
+                                        <div className="flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                             <button onClick={() => handleToggleSuperAdmin(user)} disabled={user.id === currentUserId} title={user.isSuperAdmin ? 'Revoke Admin' : 'Grant Admin'} className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 hover:bg-indigo-500 hover:text-white border border-slate-200 dark:border-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none">
                                                 <LayoutGrid className="w-3.5 h-3.5" />
                                             </button>
@@ -390,6 +398,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                         </tbody>
                     </table>
                 </div>
+            </div>
             )}
 
             {/* Users Grid */}

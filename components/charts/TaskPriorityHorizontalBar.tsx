@@ -85,14 +85,14 @@ export default function TaskPriorityHorizontalBar({ tasks }: Props) {
   };
 
   return (
-    <div className="h-full w-full flex items-center px-2">
-      <div className="flex-1 h-[140px] relative">
+    <div className="h-full w-full flex items-center pr-2 min-h-[180px]">
+      <div className="flex-1 h-full min-h-[180px] relative overflow-hidden">
         <Bar data={data} options={options} />
       </div>
-      <div className="flex flex-col justify-around h-[140px] pl-4">
+      <div className="flex flex-col justify-around h-full min-h-[180px] pl-3 w-10 shrink-0">
         {priorityConfig.map((cfg) => (
           <div key={cfg.key} className="flex items-center">
-            <span className={`text-lg font-black ${cfg.text} leading-none`}>
+            <span className={`text-sm font-black ${cfg.text} leading-none`}>
               {counts[cfg.key]}
             </span>
           </div>

@@ -110,7 +110,7 @@ const MemberEfficiencyChart: React.FC<MemberEfficiencyChartProps> = ({ tasks, em
   };
 
   return (
-    <div className="w-full h-48 mt-2">
+    <div className="w-full h-full min-h-[180px]">
       <Bar data={chartData} options={options} />
     </div>
   );

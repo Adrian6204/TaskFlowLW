@@ -377,22 +377,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             {/* Minor Charts Footer */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-80 hover:opacity-100 transition-opacity">
-                <BentoCard className="p-4 flex flex-col h-40">
-                    <h3 className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Task Aging (Bottlenecks)</h3>
-                    <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <BentoCard className="p-6 flex flex-col min-h-[280px]">
+                    <div className="mb-4">
+                        <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Task Aging</h3>
+                        <p className="text-[10px] text-slate-400 dark:text-white/20 font-medium mt-0.5">Bottlenecks by age</p>
+                    </div>
+                    <div className="flex-1 min-h-0">
                         <TaskAgingChart tasks={filteredTasks} />
                     </div>
                 </BentoCard>
-                <BentoCard className="p-4 flex flex-col h-40">
-                    <h3 className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Detailed Status</h3>
-                    <div className="flex-1">
+                <BentoCard className="p-6 flex flex-col min-h-[280px]">
+                    <div className="mb-4">
+                        <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Detailed Status</h3>
+                        <p className="text-[10px] text-slate-400 dark:text-white/20 font-medium mt-0.5">Tasks by current state</p>
+                    </div>
+                    <div className="flex-1 min-h-0">
                         <TaskStatusStackedBar tasks={filteredTasks} />
                     </div>
                 </BentoCard>
-                <BentoCard className="p-4 flex flex-col h-40">
-                    <h3 className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">Priority Volume</h3>
-                    <div className="flex-1">
+                <BentoCard className="p-6 flex flex-col min-h-[280px]">
+                    <div className="mb-4">
+                        <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Priority Volume</h3>
+                        <p className="text-[10px] text-slate-400 dark:text-white/20 font-medium mt-0.5">Active tasks by priority</p>
+                    </div>
+                    <div className="flex-1 min-h-0">
                         <TaskPriorityHorizontalBar tasks={filteredTasks} />
                     </div>
                 </BentoCard>
