@@ -81,13 +81,17 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
             });
     }, [currentSpace, employees, filteredTasks, searchTerm]);
 
+    const spaceTasks = useMemo(
+        () => filteredTasks.filter(t => t.spaceId === currentSpace?.id),
+        [filteredTasks, currentSpace]
+    );
     const totalActive = useMemo(
-        () => filteredTasks.filter(t => t.status !== TaskStatus.DONE).length,
-        [filteredTasks]
+        () => spaceTasks.filter(t => t.status !== TaskStatus.DONE).length,
+        [spaceTasks]
     );
     const totalDone = useMemo(
-        () => filteredTasks.filter(t => t.status === TaskStatus.DONE).length,
-        [filteredTasks]
+        () => spaceTasks.filter(t => t.status === TaskStatus.DONE).length,
+        [spaceTasks]
     );
 
     return (
@@ -115,7 +119,7 @@ const AdminOverseerView: React.FC<AdminOverseerViewProps> = ({
 
                     <div className="flex items-center gap-3">
                         <div className="text-center px-4 py-2 bg-black/5 dark:bg-white/5 rounded-2xl">
-                            <p className="text-xl font-black text-slate-900 dark:text-white">{employees.length}</p>
+                            <p className="text-xl font-black text-slate-900 dark:text-white">{memberData.length}</p>
                             <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30">Members</p>
                         </div>
                         <div className={`text-center px-4 py-2 ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].faint} rounded-2xl border ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text} border-current/20`}>
