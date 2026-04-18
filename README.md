@@ -1,43 +1,183 @@
-# TaskFlow
+<div align="center">
 
-Welcome to **TaskFlow**, a premier workspace management and productivity platform designed to streamline how teams organize, collaborate, and execute their daily objectives. Built with a focus on intuitive design and powerful functionality, TaskFlow empowers organizations to take control of their workflows and drive consistent results.
+<img src="public/logo.png" alt="TaskFlow Logo" width="80" />
 
----
+# TaskFlow LW
 
-## 🚀 Elevating Team Productivity
+**Elevating Your Workspace. Empowering Your Team.**
 
-In today's fast-paced environment, keeping track of moving pieces is critical. TaskFlow provides a centralized hub where leaders can oversee operations and team members can focus on what matters most. Whether you are managing complex projects, standardizing daily routines, or tracking team velocity, TaskFlow adapts to your unique organizational needs.
+A modern, full-stack task management platform built for teams — featuring real-time collaboration, visual dashboards, and a premium PWA experience.
 
-### Key Benefits
-* **Unify Your Workspaces**: Create dedicated spaces for different departments, projects, or client accounts, ensuring information remains organized and accessible to the right people.
-* **Enhance Visibility**: Leadership and management can gain instant access to a "Daily Overview" that provides a real-time snapshot of team progress, active tasks, and overall workload.
-* **Foster Accountability**: Clear task assignments, due dates, and real-time status updates ensure everyone knows exactly what they are responsible for and when it needs to be delivered.
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
 
-## ✨ Core Features
+### 🌐 [Live Demo → phlifewoodtaskflow.vercel.app](https://phlifewoodtaskflow.vercel.app)
 
-### 📊 Dynamic Visual Dashboards
-Visualize your team's workflow the way that makes the most sense to you. Toggle seamlessly between classic Kanban boards, detailed monthly calendars, and interactive Gantt charts to understand project timelines at a glance.
-
-### ⏱️ Integrated Time Management
-Drive efficiency with built-in time tracking. Team members can start and stop timers directly on their tasks, providing management with accurate insights into task duration and resource allocation without the need for external tools.
-
-### 🧠 Smart Organization & Subtasks
-Break down monumental projects into manageable, bite-sized actionable steps using subtasks. Utilize intelligent, color-coded tagging and robust filtering to instantly surface the tasks that require immediate attention.
-
-### 🔗 Task Dependencies
-Ensure workflows proceed logically by establishing task dependencies. Prevent bottlenecks by clearly indicating which tasks must be completed before subsequent work can begin.
-
-### 👥 Seamless Collaboration
-TaskFlow is built for teams. Communicate directly within task cards, share updates in real-time, and ensure that all stakeholders are aligned without cluttering your email inbox.
+</div>
 
 ---
 
-## 🌟 The TaskFlow Experience
+## ✨ Features
 
-TaskFlow isn't just about managing checklists; it's about providing a premium, fluid experience that your team will actually enjoy using. 
+### 📋 Task Management
+- **Kanban Board** — drag-free status columns (To Do, In Progress, Done)
+- **Subtasks** — break down tasks into actionable steps
+- **Task Dependencies** — block tasks until prerequisites are complete
+- **Recurring Tasks** — daily, weekly, and monthly auto-scheduling
+- **Priority Levels** — Urgent, High, Medium, Low with color coding
+- **Tags & Filtering** — surface relevant tasks instantly
 
-Featuring a modern, meticulously crafted interface with support for both light and dark modes, TaskFlow minimizes friction and cognitive load. Our design philosophy ensures that the software gets out of the way, allowing your team to focus entirely on delivering exceptional work.
+### 📊 Visual Dashboards & Analytics
+- **Task Status Breakdown** — stacked bar with live counts
+- **Throughput Chart** — created vs. completed over the last 7 days
+- **Lead Time Chart** — average days to complete by priority
+- **Task Aging Chart** — identify stalled work before it becomes overdue
+- **Priority Volume** — horizontal bar chart by priority level
+- **Member Efficiency** — completion rate per team member
+
+### 🗓️ Multiple Views
+- **Kanban Board** — classic column-based task view
+- **Calendar View** — monthly task overview with due dates
+- **Gantt Chart** — timeline view for project planning
+
+### 👥 Team & Workspace Management
+- **Multi-workspace** — separate spaces per department or project
+- **Role-based Access** — member, admin, and system admin roles
+- **Team Hub** — cross-filter members by position with attendance status
+- **Assign Tasks View** — admin overview of member workloads
+- **Member Profiles** — position, workspaces, and activity at a glance
+
+### 🔐 Authentication & Security
+- **Supabase Auth** — secure email/password authentication
+- **Row Level Security (RLS)** — data isolated per workspace
+- **Force Password Change** — default password enforcement on first login
+- **Super Admin** — full system-wide administrative control
+
+### 🏠 Personal Productivity
+- **Home Dashboard** — daily tasks, scratchpad, and personal stats
+- **Daily Tasks** — personal to-do list separate from workspace tasks
+- **Scratchpad** — persistent quick notes per user
+- **Overdue Alerts** — modal warnings for past-due items
+
+### 📱 PWA & Experience
+- **Progressive Web App** — installable on mobile and desktop
+- **Dark / Light Mode** — system-aware with manual toggle
+- **Responsive Design** — optimized from 375px mobile to widescreen
+- **Animated UI** — smooth transitions and micro-interactions
+- **Real-time Presence** — see who's online in your workspace
 
 ---
 
-*TaskFlow: Empowering teams to achieve more, together.*
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, TypeScript, Vite 5 |
+| Styling | Tailwind CSS 4 |
+| Backend | Supabase (PostgreSQL + Auth + Storage) |
+| Charts | Chart.js 4, react-chartjs-2 |
+| Icons | Lucide React, Heroicons |
+| Routing | React Router DOM 7 |
+| PWA | vite-plugin-pwa |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- A [Supabase](https://supabase.com) project
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/TaskFlowLW.git
+cd TaskFlowLW
+
+# Install dependencies
+npm install
+```
+
+### Environment Setup
+
+Create a `.env.local` file in the root:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### Run Locally
+
+```bash
+npm run dev
+```
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+---
+
+## 📁 Project Structure
+
+```
+TaskFlowLW/
+├── auth/                  # Auth context and session management
+├── components/
+│   ├── charts/            # Chart.js chart components
+│   ├── hooks/             # Component-level custom hooks
+│   ├── icons/             # SVG icon components
+│   └── PWA/               # PWA badge component
+├── constants/             # App-wide config (task status, etc.)
+├── context/               # Theme, presence, PWA contexts
+├── hooks/                 # Global custom hooks
+├── lib/                   # Supabase client
+├── migrations/            # SQL migration files
+├── public/                # Static assets
+├── services/              # Supabase API service layer
+├── utils/                 # Utility functions
+├── types.ts               # Global TypeScript types
+└── constants.ts           # Shared constants
+```
+
+---
+
+## 🗄️ Database
+
+Built on **Supabase PostgreSQL** with the following tables:
+
+| Table | Description |
+|---|---|
+| `profiles` | User profiles linked to Supabase Auth |
+| `spaces` | Workspaces (departments/projects) |
+| `space_members` | Workspace membership and roles |
+| `tasks` | All tasks with priority, status, recurrence |
+| `subtasks` | Child tasks under a parent task |
+| `time_logs` | Timer session records per task |
+| `daily_tasks` | Personal daily to-do items per user |
+| `scratchpads` | Per-user persistent note storage |
+
+---
+
+## 🔒 Security
+
+- All tables protected with **Row Level Security (RLS)**
+- Users can only access data within their enrolled workspaces
+- Super admins managed via `is_admin` flag on profiles
+- Passwords hashed by Supabase Auth (bcrypt)
+- Sensitive config stored in `.env.local` — never committed
+
+---
+
+<div align="center">
+
+*TaskFlow LW — Built with ❤️ for Lifewood*
+
+</div>
