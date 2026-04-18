@@ -82,7 +82,7 @@ export interface Task {
   createdAt: string;
   completedAt?: string | null;
   blockedById?: number | null;
-  listId?: number | null;
+
   isUnplanned?: boolean;
   updated_at?: string;
   endDate?: string; // YYYY-MM-DD
@@ -102,14 +102,6 @@ export interface Space {
   createdAt: string;
 }
 
-export interface List {
-  id: number;
-  spaceId: string;
-  name: string;
-  color?: string;
-  position: number;
-  createdAt: string;
-}
 
 // Deprecating strict 'admin' role in favor of Space Ownership
 export type Role = 'user' | 'admin' | 'super_admin';

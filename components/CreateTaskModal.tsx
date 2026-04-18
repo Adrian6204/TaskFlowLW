@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
-import { Task, Space, Employee, Priority, TaskStatus, List, Subtask } from '../types';
+import { Task, Space, Employee, Priority, TaskStatus, Subtask } from '../types';
 import { UserIcon } from './icons/UserIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -23,7 +23,6 @@ interface CreateTaskModalProps {
     employees: Employee[];
     activeSpaceId: string;
     spaces: Space[];
-    lists: List[];
     currentUserId: string;
     isAdmin?: boolean;
     isSuperAdmin?: boolean;
@@ -37,7 +36,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     employees,
     activeSpaceId,
     spaces,
-    lists,
     currentUserId,
     isSuperAdmin,
 }) => {
@@ -45,7 +43,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [spaceId, setSpaceId] = useState(activeSpaceId);
-    const [listId, setListId] = useState<number | null>(null);
     const [status, setStatus] = useState<TaskStatus>(TaskStatus.TODO);
     const [priority, setPriority] = useState<Priority>(Priority.MEDIUM);
     const [assigneeIds, setAssigneeIds] = useState<string[]>([currentUserId]);
@@ -83,7 +80,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setTitle(taskToEdit.title || '');
                 setDescription(taskToEdit.description || '');
                 setSpaceId(taskToEdit.spaceId || activeSpaceId);
-                setListId(taskToEdit.listId || null);
                 setStatus(taskToEdit.status || TaskStatus.TODO);
                 setPriority(taskToEdit.priority || Priority.MEDIUM);
                 setAssigneeIds(taskToEdit.assigneeIds || (taskToEdit.assigneeId ? [taskToEdit.assigneeId] : [currentUserId]));
@@ -97,7 +93,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setTitle('');
                 setDescription('');
                 setSpaceId(activeSpaceId);
-                setListId(null);
                 setStatus(TaskStatus.TODO);
                 setPriority(Priority.MEDIUM);
                 setAssigneeIds([currentUserId]);
@@ -119,7 +114,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
         const taskData: Partial<Task> = {
             spaceId,
-            listId,
             title,
             description,
             status,
@@ -214,7 +208,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                                     {spaces.map(s => (
                                         <button
                                             key={s.id}
-                                            onClick={() => { setSpaceId(s.id); setListId(null); setSpaceSelectorOpen(false); }}
+                                            onClick={() => { setSpaceId(s.id); setSpaceSelectorOpen(false); }}
                                             className="w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-white/5 text-sm text-slate-700 dark:text-slate-200"
                                         >
                                             {s.name}

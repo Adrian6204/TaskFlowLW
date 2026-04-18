@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { User, Employee, Task, Space, List, TaskStatus } from '../types';
+import { User, Employee, Task, Space, TaskStatus } from '../types';
 import * as dataService from '../services/supabaseService';
 
 // Views
@@ -22,7 +22,6 @@ import CreateTaskModal from './CreateTaskModal';
 import ProfileModal from './ProfileModal';
 import CreateSpaceModal from './CreateSpaceModal';
 import JoinSpaceModal from './JoinSpaceModal';
-import CreateListModal from './CreateListModal';
 
 // Layout
 import Sidebar from './Sidebar';
@@ -74,7 +73,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const [tasks, setTasks] = useState<Task[]>([]); // tasks for the active space
     const [allUserTasks, setAllUserTasks] = useState<Task[]>([]); // tasks across all user's spaces
     const [memberships, setMemberships] = useState<{ space_id: string; user_id: string; role: string }[]>([]);
-    const [lists, setLists] = useState<List[]>([]);
     const [isDataLoaded, setIsDataLoaded] = useState(false);
     const isProcessingAutoComplete = useRef(false);
 
@@ -91,7 +89,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
         return (byId || bySlug)?.id || '';
     }, [location.pathname, spaces]);
 
-    const [activeListId, setActiveListId] = useState<number | null>(null);
 
     // ─── UI State ─────────────────────────────────────────────────────────
     const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -103,8 +100,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     const [isProfileModalOpen, setProfileModalOpen] = useState(false);
     const [isCreateSpaceModalOpen, setCreateSpaceModalOpen] = useState(false);
     const [isJoinSpaceModalOpen, setJoinSpaceModalOpen] = useState(false);
-    const [isCreateListModalOpen, setCreateListModalOpen] = useState(false);
-    const [createListSpaceId, setCreateListSpaceId] = useState<string | null>(null);
     const [isTaskDetailsModalOpen, setTaskDetailsModalOpen] = useState(false);
     const [isTaskDetailsReadOnly, setTaskDetailsReadOnly] = useState(false);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -183,7 +178,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
     useEffect(() => {
         if (activeSpaceId) {
             loadSpaceTasks(activeSpaceId);
-            setActiveListId(null);
         }
     }, [activeSpaceId]);
 
@@ -198,11 +192,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
 
             if (spcs.length > 0) {
                 const spaceIds = spcs.map(s => s.id);
-                const [allListsResults, mems] = await Promise.all([
-                    Promise.all(spcs.map(s => dataService.getLists(s.id))),
-                    dataService.getMemberships(spaceIds),
-                ]);
-                setLists(allListsResults.flat());
+                const mems = await dataService.getMemberships(spaceIds);
                 setMemberships(mems);
 
                 // Fetch all tasks for all user's spaces
@@ -233,13 +223,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
         }
     };
 
-    const loadLists = async () => {
-        if (spaces.length > 0) {
-            const allListsResults = await Promise.all(spaces.map(s => dataService.getLists(s.id)));
-            setLists(allListsResults.flat());
-        }
-    };
-    
     // ─── Auto-Complete Overdue Recurring Tasks ──────────────────────────
     useEffect(() => {
         if (!preferences.autoCompleteRecurring || !isDataLoaded || allUserTasks.length === 0 || isProcessingAutoComplete.current) return;
@@ -271,10 +254,9 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
 
     const filteredTasks = useMemo(() => {
         let t = availableTasks;
-        if (activeListId) t = t.filter(task => task.listId === activeListId);
         if (searchTerm) t = t.filter(task => task.title.toLowerCase().includes(searchTerm.toLowerCase()));
         return t;
-    }, [availableTasks, searchTerm, activeListId]);
+    }, [availableTasks, searchTerm]);
 
     const spaceMembers = useMemo(() => {
         if (!currentSpace) return [];
@@ -412,15 +394,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
         } catch (e) { console.error(e); }
     };
 
-    const handleCreateList = async (name: string) => {
-        if (!createListSpaceId) return;
-        try {
-            await dataService.createList(createListSpaceId, name);
-            loadLists();
-            setCreateListModalOpen(false);
-            setCreateListSpaceId(null);
-        } catch (e) { console.error(e); }
-    };
 
     // ─── Whether we're on a workspace route ───────────────────────────────
     const isOnWorkspace = !!activeSpaceId;
@@ -451,9 +424,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                             isOpen={isSidebarOpen}
                             onToggle={() => setSidebarOpen(!isSidebarOpen)}
                             activeSpaceId={activeSpaceId}
-                            activeListId={activeListId}
                             spaces={spaces}
-                            lists={lists}
                             currentView={currentView}
                             onSelectSpace={handleSelectSpace}
                             onViewChange={handleViewChange}
@@ -461,9 +432,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                             onLogout={onLogout}
                             onCreateSpace={isSuperAdmin ? () => setCreateSpaceModalOpen(true) : () => { }}
                             onJoinSpace={() => setJoinSpaceModalOpen(true)}
-                            onCreateList={(sid: string) => { setCreateListSpaceId(sid); setCreateListModalOpen(true); }}
                             onCreateTask={() => setCreateTaskModalOpen(true)}
-                            onSelectList={(lid: number | null) => setActiveListId(lid)}
                             currentUserEmployee={employees.find(e => e.id === user.employeeId)}
                             user={user}
                             isSuperAdmin={isSuperAdmin}
@@ -675,7 +644,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         employees={spaceMembers}
                         activeSpaceId={activeSpaceId}
                         spaces={spaces}
-                        lists={lists}
                         currentUserId={user.employeeId}
                         isAdmin={user.isAdmin}
                         isSuperAdmin={isSuperAdmin}
@@ -698,13 +666,6 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                     />
                 )}
 
-                {isCreateListModalOpen && (
-                    <CreateListModal
-                        isOpen={isCreateListModalOpen}
-                        onClose={() => setCreateListModalOpen(false)}
-                        onCreate={handleCreateList}
-                    />
-                )}
 
             </div>
         </>

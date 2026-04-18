@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Employee, Space, List, Task, TaskStatus } from '../types';
+import { User, Employee, Space, Task, TaskStatus } from '../types';
 import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 import { PlusIcon } from './icons/PlusIcon';
 import { UserIcon } from './icons/UserIcon';
@@ -22,9 +22,7 @@ import { usePreferences } from './hooks/usePreferences';
 interface SidebarProps {
   isOpen: boolean;
   activeSpaceId: string;
-  activeListId?: number | null;
   spaces: Space[];
-  lists: List[];
   currentView: string;
   onSelectSpace: (spaceId: string) => void;
   onViewChange: (view: string) => void;
@@ -33,9 +31,7 @@ interface SidebarProps {
   onLogout: () => void;
   onCreateSpace: () => void;
   onJoinSpace: () => void;
-  onCreateList: (spaceId: string) => void;
   onCreateTask: () => void;
-  onSelectList: (listId: number | null) => void;
   currentUserEmployee?: Employee;
   user: User;
   isSuperAdmin?: boolean;
@@ -53,9 +49,7 @@ const ArrowLeftIcon = ({ className }: { className?: string }) => (
 const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   activeSpaceId,
-  activeListId,
   spaces,
-  lists,
   currentView,
   onSelectSpace,
   onViewChange,
@@ -64,9 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
   onCreateSpace,
   onJoinSpace,
-  onCreateList,
   onCreateTask,
-  onSelectList,
   currentUserEmployee,
   user,
   isSuperAdmin = false,
@@ -443,37 +435,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               ))}
             </div>
 
-            {/* Lists sub-section */}
-            {isOpen && lists.filter(l => l.spaceId === activeSpaceId).length > 0 && (
-              <div className="mt-3 pt-3 border-t border-slate-200/50 dark:border-white/5">
-                <div className="flex items-center justify-between px-4 py-1 mb-1 group/header">
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">Lists</span>
-                  <button
-                    onClick={() => onCreateList(activeSpaceId)}
-                    className="text-slate-400 dark:text-white/20 hover:text-slate-900 dark:hover:text-white transition-colors opacity-0 group-hover/header:opacity-100"
-                  >
-                    <PlusIcon className="w-3 h-3" />
-                  </button>
-                </div>
-                {lists.filter(l => l.spaceId === activeSpaceId).map(list => (
-                  <button
-                    key={list.id}
-                    onClick={() => { onSelectList(list.id); onViewChange('board'); }}
-                    className={`w-full flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200
-                      ${activeListId === list.id
-                        ? 'bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white'
-                        : 'text-slate-500 dark:text-white/40 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                      }`}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: list.color || '#6b7280' }}
-                    />
-                    <span className="truncate">{list.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
           </>
         )}
 
