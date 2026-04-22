@@ -54,7 +54,7 @@ A modern, full-stack task management platform built for teams — featuring real
 - **Supabase Auth** — secure email/password authentication
 - **Row Level Security (RLS)** — data isolated per workspace
 - **Force Password Change** — default password enforcement on first login
-- **Super Admin** — full system-wide administrative control
+- **Executive Administrator** — full system-wide administrative control
 
 ### 🏠 Personal Productivity
 - **Home Dashboard** — scratchpad and personal stats

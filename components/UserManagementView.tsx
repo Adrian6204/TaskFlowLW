@@ -3,7 +3,7 @@ import { LayoutGrid, List } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { EmployeeWithRole, Space, Position } from '../types';
 import * as dataService from '../services/supabaseService';
-import BentoCard from './BentoCard';
+import DashboardCard from './DashboardCard';
 import { KeyIcon } from './icons/KeyIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { UsersIcon } from './icons/UsersIcon';
@@ -97,16 +97,16 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
 
         // Prevent revoking own super admin status
         if (user.id === currentUserId && !newStatus) {
-            alert("You cannot revoke your own Super Admin status.");
+            alert("You cannot revoke your own Executive Administrator status.");
             return;
         }
 
         setConfirmModal({
             isOpen: true,
-            title: `${action} System Admin Access?`,
+            title: `${action} Executive Privileges?`,
             message: newStatus
-                ? `Are you sure you want to GRANT ${user.name} System Admin access? They will have FULL control over every workspace and setting in the entire system.`
-                : `Are you sure you want to REVOKE System Admin access from ${user.name}? They will lose all administrative control immediately.`,
+                ? `Are you sure you want to GRANT ${user.name} full administrative privileges? They will have complete oversight over every workspace and setting.`
+                : `Are you sure you want to REVOKE administrative privileges from ${user.name}? Their access will be downgraded immediately.`,
             type: newStatus ? 'danger' : 'warning', // Danger for granting so they pay attention
             onConfirm: async () => {
                 try {
@@ -117,7 +117,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                     // Optional: Toast success
                 } catch (error) {
                     console.error("Failed to update system admin status", error);
-                    alert("Failed to update System Admin status. Please try again.");
+                    alert("Failed to update administrative status. Please try again.");
                     loadUsers(); // Revert on error
                 } finally {
                     setConfirmModal({ ...confirmModal, isOpen: false });
@@ -372,14 +372,14 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                     </td>
                                     <td className="px-4 sm:px-6 py-3">
                                         {user.isSuperAdmin ? (
-                                            <span className="whitespace-nowrap px-2 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[9px] font-black uppercase tracking-widest border border-primary-500/20">Admin</span>
+                                            <span className="whitespace-nowrap px-2 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[9px] font-black uppercase tracking-widest border border-primary-500/20">Executive Administrator</span>
                                         ) : (
                                             <span className="text-xs text-slate-400 dark:text-white/30">Member</span>
                                         )}
                                     </td>
                                     <td className="px-4 sm:px-6 py-3">
                                         <div className="flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => handleToggleSuperAdmin(user)} disabled={user.id === currentUserId} title={user.isSuperAdmin ? 'Revoke Admin' : 'Grant Admin'} className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 hover:bg-indigo-500 hover:text-white border border-slate-200 dark:border-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none">
+                                            <button onClick={() => handleToggleSuperAdmin(user)} disabled={user.id === currentUserId} title={user.isSuperAdmin ? 'Revoke Executive Privileges' : 'Grant Executive Privileges'} className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 hover:bg-indigo-500 hover:text-white border border-slate-200 dark:border-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none">
                                                 <LayoutGrid className="w-3.5 h-3.5" />
                                             </button>
                                             <button onClick={() => { setSelectedUserToEnroll(user.id); setIsEnrollModalOpen(true); }} title="Enroll in workspace" className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all">
@@ -404,7 +404,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
             {/* Users Grid */}
             {!isListView && <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 {filteredUsers.map(user => (
-                    <BentoCard
+                    <DashboardCard
                         key={user.id}
                         className={`p-8 group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/5 dark:hover:shadow-none flex flex-col h-full ${user.mustChangePassword ? 'ring-1 ring-rose-500/30 bg-rose-500/[0.02] shadow-[0_0_20px_-5px_rgba(244,63,94,0.1)]' : ''}`}
                     >
@@ -484,7 +484,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                             <div className="flex items-center gap-2 flex-wrap min-h-[28px]">
                                 {user.isSuperAdmin && (
                                     <span className="px-2.5 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[9px] font-black uppercase tracking-widest border border-primary-500/20">
-                                        System Admin
+                                        Executive Administrator
                                     </span>
                                 )}
                                 {user.mustChangePassword && (
@@ -554,7 +554,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                                 `}
                             >
                                 <UsersIcon className="w-4 h-4" />
-                                {user.isSuperAdmin ? 'Full Access Granted' : 'Give System Admin Access'}
+                                {user.isSuperAdmin ? 'Full Access Granted' : 'Grant Executive Privileges'}
                             </button>
 
                             <button
@@ -569,7 +569,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({ currentUserId, 
                             </button>
                         </div>
 
-                    </BentoCard>
+                    </DashboardCard>
                 ))}
             </div>}
 

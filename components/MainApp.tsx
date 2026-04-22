@@ -13,6 +13,7 @@ import GanttChart from './GanttChart';
 import AdminDashboard from './AdminDashboard';
 import AdminOverseerView from './AdminOverseerView';
 import MembersView from './MembersView';
+import TargetsView from './TargetsView';
 import UserManagementView from './UserManagementView';
 import OverdueTasksModal from './OverdueTasksModal';
 
@@ -55,13 +56,14 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
 
     const VIEW_TO_URL: Record<string, string> = {
         home: 'dashboard',
-        board: 'task-board',
-        summary: 'team-hub',
+        board: 'workflow-management',
+        summary: 'collaboration-center',
         timeline: 'calendar',
-        gantt: 'gantt-chart',
-        members: 'members',
-        overview: 'analytics',
-        analytics: 'daily-overview',
+        gantt: 'project-timeline',
+        targets: 'strategic-targets',
+        members: 'team-directory',
+        overview: 'performance-analytics',
+        analytics: 'task-distribution',
         settings: 'settings',
     };
     const URL_TO_VIEW: Record<string, string> = Object.fromEntries(
@@ -472,7 +474,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                     />
                                 )}
 
-                                {/* Task Board */}
+                                {/* Workflow Management */}
                                 {isOnWorkspace && currentView === 'board' && (
                                     <TaskBoard
                                         tasks={filteredTasks.filter((t: Task) => t.assigneeIds?.includes(user.employeeId) || t.assigneeId === user.employeeId)}
@@ -503,11 +505,26 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                                     </div>
                                 )}
 
-                                {/* Gantt Chart */}
+                                {/* Project Timeline */}
                                 {isOnWorkspace && currentView === 'gantt' && (
                                     <div className="min-h-[calc(100vh-200px)]">
                                         <GanttChart tasks={filteredTasks} employees={spaceMembers} onViewTask={(t) => { setSelectedTask(t); setTaskDetailsModalOpen(true); }} />
                                     </div>
+                                )}
+
+                                {/* Targets View */}
+                                {isOnWorkspace && currentView === 'targets' && (
+                                    <TargetsView
+                                        spaceId={activeSpaceId}
+                                        tasks={allUserTasks.filter(t => t.spaceId === activeSpaceId)}
+                                        employees={spaceMembers}
+                                        currentUserId={user.employeeId || ''}
+                                        onAddTask={(parentId) => { 
+                                            setTaskToEdit({ parent_task_id: parentId, spaceId: activeSpaceId }); 
+                                            setCreateTaskModalOpen(true); 
+                                        }}
+                                        onViewTask={(t) => { setSelectedTask(t); setTaskDetailsModalOpen(true); }}
+                                    />
                                 )}
 
                                 {/* Overview / Analytics (admin + super_admin only) */}
@@ -646,6 +663,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                         spaces={spaces}
                         currentUserId={user.employeeId}
                         isSuperAdmin={isSuperAdmin}
+                        allTasks={allUserTasks}
                     />
                 )}
 

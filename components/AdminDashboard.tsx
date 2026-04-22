@@ -12,7 +12,7 @@ import { SparklesIcon } from './icons/SparklesIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { FlagIcon } from './icons/FlagIcon';
-import BentoCard from './BentoCard';
+import DashboardCard from './DashboardCard';
 import { BoltIcon } from './icons/BoltIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { isTaskOverdue } from '../utils/taskUtils';
@@ -123,7 +123,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             {/* Top Row — 4 Quick Metric Cards */}
             <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <BentoCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
+                <DashboardCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
                     <div className="flex justify-between items-start mb-4">
                         <div className={`p-2 ${TASK_STATUS_CONFIG[TaskStatus.TODO].faint} ${TASK_STATUS_CONFIG[TaskStatus.TODO].text} rounded-xl`}>
                             <SparklesIcon className="w-5 h-5" />
@@ -133,9 +133,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-white/40">
                         {timeRange === 'today' ? 'Created Today' : timeRange === 'all' ? 'Total Created' : 'Created in Period'}
                     </p>
-                </BentoCard>
+                </DashboardCard>
 
-                <BentoCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
+                <DashboardCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
                     <div className="flex justify-between items-start mb-4">
                         <div className={`p-2 ${TASK_STATUS_CONFIG[TaskStatus.DONE].faint} ${TASK_STATUS_CONFIG[TaskStatus.DONE].text} rounded-xl`}>
                             <CheckCircleIcon className="w-5 h-5" />
@@ -145,9 +145,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-white/40">
                         {timeRange === 'today' ? 'Completed Today' : timeRange === 'all' ? 'Total Completed' : 'Completed in Period'}
                     </p>
-                </BentoCard>
+                </DashboardCard>
 
-                <BentoCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
+                <DashboardCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
                     <div className="flex justify-between items-start mb-4">
                         <div className={`p-2 ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].faint} ${TASK_STATUS_CONFIG[TaskStatus.IN_PROGRESS].text} rounded-xl`}>
                             <UsersIcon className="w-5 h-5" />
@@ -155,9 +155,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <span className="text-3xl font-black text-slate-900 dark:text-white">{activeAssignees}</span>
                     </div>
                     <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-white/40">Active Assignees</p>
-                </BentoCard>
+                </DashboardCard>
 
-                <BentoCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
+                <DashboardCard className="p-5 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-200">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-orange-500/10 text-orange-500 rounded-xl">
                             <FlagIcon className="w-5 h-5" />
@@ -165,14 +165,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <span className="text-3xl font-black text-slate-900 dark:text-white">{highPriorityActive}</span>
                     </div>
                     <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-white/40">High Priority Active</p>
-                </BentoCard>
+                </DashboardCard>
             </div>
 
-            {/* Second Row — Project Velocity + Critical Attention */}
+            {/* Second Row — Project Progress + Critical Attention */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 {/* 1. Main Status Card (Span 2) */}
-                <BentoCard className="col-span-1 md:col-span-2 relative overflow-hidden group p-8 flex flex-col gap-4">
+                <DashboardCard className="col-span-1 md:col-span-2 relative overflow-hidden group p-8 flex flex-col gap-4">
                     <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none">
                         <div className={`w-64 h-64 rounded-full bg-gradient-to-br from-[#FFB347] to-[#046241] blur-[100px]`} />
                     </div>
@@ -206,7 +206,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                         <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.9] mb-3">
                             Project{' '}
-                            <span className={`text-transparent bg-clip-text bg-gradient-to-r from-[#FFB347] to-[#046241]`}>Velocity</span>
+                            <span className={`text-transparent bg-clip-text bg-gradient-to-r from-[#FFB347] to-[#046241]`}>Performance</span>
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-white/40 font-medium leading-relaxed max-w-md">
                             Real-time overview of your team's task throughput, progress, and critical bottlenecks across all active workloads.
@@ -246,13 +246,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Critical Overdue</p>
                         </div>
                     </div>
-                </BentoCard>
+                </DashboardCard>
 
                 {/* 2. Critical Attention — 3 stacked cards */}
                 <div className="col-span-1 flex flex-col gap-3">
 
                     {/* Header card */}
-                    <BentoCard className="p-4 flex items-center justify-between overflow-hidden relative">
+                    <DashboardCard className="p-4 flex items-center justify-between overflow-hidden relative">
                         <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent pointer-events-none" />
                         <div className="flex items-center gap-2 relative z-10">
                             <div className="p-1.5 rounded-lg bg-red-500/10">
@@ -269,16 +269,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         >
                             View All
                         </button>
-                    </BentoCard>
+                    </DashboardCard>
 
                     {/* Task card helper */}
                     {[0, 1].map((idx) => {
                         const task = [...criticalTasks, ...overdueTasks][idx];
                         if (!task) return (
-                            <BentoCard key={idx} className="p-4 flex-1 flex flex-col items-center justify-center gap-2 text-slate-300 dark:text-white/20">
+                            <DashboardCard key={idx} className="p-4 flex-1 flex flex-col items-center justify-center gap-2 text-slate-300 dark:text-white/20">
                                 <CheckCircleIcon className="w-7 h-7 opacity-40" />
                                 <p className="text-[10px] font-bold uppercase tracking-wider">{idx === 0 ? 'All Clear' : 'No More Issues'}</p>
-                            </BentoCard>
+                            </DashboardCard>
                         );
 
                         const assignee = employees.find(e => e.id === task.assigneeId);
@@ -288,7 +288,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         const priorityLabel = isUrgent ? 'Urgent' : task.priority === Priority.HIGH ? 'High' : 'Medium';
 
                         return (
-                            <BentoCard
+                            <DashboardCard
                                 key={task.id}
                                 className="flex-1 cursor-pointer overflow-hidden transition-all hover:shadow-md group p-4 flex flex-col gap-2"
                                 onClick={() => onViewTask && onViewTask(task)}
@@ -321,7 +321,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                         {assignee?.name || 'Unassigned'}
                                     </span>
                                 </div>
-                            </BentoCard>
+                            </DashboardCard>
                         );
                     })}
 
@@ -332,7 +332,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
                 {/* 1. Throughput Trend */}
-                <BentoCard className="p-6 flex flex-col min-h-[320px]">
+                <DashboardCard className="p-6 flex flex-col min-h-[320px]">
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Project Throughput</h3>
@@ -342,7 +342,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex-1">
                         <ThroughputChart tasks={filteredTasks} />
                     </div>
-                </BentoCard>
+                </DashboardCard>
 
                 {/* 2. Workload Health */}
                 <div className="min-h-[320px]">
@@ -350,7 +350,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 {/* 3. Member Allocation Efficiency */}
-                <BentoCard className="p-6 flex flex-col min-h-[320px]">
+                <DashboardCard className="p-6 flex flex-col min-h-[320px]">
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Team Workload Balance</h3>
@@ -360,10 +360,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex-1">
                         <MemberEfficiencyChart tasks={filteredTasks} employees={employees} />
                     </div>
-                </BentoCard>
+                </DashboardCard>
 
                 {/* 4. Speed & Priority Analysis */}
-                <BentoCard className="p-6 flex flex-col min-h-[320px]">
+                <DashboardCard className="p-6 flex flex-col min-h-[320px]">
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Priority Turnaround</h3>
@@ -373,12 +373,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex-1">
                         <LeadTimeChart tasks={filteredTasks} />
                     </div>
-                </BentoCard>
+                </DashboardCard>
             </div>
 
             {/* Minor Charts Footer */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <BentoCard className="p-6 flex flex-col min-h-[280px]">
+                <DashboardCard className="p-6 flex flex-col min-h-[280px]">
                     <div className="mb-4">
                         <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Task Aging</h3>
                         <p className="text-[10px] text-slate-400 dark:text-white/20 font-medium mt-0.5">Bottlenecks by age</p>
@@ -386,8 +386,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex-1 min-h-0">
                         <TaskAgingChart tasks={filteredTasks} />
                     </div>
-                </BentoCard>
-                <BentoCard className="p-6 flex flex-col min-h-[280px]">
+                </DashboardCard>
+                <DashboardCard className="p-6 flex flex-col min-h-[280px]">
                     <div className="mb-4">
                         <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Detailed Status</h3>
                         <p className="text-[10px] text-slate-400 dark:text-white/20 font-medium mt-0.5">Tasks by current state</p>
@@ -395,8 +395,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex-1 min-h-0">
                         <TaskStatusStackedBar tasks={filteredTasks} />
                     </div>
-                </BentoCard>
-                <BentoCard className="p-6 flex flex-col min-h-[280px]">
+                </DashboardCard>
+                <DashboardCard className="p-6 flex flex-col min-h-[280px]">
                     <div className="mb-4">
                         <h3 className="text-xs font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Priority Volume</h3>
                         <p className="text-[10px] text-slate-400 dark:text-white/20 font-medium mt-0.5">Active tasks by priority</p>
@@ -404,7 +404,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex-1 min-h-0">
                         <TaskPriorityHorizontalBar tasks={filteredTasks} />
                     </div>
-                </BentoCard>
+                </DashboardCard>
             </div>
 
             <OverdueTasksModal

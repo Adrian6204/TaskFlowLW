@@ -13,6 +13,7 @@ import { PhotoIcon } from './icons/PhotoIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { ArrowPathIcon } from './icons/ArrowPathIcon';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
+import { TrendingUp } from 'lucide-react';
 import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
 
 interface CreateTaskModalProps {
@@ -25,6 +26,7 @@ interface CreateTaskModalProps {
     spaces: Space[];
     currentUserId: string;
     isSuperAdmin?: boolean;
+    allTasks: Task[];
 }
 
 const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
@@ -37,6 +39,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     spaces,
     currentUserId,
     isSuperAdmin,
+    allTasks,
 }) => {
     const [show, setShow] = useState(false);
     const [title, setTitle] = useState('');
@@ -51,11 +54,14 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const [tags, setTags] = useState<string[]>([]);
     const [subtasks, setSubtasks] = useState<Subtask[]>([]);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+    const [groupLabel, setGroupLabel] = useState('');
+    const [parentTaskId, setParentTaskId] = useState<number | null>(null);
 
     // UI States
     const [isSpaceSelectorOpen, setSpaceSelectorOpen] = useState(false);
     const [isAssigneeSelectorOpen, setAssigneeSelectorOpen] = useState(false);
     const [isPrioritySelectorOpen, setPrioritySelectorOpen] = useState(false);
+    const [isParentSelectorOpen, setParentSelectorOpen] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
     const [pendingToggleId, setPendingToggleId] = useState<string | null>(null);
     const [assigneeSearchTerm, setAssigneeSearchTerm] = useState('');
@@ -70,6 +76,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         setCalendarOpen(false);
         setEndCalendarOpen(false);
         setRecurrenceSelectorOpen(false);
+        setParentSelectorOpen(false);
     };
 
     useEffect(() => {
@@ -87,6 +94,8 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setRecurrence(taskToEdit.recurrence || 'none');
                 setTags(taskToEdit.tags || []);
                 setSubtasks(taskToEdit.subtasks || []);
+                setGroupLabel(taskToEdit.groupLabel || '');
+                setParentTaskId(taskToEdit.parent_task_id || null);
             } else {
                 // Reset defaults
                 setTitle('');
@@ -100,6 +109,8 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 setRecurrence('none');
                 setTags([]);
                 setSubtasks([]);
+                setGroupLabel('');
+                setParentTaskId(null);
             }
         } else {
             setShow(false);
@@ -125,6 +136,8 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
             recurrence,
             tags,
             subtasks,
+            groupLabel,
+            parent_task_id: parentTaskId,
         };
 
         await onSave(taskData, taskToEdit?.id as number | null);
@@ -497,6 +510,101 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                                             {opt.label}
                                         </button>
                                     ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Target Group Alignment - NEW */}
+                    <div className="mb-8">
+                        <label className="block text-xs font-bold text-neutral-400 dark:text-white/30 uppercase tracking-widest mb-3">Target Strategic Alignment</label>
+                        <div className="flex flex-wrap gap-2">
+                            {['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Month 1'].map(label => (
+                                <button
+                                    key={label}
+                                    type="button"
+                                    onClick={() => setGroupLabel(label === groupLabel ? '' : label)}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${groupLabel === label 
+                                        ? 'bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/20' 
+                                        : 'bg-neutral-50 dark:bg-white/5 border-neutral-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-indigo-500/50'}`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                            <input 
+                                type="text"
+                                value={groupLabel && !['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Month 1'].includes(groupLabel) ? groupLabel : ''}
+                                onChange={(e) => setGroupLabel(e.target.value)}
+                                placeholder="Custom Group (e.g. Phase 1)"
+                                className={`px-4 py-2 rounded-xl text-xs font-bold bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-slate-700 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 w-48 transition-all ${groupLabel && !['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Month 1'].includes(groupLabel) ? 'border-indigo-500' : ''}`}
+                            />
+                        </div>
+                        <p className="mt-2 text-[10px] font-bold text-neutral-400 uppercase tracking-wider italic opacity-60">Categorizing this task will pin it to your strategic Targets dashboard.</p>
+                    </div>
+
+                    {/* Strategic Objective Linking - NEW */}
+                    <div className="mb-8">
+                        <label className="block text-xs font-bold text-neutral-400 dark:text-white/30 uppercase tracking-widest mb-3">Strategic Objective Alignment</label>
+                        <div className="relative w-full">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const wasOpen = isParentSelectorOpen;
+                                    closeAllDropdowns();
+                                    setParentSelectorOpen(!wasOpen);
+                                }}
+                                className={`w-full flex items-center justify-between px-4 py-3 bg-neutral-50 dark:bg-white/[0.03] border rounded-2xl transition-all ${parentTaskId ? 'border-indigo-500/50' : 'border-neutral-200 dark:border-white/10 hover:border-indigo-500/30'}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-lg ${parentTaskId ? 'bg-indigo-500/10 text-indigo-500' : 'bg-neutral-100 dark:bg-white/5 text-neutral-400'}`}>
+                                        <TrendingUp className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className={`text-sm font-bold ${parentTaskId ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}>
+                                            {parentTaskId ? allTasks.find(t => t.id === parentTaskId)?.title : 'Standalone Objective'}
+                                        </p>
+                                        <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-semibold">
+                                            {parentTaskId ? 'Linked to Strategic Initiative' : 'Not linked to a specific objective'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <ChevronDownIcon className={`w-4 h-4 text-neutral-400 transition-transform ${isParentSelectorOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {isParentSelectorOpen && (
+                                <div className="absolute top-full left-0 mt-2 w-full bg-white dark:bg-[#2A2A2D] border border-neutral-200 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="max-h-60 overflow-y-auto p-1 scrollbar-thin">
+                                        <button
+                                            onClick={() => { setParentTaskId(null); setParentSelectorOpen(false); }}
+                                            className="w-full text-left px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/5 rounded-xl transition-all flex items-center gap-3"
+                                        >
+                                            <div className="w-2 h-2 rounded-full bg-slate-300" />
+                                            <span className="text-sm font-bold text-slate-500">None (Standalone Initiative)</span>
+                                        </button>
+                                        <div className="h-px bg-neutral-100 dark:bg-white/5 my-1" />
+                                        {allTasks
+                                            .filter(t => !t.parent_task_id && t.spaceId === spaceId && t.id !== (taskToEdit as Task)?.id)
+                                            .map(parent => (
+                                                <button
+                                                    key={parent.id}
+                                                    onClick={() => { setParentTaskId(parent.id); setParentSelectorOpen(false); }}
+                                                    className={`w-full text-left px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/5 rounded-xl transition-all flex items-center justify-between group
+                                                        ${parentTaskId === parent.id ? 'bg-indigo-50 dark:bg-indigo-500/10' : ''}`}
+                                                >
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className={`w-2 h-2 rounded-full shrink-0 ${parentTaskId === parent.id ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'bg-slate-300'}`} />
+                                                        <span className={`text-sm font-bold truncate ${parentTaskId === parent.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                            {parent.title}
+                                                        </span>
+                                                    </div>
+                                                    {parent.groupLabel && (
+                                                        <span className="text-[9px] font-black px-2 py-0.5 rounded bg-slate-100 dark:bg-white/5 text-slate-400 uppercase tracking-tighter">
+                                                            {parent.groupLabel}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            ))}
+                                    </div>
                                 </div>
                             )}
                         </div>

@@ -2,11 +2,11 @@ import React from 'react';
 import { Task, TaskStatus } from '../../types';
 import { ChartBar, TrendingUp, TrendingDown } from 'lucide-react';
 
-interface VelocitySparklineProps {
+interface PerformanceTrendProps {
     tasks: Task[];
 }
 
-const VelocitySparkline: React.FC<VelocitySparklineProps> = ({ tasks }) => {
+const PerformanceTrend: React.FC<PerformanceTrendProps> = ({ tasks }) => {
     // 1. Calculate tasks completed in the last 7 days vs previous 7 days
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -20,14 +20,23 @@ const VelocitySparkline: React.FC<VelocitySparklineProps> = ({ tasks }) => {
         return d >= fourteenDaysAgo && d < sevenDaysAgo;
     }).length;
 
-    // Generate fake daily variations that add up to thisWeekCount for the sparkline visual
-    const maxBarHeight = Math.max(thisWeekCount / 2, 5);
-    const sparklineData = Array.from({ length: 7 }).map((_, i) => {
-        // Create a curve that trends towards the actual recent completions
-        const randomVariance = Math.floor(Math.random() * 3);
-        const base = Math.floor(thisWeekCount / 7);
-        return Math.min(base + randomVariance, maxBarHeight);
+    // 2. Calculate daily completions for the last 7 days (including today)
+    const dailyCounts = Array.from({ length: 7 }).map((_, i) => {
+        const targetDate = new Date(now);
+        targetDate.setDate(now.getDate() - (6 - i));
+        targetDate.setHours(0, 0, 0, 0);
+        
+        const nextDate = new Date(targetDate);
+        nextDate.setDate(targetDate.getDate() + 1);
+
+        return completedTasks.filter(t => {
+            const d = new Date(t.updated_at!);
+            return d >= targetDate && d < nextDate;
+        }).length;
     });
+
+    const maxBarHeight = Math.max(...dailyCounts, 1);
+    const trendData = dailyCounts;
 
     const percentChange = lastWeekCount === 0
         ? 100
@@ -46,7 +55,7 @@ const VelocitySparkline: React.FC<VelocitySparklineProps> = ({ tasks }) => {
                 <div>
                     <h3 className="text-xs font-bold text-slate-500 dark:text-white/50 uppercase tracking-widest flex items-center gap-2">
                         <ChartBar className="w-4 h-4 text-indigo-400" />
-                        7-Day Velocity
+                        7-Day Performance
                     </h3>
                     <div className="mt-2 flex items-baseline gap-2">
                         <span className="text-4xl font-black text-slate-900 dark:text-white leading-none">
@@ -66,9 +75,9 @@ const VelocitySparkline: React.FC<VelocitySparklineProps> = ({ tasks }) => {
                 </div>
             </div>
 
-            {/* Sparkline Bars */}
+            {/* Trend Bars */}
             <div className="flex-1 mt-auto flex items-end justify-between gap-2 relative z-10 h-24">
-                {sparklineData.map((val, i) => (
+                {trendData.map((val, i) => (
                     <div key={i} className="w-full flex flex-col justify-end items-center group/bar h-full">
                         <div
                             className="w-full bg-indigo-500/20 dark:bg-indigo-400/20 rounded-t-sm transition-all duration-500 group-hover/bar:bg-indigo-500 dark:group-hover/bar:bg-indigo-400"
@@ -81,4 +90,4 @@ const VelocitySparkline: React.FC<VelocitySparklineProps> = ({ tasks }) => {
     );
 };
 
-export default VelocitySparkline;
+export default PerformanceTrend;

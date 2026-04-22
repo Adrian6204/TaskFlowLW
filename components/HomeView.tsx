@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Task, Employee, TaskStatus, Priority, Space, User } from '../types';
-import BentoCard from './BentoCard';
+import DashboardCard from './DashboardCard';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { FlagIcon } from './icons/FlagIcon';
@@ -28,7 +28,7 @@ interface HomeViewProps {
   onUpdateTaskStatus: (taskId: number, newStatus: TaskStatus) => void;
   onUpdateTask: (taskId: number, updates: Partial<Task>) => Promise<void>;
   onAddTask: (task: Partial<Task>) => Promise<any>;
-  onViewTask?: (task: Task) => void; // Optional for now, but recommended for drill-down
+  onViewTask?: (task: Task) => void; // Optional for now, but recommended for detailed view
 }
 
 const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, user, searchTerm: globalSearchTerm, onSearchChange, onUpdateTaskStatus, onUpdateTask, onAddTask, onViewTask }) => {
@@ -239,7 +239,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in text-slate-900 dark:text-white pb-24">
         {/* 1. Hero / Profile Card (Span 2) */}
-        <BentoCard className="col-span-1 md:col-span-2 relative p-8 flex flex-col justify-between min-h-[300px] group">
+        <DashboardCard className="col-span-1 md:col-span-2 relative p-8 flex flex-col justify-between min-h-[300px] group">
           <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity">
             <div className={`w-32 h-32 rounded-full bg-gradient-to-br ${accent.from} ${accent.to} blur-[80px]`}></div>
           </div>
@@ -282,9 +282,9 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
               <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">In Progress</p>
             </div>
           </div>
-        </BentoCard>
+        </DashboardCard>
 
-        <BentoCard className="col-span-1 p-0 flex flex-col relative overflow-hidden group min-h-[220px]">
+        <DashboardCard className="col-span-1 p-0 flex flex-col relative overflow-hidden group min-h-[220px]">
           {/* Animated Background Elements */}
           <div className={`absolute inset-0 bg-gradient-to-br ${accent?.from || 'from-lime-500'} ${accent?.to || 'to-emerald-500'} opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-500 pointer-events-none`}></div>
           <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700">
@@ -312,10 +312,10 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
               </p>
             </button>
           </div>
-        </BentoCard>
+        </DashboardCard>
 
         {/* 3. Task List (Span 2) */}
-        <BentoCard className="col-span-1 md:col-span-2 xl:row-span-2 p-0 flex flex-col">
+        <DashboardCard className="col-span-1 md:col-span-2 xl:row-span-2 p-0 flex flex-col">
           <div className="p-8 pb-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-lime-500 dark:bg-[#CEFD4A]"></div>
@@ -448,10 +448,10 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
               ));
             })()}
           </div>
-        </BentoCard>
+        </DashboardCard>
 
         {/* 4. Team Members (Span 1) */}
-        <BentoCard className="col-span-1 p-6">
+        <DashboardCard className="col-span-1 p-6">
           <h3 className="text-sm font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider mb-6">Team Members</h3>
           <div className="flex flex-wrap gap-2">
             {employees.map(emp => (
@@ -472,12 +472,12 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
               </div>
             ))}
           </div>
-        </BentoCard>
+        </DashboardCard>
 
         {/* 5. Personal Quick Tasks (Span 1 - matching height if possible) */}
-        <BentoCard className="col-span-1 p-6 flex flex-col group">
+        <DashboardCard className="col-span-1 p-6 flex flex-col group">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider">Scratchpad</h3>
+            <h3 className="text-sm font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider">Personal Notes</h3>
             <span className="text-[10px] font-bold text-slate-400 dark:text-white/20">Auto-saved</span>
           </div>
 
@@ -493,7 +493,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
               className="flex-1 w-full bg-transparent resize-none focus:outline-none text-sm font-medium text-slate-600 dark:text-white/80 placeholder:text-slate-300 dark:placeholder:text-white/20 leading-relaxed scrollbar-none"
             />
           )}
-        </BentoCard>
+        </DashboardCard>
 
         {/* Status Picker Popup */}
         {statusPickerTask && pickerPosition && (
@@ -574,7 +574,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-lime-500 dark:bg-[#CEFD4A] shadow-[0_0_10px_rgba(206,253,74,0.4)]"></div>
-                    <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Task Control</h2>
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Task Management</h2>
                   </div>
                   <p className="text-slate-500 dark:text-white/40 text-sm font-bold uppercase tracking-widest">{filteredTasks.length} {filteredTasks.length === 1 ? 'Task' : 'Tasks'} Listed</p>
                 </div>

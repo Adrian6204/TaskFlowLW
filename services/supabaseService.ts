@@ -1,6 +1,6 @@
 
 import { supabase } from '../lib/supabaseClient';
-import { Task, Space, Employee, TaskStatus, Priority, Subtask } from '../types';
+import { Task, Space, Employee, TaskStatus, Priority, Subtask, Target } from '../types';
 
 // --- Types for DB Insert/Update ---
 interface DbTask {
@@ -22,6 +22,7 @@ interface DbTask {
   completed_at: string | null;
 
   parent_task_id?: number | null;
+  group_label: string | null;
 }
 
 
@@ -38,6 +39,17 @@ interface DbDailyTask {
 interface DbScratchpad {
   user_id: string;
   content: string;
+}
+
+interface DbTarget {
+  id?: string;
+  space_id: string;
+  user_id?: string;
+  task_id: number | null;
+  title: string;
+  group_label: string | null;
+  status: string;
+  priority: string;
 }
 
 // --- Mappers (CamelCase <-> SnakeCase) ---
@@ -62,6 +74,7 @@ const mapDbTaskToApp = (dbTask: any): Task => ({
   blockedById: dbTask.blocked_by_id,
 
   parent_task_id: dbTask.parent_task_id,
+  groupLabel: dbTask.group_label,
   subtasks: dbTask.subtasks ? dbTask.subtasks.map(mapDbSubtaskToApp) : [],
   updated_at: dbTask.updated_at,
 });
@@ -84,6 +97,18 @@ const mapDbSpaceToApp = (dbSpace: any): Space => ({
   theme: dbSpace.theme,
   logoUrl: dbSpace.logo_url,
   createdAt: dbSpace.created_at,
+});
+
+const mapDbTargetToApp = (dbTarget: any): Target => ({
+  id: dbTarget.id,
+  spaceId: dbTarget.space_id,
+  userId: dbTarget.user_id,
+  taskId: dbTarget.task_id,
+  title: dbTarget.title,
+  groupLabel: dbTarget.group_label || '',
+  status: dbTarget.status,
+  priority: dbTarget.priority,
+  createdAt: dbTarget.created_at,
 });
 
 export const getFallbackAvatar = (name: string) => {
@@ -380,6 +405,7 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
           blocked_by_id: data.blocked_by_id || null,
           completed_at: null,
           parent_task_id: data.id,
+          group_label: data.group_label || null,
         };
 
         try {
@@ -431,6 +457,8 @@ export const upsertTask = async (task: Partial<Task> & { spaceId: string, title:
       timer_start_time: task.timerStartTime || null,
       blocked_by_id: task.blockedById || null,
       completed_at: task.completedAt || null,
+      parent_task_id: task.parent_task_id || null,
+      group_label: task.groupLabel || null,
     };
 
     const { data, error } = await supabase
@@ -762,5 +790,51 @@ export const resetUserPassword = async (userId: string) => {
 
   if (error) throw error;
   return data;
+};
+
+// --- Target Services ---
+
+export const getTargets = async (spaceId: string) => {
+  const { data, error } = await supabase
+    .from('targets')
+    .select('*')
+    .eq('space_id', spaceId)
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return data.map(mapDbTargetToApp);
+};
+
+export const upsertTarget = async (target: Partial<Target> & { spaceId: string; title: string }) => {
+  const payload: DbTarget = {
+    space_id: target.spaceId,
+    task_id: target.taskId || null,
+    title: target.title,
+    group_label: target.groupLabel || null,
+    status: target.status || 'TODO',
+    priority: target.priority || 'Medium',
+  };
+
+  if (target.id) {
+    payload.id = target.id;
+  }
+
+  const { data, error } = await supabase
+    .from('targets')
+    .upsert(payload)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return mapDbTargetToApp(data);
+};
+
+export const deleteTarget = async (targetId: string) => {
+  const { error } = await supabase
+    .from('targets')
+    .delete()
+    .eq('id', targetId);
+
+  if (error) throw error;
 };
 

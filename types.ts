@@ -15,7 +15,7 @@ export enum Priority {
 export enum Position {
   FOUNDER_AND_CEO = 'Founder and CEO',
   MANAGING_DIRECTOR = 'Managing Director',
-  ADMIN = 'Admin',
+  ADMIN = 'Executive Administrator',
   HR_ASSISTANT = 'HR Assistant',
   PRODUCTION_SUPPORT = 'Production Support',
   RESEARCH_ASSISTANT = 'Research Assistant',
@@ -81,6 +81,7 @@ export interface Task {
   endDate?: string; // YYYY-MM-DD
   recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
   parent_task_id?: number | null;
+  groupLabel?: string;
 }
 
 export interface Space {
@@ -154,4 +155,16 @@ export interface AuthContextType {
   updateUser: (updates: Partial<User>) => void;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   markPasswordChanged: (newPassword: string) => Promise<boolean>;
+}
+
+export interface Target {
+  id: string;
+  spaceId: string;
+  userId?: string;
+  taskId?: number;
+  title: string;
+  groupLabel?: string;
+  status: 'TODO' | 'DONE' | string;
+  priority: Priority | string;
+  createdAt: string;
 }

@@ -779,15 +779,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, curr
                                     </div>
                                 </section>
 
-                                {/* Team Hub Status */}
+                                {/* Collaboration Center Status */}
                                 {(currentUserEmployee?.isSuperAdmin || user?.role === 'super_admin') && (
                                     <section>
-                                        <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Team Hub Status</h4>
+                                        <h4 className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mb-4">Collaboration Center Status</h4>
                                         <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-white/5 p-5">
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <p className="font-bold text-slate-900 dark:text-white text-sm">Ignore Absent Status</p>
-                                                    <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5 max-w-[280px]">Treat absent users as if they are active, preventing their tasks from being grayed out in the Team Hub.</p>
+                                                    <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5 max-w-[280px]">Treat absent users as if they are active, preventing their tasks from being grayed out in the Collaboration Center.</p>
                                                 </div>
                                                 <ToggleSwitch
                                                     enabled={preferences.ignoreAbsentStatus}

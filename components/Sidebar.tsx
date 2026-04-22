@@ -15,6 +15,7 @@ import { CalendarIcon } from './icons/CalendarIcon';
 import { Cog6ToothIcon } from './icons/Cog6ToothIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
 import { GanttIcon } from './icons/GanttIcon';
+import { FlagIcon } from './icons/FlagIcon';
 import { PresentationChartLineIcon } from './icons/PresentationChartLineIcon';
 import { cardAccents } from './WorkspaceHomePage';
 import { usePreferences } from './hooks/usePreferences';
@@ -78,10 +79,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // ── Workspace-specific navigation items ──────────────────────────────────
   const workspaceViews: { id: string; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: 'home', label: 'Dashboard', icon: HomeIcon },
-    { id: 'board', label: 'Task Board', icon: ViewColumnsIcon },
-    { id: 'gantt', label: 'Gantt Chart', icon: GanttIcon },
-    { id: 'members', label: 'Members', icon: UsersIcon },
+    { id: 'home', label: 'Overview', icon: HomeIcon },
+    { id: 'board', label: 'Workflow Management', icon: ViewColumnsIcon },
+    { id: 'targets', label: 'Strategic Targets', icon: FlagIcon },
+    { id: 'gantt', label: 'Project Timeline', icon: GanttIcon },
+    { id: 'members', label: 'Team Directory', icon: UsersIcon },
     ...(currentSpaceRole === 'admin' || isSuperAdmin
       ? [
         { id: 'settings', label: 'Settings', icon: Cog6ToothIcon }
@@ -360,10 +362,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       } ${!isOpen && 'justify-center px-0'}`}
                   >
                     <ChartBarIcon className="w-5 h-5 flex-shrink-0" />
-                    {isOpen && <span>Analytics</span>}
+                    {isOpen && <span>Performance Analytics</span>}
                     {!isOpen && (
                       <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-[#1E1E1E] text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-                        Analytics
+                        Performance Analytics
                       </div>
                     )}
                   </button>
@@ -377,10 +379,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                         } ${!isOpen && 'justify-center px-0'}`}
                     >
                       <PresentationChartLineIcon className="w-5 h-5 flex-shrink-0" />
-                      {isOpen && <span>Assign Task</span>}
+                      {isOpen && <span>Task Assignment</span>}
                       {!isOpen && (
                         <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-[#1E1E1E] text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-                          Assign Task
+                          Task Assignment
                         </div>
                       )}
                     </button>
@@ -388,7 +390,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </>
               )}
 
-              {/* Team Hub */}
+              {/* Collaboration Center */}
               <button
                 onClick={() => onViewChange('summary')}
                 className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-[20px] text-sm font-bold transition-all duration-300 group relative
@@ -398,10 +400,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                   } ${!isOpen && 'justify-center px-0'}`}
               >
                 <ListBulletIcon className="w-5 h-5 flex-shrink-0" />
-                {isOpen && <span>Team Hub</span>}
+                {isOpen && <span>Team Collaboration</span>}
                 {!isOpen && (
                   <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-[#1E1E1E] text-sm font-bold rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-xl transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-                    Team Hub
+                    Team Collaboration
                   </div>
                 )}
               </button>

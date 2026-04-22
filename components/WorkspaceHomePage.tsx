@@ -41,14 +41,14 @@ const WorkspaceHomePage: React.FC<WorkspaceHomePageProps> = ({
     };
 
     const getUserRoleInSpace = (spaceId: string) => {
-        if (isSuperAdmin) return 'Super Admin';
+        if (isSuperAdmin) return 'Executive Administrator';
         const m = memberships.find(m => m.space_id === spaceId && m.user_id === user.employeeId);
-        return m?.role === 'admin' ? 'Admin' : 'Member';
+        return m?.role === 'admin' ? 'Manager' : 'Member';
     };
 
     const roleBadge = (role: string) => {
-        if (role === 'Super Admin') return 'bg-violet-500/15 text-violet-600 dark:text-violet-300 border border-violet-500/25 dark:border-violet-400/25';
-        if (role === 'Admin') return 'bg-amber-500/15  text-amber-600  dark:text-amber-300  border border-amber-500/25  dark:border-amber-400/25';
+        if (role === 'Executive Administrator') return 'bg-violet-500/15 text-violet-600 dark:text-violet-300 border border-violet-500/25 dark:border-violet-400/25';
+        if (role === 'Manager') return 'bg-amber-500/15  text-amber-600  dark:text-amber-300  border border-amber-500/25  dark:border-amber-400/25';
         return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/25 dark:border-emerald-400/25';
     };
 

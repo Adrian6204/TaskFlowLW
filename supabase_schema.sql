@@ -178,7 +178,7 @@ create policy "Enable read for members of the space" on public.space_members for
 
 drop policy if exists "Enable update for admins and owners" on public.space_members;
 create policy "Enable update for admins and owners" on public.space_members for update to authenticated using (
-  -- Super Admins can update any member
+  -- Executive Administrators can update any member
   exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
   -- Space Owners can update any member in their space
   or exists (select 1 from public.spaces where id = space_id and owner_id = auth.uid())
@@ -188,7 +188,7 @@ create policy "Enable update for admins and owners" on public.space_members for 
 
 drop policy if exists "Enable delete for super admins and owners" on public.space_members;
 create policy "Enable delete for super admins and owners" on public.space_members for delete to authenticated using (
-  -- Super Admins can remove members
+  -- Executive Administrators can remove members
   exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
   -- Space Owners can remove members in their space
   or exists (select 1 from public.spaces where id = space_id and owner_id = auth.uid())

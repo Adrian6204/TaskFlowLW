@@ -57,20 +57,38 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
   };
 
   const getTaskPosition = (task: Task) => {
-    const dueDate = new Date(task.dueDate);
-    const createdDate = task.createdAt ? new Date(task.createdAt) : new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000);
+    // If endDate exists, dueDate is the start and endDate is the end.
+    // Otherwise, createdAt is the start and dueDate is the end.
+    const actualEnd = task.endDate ? new Date(task.endDate) : new Date(task.dueDate);
+    const actualStart = task.endDate ? new Date(task.dueDate) : (task.createdAt ? new Date(task.createdAt) : new Date(actualEnd.getTime() - 24 * 60 * 60 * 1000));
 
-    const startIndex = days.findIndex(d => d.toDateString() === createdDate.toDateString());
-    const endIndex = days.findIndex(d => d.toDateString() === dueDate.toDateString());
+    // Reset times to midnight for accurate day comparison
+    actualStart.setHours(0, 0, 0, 0);
+    actualEnd.setHours(0, 0, 0, 0);
 
-    if (startIndex === -1 && endIndex === -1) return null;
+    const chartStart = days[0];
+    const chartEnd = days[days.length - 1];
 
-    const actualStart = Math.max(0, startIndex === -1 ? 0 : startIndex);
-    const actualEnd = Math.min(days.length - 1, endIndex === -1 ? days.length - 1 : endIndex);
+    // Check if task overlaps with current view
+    if (actualEnd < chartStart || actualStart > chartEnd) return null;
+
+    // Calculate indices, clipping to view boundaries
+    let startIndex = days.findIndex(d => d.toDateString() === actualStart.toDateString());
+    let endIndex = days.findIndex(d => d.toDateString() === actualEnd.toDateString());
+
+    const actualStartIndex = startIndex === -1 
+      ? (actualStart < chartStart ? 0 : -1) 
+      : startIndex;
+      
+    const actualEndIndex = endIndex === -1 
+      ? (actualEnd > chartEnd ? days.length - 1 : -1) 
+      : endIndex;
+
+    if (actualStartIndex === -1 || actualEndIndex === -1) return null;
 
     return {
-      start: actualStart,
-      span: actualEnd - actualStart + 1
+      start: actualStartIndex,
+      span: actualEndIndex - actualStartIndex + 1
     };
   };
 
@@ -323,6 +341,10 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
                         [Priority.LOW]: 'bg-zinc-400',
                       };
 
+                      const totalSubtasks = (task.subtasks || []).length;
+                      const completedSubtasks = (task.subtasks || []).filter(st => st.isCompleted).length;
+                      const progressPercentage = task.status === TaskStatus.DONE ? 100 : (totalSubtasks === 0 ? 0 : Math.round((completedSubtasks / totalSubtasks) * 100));
+
                       return (
                         <div key={task.id} className="w-full relative h-9 shrink-0 group/bar">
                           <div
@@ -330,22 +352,39 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, employees, onViewTask })
                             className={`absolute inset-y-0 rounded-lg ${task.status === TaskStatus.DONE ? completedStyle : priorityColors[task.priority]} cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all flex items-center border shadow-sm overflow-hidden z-10 hover:z-20`}
                             style={{ left: `${leftPercent}%`, width: `${widthPercent}%`, margin: '0 2px' }}
                           >
+                            {/* Progress Fill Background (for non-completed status) */}
+                            {task.status !== TaskStatus.DONE && progressPercentage > 0 && (
+                              <div 
+                                className="absolute inset-y-0 left-0 bg-emerald-500/20 dark:bg-emerald-500/30 transition-all duration-500 border-r border-emerald-500/30"
+                                style={{ width: `${progressPercentage}%` }}
+                              />
+                            )}
+
                             {/* Priority left stripe */}
                             {task.status !== TaskStatus.DONE && (
-                              <div className={`w-1 self-stretch shrink-0 ${priorityBarColors[task.priority]} opacity-60`} />
+                              <div className={`w-1 self-stretch shrink-0 ${priorityBarColors[task.priority]} opacity-60 z-10`} />
                             )}
-                            <div className="flex items-center gap-1.5 px-2 w-full min-w-0">
-                              {task.status === TaskStatus.DONE && (
-                                <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
+                            
+                            <div className="flex items-center justify-between gap-1.5 px-2 w-full min-w-0 z-10">
+                              <div className="flex items-center gap-1.5 truncate">
+                                {task.status === TaskStatus.DONE && (
+                                  <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                                <span className="text-[10px] font-bold truncate leading-none">
+                                  {task.title}
+                                </span>
+                              </div>
+
+                              {/* Progress Label */}
+                              {progressPercentage > 0 && progressPercentage < 100 && (
+                                <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 opacity-80 shrink-0">
+                                  {progressPercentage}%
+                                </span>
                               )}
-                              <span className="text-[10px] font-bold truncate flex-1 leading-none">
-                                {task.title}
-                              </span>
                             </div>
                           </div>
-
                         </div>
                       );
                     })}

@@ -42,7 +42,7 @@ const MembersView: React.FC<MembersViewProps> = ({ employees, tasks, currentUser
     onConfirm: () => { }
   });
 
-  const isAdmin = currentUser.isAdmin || currentUser.role === 'super_admin' || currentUser.position === 'Admin';
+  const isAdmin = currentUser.isAdmin || currentUser.role === 'super_admin' || currentUser.position === 'Executive Administrator';
   // Check if current user is admin of THIS space specifically? 
   // For now simple admin check + Super Admin.
   // Ideally check space membership role too if available in employees list.

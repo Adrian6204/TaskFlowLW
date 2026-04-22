@@ -1,13 +1,13 @@
 import React from 'react';
 import { usePreferences } from './hooks/usePreferences';
 
-interface BentoCardProps {
+interface DashboardCardProps {
     children: React.ReactNode;
     className?: string;
     onClick?: () => void;
 }
 
-const BentoCard: React.FC<BentoCardProps> = ({ children, className = '', onClick }) => {
+const DashboardCard: React.FC<DashboardCardProps> = ({ children, className = '', onClick }) => {
     const [preferences] = usePreferences();
     return (
         <div
@@ -19,4 +19,4 @@ const BentoCard: React.FC<BentoCardProps> = ({ children, className = '', onClick
     );
 };
 
-export default BentoCard;
+export default DashboardCard;
