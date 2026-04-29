@@ -150,7 +150,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
   // All daily tasks are shown in the task list regardless of status
 
   // Stats
-  const totalTasks = myTasks.length;
+  const activeTodayTasksCount = todayTasks.filter(t => t.status !== TaskStatus.DONE).length;
   const completedTasks = myTasks.filter(t => t.status === TaskStatus.DONE).length;
   const inProgressTasks = myTasks.filter(t => t.status === TaskStatus.IN_PROGRESS).length;
 
@@ -270,7 +270,7 @@ const HomeView: React.FC<HomeViewProps> = ({ tasks, employees, currentSpace, use
 
           <div className="flex gap-8 mt-8 relative z-10">
             <div>
-              <p className="text-3xl font-black text-slate-900 dark:text-white">{totalTasks}</p>
+              <p className="text-3xl font-black text-slate-900 dark:text-white">{activeTodayTasksCount}</p>
               <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Total Active</p>
             </div>
             <div>

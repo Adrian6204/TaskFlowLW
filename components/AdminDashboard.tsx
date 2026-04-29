@@ -96,6 +96,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     // Calculations using filteredTasks
     const totalTasks = filteredTasks.length;
     const completedTasks = filteredTasks.filter((t: Task) => t.status === TaskStatus.DONE);
+    const activeTasksCount = filteredTasks.filter((t: Task) => t.status !== TaskStatus.DONE).length;
     const completionRate = totalTasks ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
     const overdueTasks = filteredTasks.filter((t: Task) => isTaskOverdue(t));
     const criticalTasks = filteredTasks.filter((t: Task) => t.priority === Priority.URGENT && t.status !== TaskStatus.DONE);
@@ -234,7 +235,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {/* Primary Stats - horizontal row */}
                     <div className="grid grid-cols-3 gap-6 border-t border-white/5 pt-4 relative z-10">
                         <div>
-                            <p className="text-4xl font-black text-slate-900 dark:text-white">{totalTasks}</p>
+                            <p className="text-4xl font-black text-slate-900 dark:text-white">{activeTasksCount}</p>
                             <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-white/40">Total Active</p>
                         </div>
                         <div>
