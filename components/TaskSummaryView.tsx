@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Task, Employee, TaskStatus, TaskFlowStatusUser } from '../types';
+import { Task, Employee, TaskStatus } from '../types';
 import { isTaskOverdue } from '../utils/taskUtils';
-import { isPresent, isLate, isLateFromTimeIn, isAbsent, isTimedOut } from '../utils/statusUtils';
-import { fetchTaskFlowStatus } from '../services/taskflowStatusService';
 import { Clock, Maximize2, Minimize2, ChevronDown, Check, Copy, LayoutGrid, List, CheckCircle2 } from 'lucide-react';
 import { usePreferences } from './hooks/usePreferences';
 import { TASK_STATUS_CONFIG } from '../constants/taskStatusConfig';
@@ -22,32 +20,12 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
     const [isCompact, setIsCompact] = useState(false);
     const [showCompleted, setShowCompleted] = useState(false);
     const [copying, setCopying] = useState(false);
-    const [attendanceMap, setAttendanceMap] = useState<Map<string, TaskFlowStatusUser>>(new Map());
     const wrapperRef = useRef<HTMLDivElement>(null);
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const [memberFilterOpen, setMemberFilterOpen] = useState(false);
     const memberWrapperRef = useRef<HTMLDivElement>(null);
 
-    // Fetch attendance status on mount
-    useEffect(() => {
-        fetchTaskFlowStatus()
-            .then(res => {
-                const map = new Map<string, TaskFlowStatusUser>();
-                res.users.forEach(u => map.set(u.full_name.trim().toLowerCase(), { ...u, status: u.status?.toLowerCase() }));
-                setAttendanceMap(map);
-            })
-            .catch(() => {/* non-critical — renders without attendance data */});
-    }, []);
 
-    type AttendanceState = 'present' | 'late' | 'absent' | 'unknown';
-
-    const getAttendanceState = (empName: string): AttendanceState => {
-        const record = attendanceMap.get(empName.trim().toLowerCase());
-        if (!record) return 'unknown';
-        if (isPresent(record.status) || isLate(record.status)) return isLateFromTimeIn(record.time_in) ? 'late' : 'present';
-        if (isAbsent(record.status) || isTimedOut(record.status)) return preferences.ignoreAbsentStatus ? 'unknown' : 'absent';
-        return 'unknown';
-    };
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -395,13 +373,8 @@ const TaskSummaryView: React.FC<TaskSummaryViewProps> = ({ tasks, employees, onV
                 style={{ scrollBehavior: 'smooth' }}
             >
                 {tasksByUser.map(({ employee, userTasks }) => {
-                    const attendance = getAttendanceState(employee.fullName || employee.name);
-                    const isInactive = attendance === 'absent';
-                    const attendanceBadge = attendance === 'late'
-                        ? <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">Late</span>
-                        : attendance === 'absent'
-                            ? <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-red-50 text-red-500 border border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">Absent</span>
-                            : null;
+                    const isInactive = false;
+                    const attendanceBadge = null;
 
                     return isCompact ? (
                         /* Compact Row Layout */
