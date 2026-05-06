@@ -36,6 +36,7 @@ import { useDailyTasks } from '../hooks/useDailyTasks';
 import { useTheme } from './hooks/useTheme';
 import { usePreferences } from './hooks/usePreferences';
 import SpaceSettingsView from './SpaceSettingsView';
+import ChatBubble from './ChatBubble';
 import { isTaskOverdue, isTaskAvailable, isRecurringTaskReadyForAutoComplete } from '../utils/taskUtils';
 
 interface MainAppProps {
@@ -683,6 +684,7 @@ const MainApp: React.FC<MainAppProps> = ({ user, onLogout }) => {
                     />
                 )}
 
+                <ChatBubble onDataChanged={loadData} />
 
             </div>
         </>
